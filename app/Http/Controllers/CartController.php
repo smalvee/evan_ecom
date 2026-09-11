@@ -30,7 +30,7 @@ class CartController extends Controller
             'id' => 'required',
             'qty' => 'required|integer|min:1',
         ]);
-        $product = DB::table('product_variants as pv')->leftJoin('product_images as pi', 'pi.product_id', '=', 'pv.id')->select('pv.id', 'pv.sku', 'pv.selling_price', 'pv.qty', 'pi.image')->where('pv.id', $request->id)->orderBy('pi.sort_order', 'asc')->first();
+        $product = DB::table('product_variants as pv')->leftJoin('product_images as pi', 'pi.product_id', '=', 'pv.id')->leftJoin('new_products as np', 'np.id', '=', 'pv.product_id')->select('pv.id', 'pv.sku', 'pv.selling_price', 'pv.qty', 'pi.image', 'np.free_delivery')->where('pv.id', $request->id)->orderBy('pi.sort_order', 'asc')->first();
 
         if (!$product) {
             return response()->json([
@@ -68,6 +68,7 @@ class CartController extends Controller
             $product->selling_price,
             [
                 'productImage' => $product->image,
+                'freeDelivery' => (int) ($product->free_delivery ?? 0),
             ],
         );
 
@@ -123,19 +124,20 @@ class CartController extends Controller
 
         $itemInfo = Cart::get($rowId);
         $product = ProductVariant::find($itemInfo->id);
-        // check qty available
 
-        if ($product->track_qty == 'Yes') {
-            if ($qty <= $product->qty) {
-                Cart::update($rowId, $qty);
-                $message = 'Cart updated successfully';
-                $status = true;
-                session()->flash('success', $message);
-            } else {
-                $message = 'Requested quantity (' . $qty . ') not available. Only ' . $product->qty . ' items are available';
-                $status = false;
-                session()->flash('error', $message);
-            }
+        if (!$product) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Product not found',
+            ]);
+        }
+
+        $availableQty = $product->qty !== null ? (int) $product->qty : null;
+
+        if ($availableQty !== null && $qty > $availableQty) {
+            $message = 'Requested quantity (' . $qty . ') not available. Only ' . $availableQty . ' items are available';
+            $status = false;
+            session()->flash('error', $message);
         } else {
             Cart::update($rowId, $qty);
             $message = 'Cart updated successfully';
@@ -170,7 +172,7 @@ class CartController extends Controller
         }
 
         // Render updated cart sidebar
-        $cartView = view('front.layouts.cart-sidebar', [
+        $cartView = view('front.layouts.card-sidebar', [
             'cartContent' => Cart::content(),
         ])->render();
 
@@ -287,7 +289,12 @@ class CartController extends Controller
 
         // ✅ STEP 3: Calculate amounts
         $subTotal = (float) Cart::subtotal(2, '.', '');
-        $shipping = (float) $request->shipping_charge;
+        $shipping = ShippingCharge::rateForDistrict($request->district);
+
+        if (Order::isFreeDeliveryCart(Cart::content())) {
+            $shipping = 0;
+        }
+
         $discount = 0;
         $couponCode = null;
 
@@ -319,40 +326,53 @@ class CartController extends Controller
 
         $grandTotal = $subTotal + $shipping - $discount;
 
-        // ✅ STEP 4: Create Order
-        $order = new Order();
-        $order->user_id = $user->id;
-        $order->subtotal = $subTotal;
-        $order->shipping = $shipping;
-        $order->discount = $discount;
-        $order->coupon_code = $couponCode;
-        $order->grand_total = $grandTotal;
-        $order->name = $request->name;
-        $order->phone = $request->phone;
-        $order->address = $request->address;
-        $order->notes = $request->order_note;
-        $order->save(); // save first to get $order->id
+        try {
+            DB::beginTransaction();
 
-        // Now generate custom order_id like YYYYMMDD + id (e.g., 20251010023)
-        $order->order_id = date('Y') . str_pad($order->id, 4, '0', STR_PAD_LEFT);
-        $order->save();
+            // ✅ STEP 4: Create Order
+            $order = new Order();
+            $order->user_id = $user->id;
+            $order->subtotal = $subTotal;
+            $order->shipping = $shipping;
+            $order->discount = $discount;
+            $order->coupon_code = $couponCode;
+            $order->grand_total = $grandTotal;
+            $order->name = $request->name;
+            $order->phone = $request->phone;
+            $order->address = $request->address;
+            $order->notes = $request->order_note;
+            $order->save(); // save first to get $order->id
 
-        // ✅ STEP 5: Store Order Items
-        foreach (Cart::content() as $item) {
-            $orderItem = new OrderItem();
-            $orderItem->product_id = $item->id;
-            $orderItem->order_id = $order->id;
-            $orderItem->name = $item->name;
-            $orderItem->qty = $item->qty;
-            $orderItem->price = $item->price;
-            $orderItem->total = $item->price * $item->qty;
-            $orderItem->save();
+            // Now generate custom order_id like YYYYMMDD + id (e.g., 20251010023)
+            $order->order_id = date('Y') . str_pad($order->id, 4, '0', STR_PAD_LEFT);
+            $order->save();
 
-            // Decrease stock
-            $product = ProductVariant::find($item->id);
-            if ($product) {
-                $product->decrement('qty', $item->qty);
+            // ✅ STEP 5: Store Order Items
+            foreach (Cart::content() as $item) {
+                $orderItem = new OrderItem();
+                $orderItem->product_id = $item->id;
+                $orderItem->order_id = $order->id;
+                $orderItem->name = $item->name;
+                $orderItem->qty = $item->qty;
+                $orderItem->price = $item->price;
+                $orderItem->total = $item->price * $item->qty;
+                $orderItem->free_delivery = (int) ($item->options->freeDelivery ?? 0);
+                $orderItem->save();
+
+                // Decrease stock
+                $product = ProductVariant::find($item->id);
+                if ($product) {
+                    $product->decrement('qty', $item->qty);
+                }
             }
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => false,
+                'message' => 'Something went wrong. Please try again.',
+            ]);
         }
 
         // ✅ STEP 6: Clear Cart
@@ -446,7 +466,12 @@ class CartController extends Controller
         $shippingCharge = ShippingCharge::all();
         $products = Product::latest('id')->where('status', 1)->where('qty', '>=', 1)->with('product_image')->get();
 
-        $selected_products = ProductVariant::where('id', $id)->get();
+        $selected_products = ProductVariant::with('product')->where('id', $id)->get();
+
+        $selectedFreeDelivery = false;
+        if ($selected_products->isNotEmpty()) {
+            $selectedFreeDelivery = (bool) ($selected_products->first()->product->free_delivery ?? false);
+        }
 
         $selected_qty = $request->qty;
 
@@ -461,6 +486,8 @@ class CartController extends Controller
         $data['categories'] = $categories;
         $data['selected_products'] = $selected_products;
         $data['selected_qty'] = $selected_qty;
+        $data['selectedFreeDelivery'] = $selectedFreeDelivery;
+        $data['districtAmounts'] = ShippingCharge::ratesByDistrict();
 
         return view('front.pages.new_single_checkout', $data);
     }
@@ -514,17 +541,16 @@ class CartController extends Controller
             ],
         );
 
-        $shipping_charge = 0;
-
-        if ($request->shipping_charge == 0 || $request->shipping_charge == null) {
-            $shipping_charge = 130;
-        } else {
-            $shipping_charge = $request->shipping_charge;
-        }
-
         // ✅ STEP 3: Calculate amounts
         $subTotal = (float) $request->subtotal;
-        $shipping = $shipping_charge;
+
+        $freeDelivery = false;
+        $variant = ProductVariant::find($request->product_id);
+        if ($variant) {
+            $freeDelivery = (bool) ($variant->product->free_delivery ?? false);
+        }
+
+        $shipping = $freeDelivery ? 0 : ShippingCharge::rateForDistrict($request->district);
         $discount = 0;
         $couponCode = null;
 
@@ -556,39 +582,52 @@ class CartController extends Controller
 
         $grandTotal = $subTotal + $shipping - $discount;
 
-        // ✅ STEP 4: Create Order
-        $order = new Order();
-        $order->user_id = $user->id;
-        $order->subtotal = $subTotal;
-        $order->shipping = $shipping;
-        $order->discount = $discount;
-        $order->coupon_code = $couponCode;
-        $order->grand_total = $grandTotal;
-        $order->name = $request->name;
-        $order->phone = $request->phone;
-        $order->address = $request->address;
-        $order->notes = $request->order_note;
-        $order->save(); // save first to get $order->id
+        try {
+            DB::beginTransaction();
 
-        // Now generate custom order_id like YYYYMMDD + id (e.g., 20251010023)
-        $order->order_id = date('Y') . str_pad($order->id, 4, '0', STR_PAD_LEFT);
-        $order->save();
+            // ✅ STEP 4: Create Order
+            $order = new Order();
+            $order->user_id = $user->id;
+            $order->subtotal = $subTotal;
+            $order->shipping = $shipping;
+            $order->discount = $discount;
+            $order->coupon_code = $couponCode;
+            $order->grand_total = $grandTotal;
+            $order->name = $request->name;
+            $order->phone = $request->phone;
+            $order->address = $request->address;
+            $order->notes = $request->order_note;
+            $order->save(); // save first to get $order->id
 
-        // ✅ STEP 5: Store Order Items
+            // Now generate custom order_id like YYYYMMDD + id (e.g., 20251010023)
+            $order->order_id = date('Y') . str_pad($order->id, 4, '0', STR_PAD_LEFT);
+            $order->save();
 
-        $orderItem = new OrderItem();
-        $orderItem->product_id = $request->product_id;
-        $orderItem->order_id = $order->id;
-        $orderItem->name = $request->product_sku;
-        $orderItem->qty = $request->selected_qty;
-        $orderItem->price = $request->selling_price;
-        $orderItem->total = $request->subtotal;
-        $orderItem->save();
+            // ✅ STEP 5: Store Order Items
 
-        // Decrease stock
-        $product = ProductVariant::find($request->product_id);
-        if ($product) {
-            $product->decrement('qty', $request->selected_qty);
+            $orderItem = new OrderItem();
+            $orderItem->product_id = $request->product_id;
+            $orderItem->order_id = $order->id;
+            $orderItem->name = $request->product_sku;
+            $orderItem->qty = $request->selected_qty;
+            $orderItem->price = $request->selling_price;
+            $orderItem->total = $request->subtotal;
+            $orderItem->free_delivery = $freeDelivery;
+            $orderItem->save();
+
+            // Decrease stock
+            $product = ProductVariant::find($request->product_id);
+            if ($product) {
+                $product->decrement('qty', $request->selected_qty);
+            }
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => false,
+                'message' => 'Something went wrong. Please try again.',
+            ]);
         }
 
         return response()->json([

@@ -22,13 +22,14 @@ class ShippingController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'location' => 'required',
+            'district' => 'required',
             'amount' => 'required',
         ]);
 
         if ($validator->passes()) {
             $shipping = new ShippingCharge();
-            $shipping->location = $request->location;
+            $shipping->district = $request->district;
+            $shipping->location = $request->district;
             $shipping->amount = $request->amount;
             $shipping->save();
 
@@ -66,12 +67,13 @@ class ShippingController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'location' => 'required',
+            'district' => 'required',
             'amount' => 'required',
         ]);
 
         if ($validator->passes()) {
-            $shippingCharge->location = $request->location;
+            $shippingCharge->district = $request->district;
+            $shippingCharge->location = $request->district;
             $shippingCharge->amount = $request->amount;
             $shippingCharge->save();
 

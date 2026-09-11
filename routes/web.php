@@ -237,13 +237,7 @@ Route::group(['prefix' => 'admin'], function () {
 
         // advertise
         Route::get('/advertise', [AdvertisementController::class, 'index'])->name('advertise.index');
-        Route::post('/add-store-1', [AdvertisementController::class, 'store_01'])->name('add_01.store');
-        Route::post('/add-store-2', [AdvertisementController::class, 'store_02'])->name('add_02.store');
-        Route::post('/add-store-3', [AdvertisementController::class, 'store_03'])->name('add_03.store');
-        Route::post('/add-store-4', [AdvertisementController::class, 'store_04'])->name('add_04.store');
-        Route::post('/add-store-5', [AdvertisementController::class, 'store_05'])->name('add_05.store');
-        Route::post('/add-store-6', [AdvertisementController::class, 'store_06'])->name('add_06.store');
-        Route::post('/add-store-7', [AdvertisementController::class, 'store_07'])->name('add_07.store');
+        Route::post('/add-store/{slot}', [AdvertisementController::class, 'update'])->name('advertisements.update');
 
         // product Image
         Route::get('/product-list', [ImageController::class, 'get_product_list'])->name('get_product_list.index');

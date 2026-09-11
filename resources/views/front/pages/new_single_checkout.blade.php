@@ -4,8 +4,6 @@
     <?php
     use App\Models\NewProduct;
     
-    $districts = ['Bagerhat', 'Bandarban', 'Barguna', 'Barishal', 'Bhola', 'Bogura', 'Brahmanbaria', 'Chandpur', 'Chattogram', 'Chuadanga', 'Cox’s Bazar', 'Cumilla', 'Dhaka', 'Dinajpur', 'Faridpur', 'Feni', 'Gaibandha', 'Gazipur', 'Gopalganj', 'Habiganj', 'Jamalpur', 'Jashore', 'Jhalokathi', 'Jhenaidah', 'Joypurhat', 'Khagrachhari', 'Khulna', 'Kishoreganj', 'Kurigram', 'Kushtia', 'Lakshmipur', 'Lalmonirhat', 'Madaripur', 'Magura', 'Manikganj', 'Meherpur', 'Moulvibazar', 'Munshiganj', 'Mymensingh', 'Naogaon', 'Narail', 'Narayanganj', 'Narsingdi', 'Natore', 'Netrakona', 'Nilphamari', 'Noakhali', 'Pabna', 'Panchagarh', 'Patuakhali', 'Pirojpur', 'Rajbari', 'Rajshahi', 'Rangamati', 'Rangpur', 'Satkhira', 'Shariatpur', 'Sherpur', 'Sirajganj', 'Sunamganj', 'Sylhet', 'Tangail', 'Thakurgaon'];
-    
     ?>
     <div class="checkout-section container my-4" style="max-width:800px; margin:auto;">
         <div class="card" style="border-radius:12px; overflow:hidden; box-shadow:0 8px 25px rgba(0,0,0,0.3);">
@@ -49,7 +47,7 @@
                                 করুন</label>
                             <select name="district" id="district" class="form-select">
                                 <option value="">-- Select District --</option>
-                                @foreach ($districts as $district)
+                                @foreach (config('districts.list') as $district)
                                     <option value="{{ $district }}">{{ $district }}</option>
                                 @endforeach
                             </select>
@@ -69,7 +67,7 @@
                                 করুন</label>
                             <select name="district" id="district" class="form-select">
                                 <option value="">-- Select District --</option>
-                                @foreach ($districts as $district)
+                                @foreach (config('districts.list') as $district)
                                     <option value="{{ $district }}">{{ $district }}</option>
                                 @endforeach
                             </select>
@@ -113,6 +111,9 @@
                                     - <strong style="color:#FC8934;">Tk
                                         {{ number_format($item->selling_price, 2) }}</strong>
                                     <strong style="color:#000000;">x {{ $selected_qty }}</strong>
+                                    @if ($selectedFreeDelivery)
+                                        <span class="badge bg-success ms-1">Free Delivery</span>
+                                    @endif
                                 </p>
                                 <input type="hidden" name="selling_price" value="{{ $item->selling_price }}">
                                 <input type="hidden" name="selected_qty" value="{{ $selected_qty }}">
@@ -209,16 +210,13 @@
             //     updateTotals();
             // });
 
+            const shippingRates = @json($districtAmounts ?? []);
+            const selectedFreeDelivery = {{ $selectedFreeDelivery ? 'true' : 'false' }};
+
             $("#district").on("change", function() {
                 let district = $(this).val();
 
-                if (district === "Dhaka") {
-                    shipping = 70;
-                } else if (district !== "") {
-                    shipping = 130;
-                } else {
-                    shipping = 0;
-                }
+                shipping = selectedFreeDelivery ? 0 : (district ? (parseFloat(shippingRates[district]) || 0) : 0);
 
                 updateTotals(); 
             });

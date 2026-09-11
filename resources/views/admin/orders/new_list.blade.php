@@ -50,6 +50,13 @@
                                                         style="text-decoration:none;">
                                                         {{ $order->order_id }}
                                                     </a>
+                                                    @if ($order->items->contains(fn($i) => (int) $i->free_delivery === 1))
+                                                        <div>
+                                                            <span
+                                                                style="font-size:10px;padding:2px 6px;background:#198754;color:#fff;border-radius:4px;">Free
+                                                                Delivery</span>
+                                                        </div>
+                                                    @endif
                                                 </td>
 
 

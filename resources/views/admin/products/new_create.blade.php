@@ -81,6 +81,17 @@
                                         </select>
                                         <p class="invalid-feedback"></p>
                                     </div>
+
+                                    <div class="col-md-6">
+                                        <label for="free_delivery">Free Delivery</label>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" name="free_delivery"
+                                                id="free_delivery" value="1">
+                                            <label class="form-check-label" for="free_delivery">Free Delivery</label>
+                                        </div>
+                                        <small class="text-muted">Enable if this product should be delivered without
+                                            delivery charge.</small>
+                                    </div>
                                 </div>
                             </div>
 

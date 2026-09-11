@@ -8,7 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 class NewProduct extends Model
 {
     use HasFactory;
-    protected $fillable = ['name', 'slug', 'sku', 'unit_id', 'brand_id', 'cat_id', 'sub_cat_id', 'description', 'type', 'status', 'hot_products'];
+    protected $fillable = ['name', 'slug', 'sku', 'unit_id', 'brand_id', 'cat_id', 'sub_cat_id', 'description', 'type', 'status', 'hot_products', 'free_delivery'];
+
+    protected $casts = [
+        'free_delivery' => 'boolean',
+    ];
 
     public function product_variation()
     {

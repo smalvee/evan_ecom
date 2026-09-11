@@ -10,8 +10,6 @@
     use App\Models\VariationValues;
     use App\Models\Variation;
     
-    $districts = ['Bagerhat', 'Bandarban', 'Barguna', 'Barishal', 'Bhola', 'Bogura', 'Brahmanbaria', 'Chandpur', 'Chattogram', 'Chuadanga', 'Cox’s Bazar', 'Cumilla', 'Dhaka', 'Dinajpur', 'Faridpur', 'Feni', 'Gaibandha', 'Gazipur', 'Gopalganj', 'Habiganj', 'Jamalpur', 'Jashore', 'Jhalokathi', 'Jhenaidah', 'Joypurhat', 'Khagrachhari', 'Khulna', 'Kishoreganj', 'Kurigram', 'Kushtia', 'Lakshmipur', 'Lalmonirhat', 'Madaripur', 'Magura', 'Manikganj', 'Meherpur', 'Moulvibazar', 'Munshiganj', 'Mymensingh', 'Naogaon', 'Narail', 'Narayanganj', 'Narsingdi', 'Natore', 'Netrakona', 'Nilphamari', 'Noakhali', 'Pabna', 'Panchagarh', 'Patuakhali', 'Pirojpur', 'Rajbari', 'Rajshahi', 'Rangamati', 'Rangpur', 'Satkhira', 'Shariatpur', 'Sherpur', 'Sirajganj', 'Sunamganj', 'Sylhet', 'Tangail', 'Thakurgaon'];
-    
     ?>
     <!-- Breadcrumb Section Start -->
     <section class="breadcrumb-section pt-0">
@@ -72,11 +70,16 @@
                                                         </a>
                                                         <div class="product-detail">
                                                             <ul>
-                                                                <li class="name">
-                                                                    {{ \Illuminate\Support\Str::limit($get_product_info->name, 25) }}
-                                                                    <br>{{ $get_product_id->sku }}
+                                                                 <li class="name">
+                                                                     {{ \Illuminate\Support\Str::limit($get_product_info->name, 25) }}
+                                                                     <br>{{ $get_product_id->sku }}
 
-                                                                </li>
+                                                                     @if ($item->options->freeDelivery)
+                                                                         <br><span
+                                                                             class="badge bg-success">Free Delivery</span>
+                                                                     @endif
+
+                                                                 </li>
 
                                                                 {{-- <ul>
                                                                     @foreach ($get_product_id->variation_values as $items)
@@ -238,7 +241,7 @@
                                     District</label>
                                 <select name="district" id="district" class="form-select">
                                     <option value="">-- Select District --</option>
-                                    @foreach ($districts as $district)
+                                    @foreach (config('districts.list') as $district)
                                         <option value="{{ $district }}">{{ $district }}</option>
                                     @endforeach
                                 </select>
@@ -305,6 +308,9 @@
                                         x {{ $item->qty }}
                                         - <strong style="color:#FC8934;">Tk
                                             {{ number_format($item->price * $item->qty, 2) }}</strong>
+                                        @if ($item->options->freeDelivery)
+                                            <span class="badge bg-success ms-1">Free Delivery</span>
+                                        @endif
                                     </p>
                                 @endforeach
                             @else
@@ -386,16 +392,13 @@
             //     updateTotals();
             // });
 
+            const shippingRates = @json($districtAmounts ?? []);
+            const allFreeDelivery = {{ $allFreeDelivery ? 'true' : 'false' }};
+
             $("#district").on("change", function() {
                 let district = $(this).val();
 
-                if (district === "Dhaka") {
-                    shipping = 70;
-                } else if (district !== "") {
-                    shipping = 130;
-                } else {
-                    shipping = 0;
-                }
+                shipping = allFreeDelivery ? 0 : (district ? (parseFloat(shippingRates[district]) || 0) : 0);
 
                 updateTotals();
             });

@@ -56,6 +56,7 @@ class NewProductController extends Controller
             'sub_cat_id' => $request->sub_category,
             'description' => $request->description,
             'type' => $request->product_type,
+            'free_delivery' => $request->boolean('free_delivery'),
         ]);
 
         // Single product default variant
@@ -168,6 +169,7 @@ class NewProductController extends Controller
                 'type' => $request->product_type,
                 'status' => $request->status,
                 'hot_products' => $request->hot_products,
+                'free_delivery' => $request->boolean('free_delivery'),
             ],
         );
 

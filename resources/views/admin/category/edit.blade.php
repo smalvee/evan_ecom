@@ -1,92 +1,79 @@
-@extends('admin.layouts.app')
+@extends('admin.layouts.new_app')
 
 @section('content')
-    <!-- Content Header (Page header) -->
-    <section class="content-header">
-        <div class="container-fluid my-2">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h1>Edit Category</h1>
-                </div>
-                <div class="col-sm-6 text-right">
-                    <a href="{{ route('categories.index') }}" class="btn btn-primary">Back</a>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="card card-table">
+                    <div class="card-body">
+                        <div class="title-header option-title">
+                            <h5>Edit Category</h5>
+                            <a href="{{ route('categories.index') }}" class="align-items-center btn btn-theme d-flex">
+                                <i data-feather="arrow-left"></i>Back
+                            </a>
+                        </div>
+
+                        <form action="" method="POST" id="categoryForm">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="name" class="form-label">Name</label>
+                                        <input type="text" name="name" id="name" class="form-control"
+                                            placeholder="Name" value="{{ $category->name }}">
+                                        <p class="invalid-feedback"></p>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="slug" class="form-label">Slug</label>
+                                        <input type="text" name="slug" id="slug" readonly class="form-control"
+                                            placeholder="Slug" value="{{ $category->slug }}">
+                                        <p class="invalid-feedback"></p>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="image" class="form-label">Image Upload</label>
+                                        <input type="hidden" id="image_id" name="image_id" value="">
+                                        <div id="image" class="dropzone dz-clickable"
+                                            style="border: 2px dashed #6c757d; border-radius: 8px; background: #f8f9fa; padding: 30px; text-align: center; cursor: pointer;">
+                                            <div class="dz-message needsclick">
+                                                <i class="ri-upload-cloud-2-line" style="font-size: 40px; color: #6c757d;"></i>
+                                                <p class="mb-0 mt-2">Drag &amp; drop files here or click to browse</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @if (!empty($category->image))
+                                        <div class="mb-3">
+                                            <img width="200" src="{{ asset('uploads/category/thumb/' . $category->image) }}"
+                                                alt="">
+                                        </div>
+                                    @endif
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="status" class="form-label">Status</label>
+                                        <select name="status" id="status" class="form-select">
+                                            <option {{ $category->status == 1 ? 'selected' : '' }} value="1">Active</option>
+                                            <option {{ $category->status == 0 ? 'selected' : '' }} value="0">Block</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="pt-3">
+                                <button type="submit" class="btn btn-theme">Update</button>
+                                <a href="{{ route('categories.index') }}" class="btn btn-outline-secondary ms-2">Cancel</a>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
-        <!-- /.container-fluid -->
-    </section>
-    <!-- Main content -->
-    <section class="content">
-        <!-- Default box -->
-        <div class="container-fluid">
-            <form action="" method="POST" id="categoryForm">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="name">Name</label>
-                                    <input type="text" name="name" id="name" class="form-control"
-                                        placeholder="Name" value="{{ $category->name }}">
-                                    <p class="invalid-feedback"></p>
-                                </div>
-
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="slug">Slug</label>
-                                    <input type="text" name="slug" id="slug" readonly class="form-control"
-                                        placeholder="Slug" value="{{ $category->slug }}">
-                                    <p class="invalid-feedback"></p>
-                                </div>
-
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <input type="text" id="image_id" name="image_id" value="">
-                                    <label for="image" class="form-label fw-bold">Image Upload</label>
-                                    <div id="image" class="dropzone dz-clickable"
-                                        style="border: 2px dashed #0d6efd; border-radius: 12px; background: #f8f9fa; 
-                    transition: all 0.3s ease; padding: 30px; text-align: center; cursor: pointer;">
-                                        <div class="dz-message needsclick"
-                                            style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                                            <i class="bi bi-cloud-arrow-up"
-                                                style="font-size: 48px; color: #0d6efd; margin-bottom: 10px;"></i>
-                                            <p style="font-size: 1.1rem; font-weight: 600; color: #333; margin: 0;">
-                                                Drag & drop files here
-                                            </p>
-                                            <small style="font-size: 0.85rem; color: #6c757d;">or click to browse</small>
-                                        </div>
-                                    </div>
-                                </div>
-                                @if (!empty($category->image))
-                                <div>
-                                    <img width="250" src="{{ asset('uploads/category/thumb/'.$category->image) }}" alt="">
-                                </div>
-                                @endif
-                            </div>
-
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="status">Status</label>
-                                    <select name="status" id="status" class="form-control">
-                                        <option {{ ($category->status == 1) ? 'selected' : '' }} value="1">Active</option>
-                                        <option {{ ($category->status == 0) ? 'selected' : '' }} value="0">Block</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="pb-5 pt-3">
-                    <button type="submit" class="btn btn-primary">Update</button>
-                    <a href="{{ route('categories.index') }}" class="btn btn-outline-dark ml-3">Cancel</a>
-                </div>
-            </form>
-        </div>
-        <!-- /.card -->
-    </section>
-    <!-- /.content -->
+    </div>
 @endsection
 
 @section('customJs')
@@ -101,42 +88,28 @@
                 data: element.serializeArray(),
                 dataType: 'json',
                 success: function(response) {
-
                     $("button[type=submit]").prop('disabled', false);
 
-
                     if (response["status"] == true) {
-
-                        window.location.href = "{{ route('categories.index') }}";
-
-                        $("#name").removeClass('is-invalid')
-                            .siblings('.invalid-feedback').html('');
-
-                        $("#slug").removeClass('is-invalid')
-                            .siblings('.invalid-feedback').html('');
-
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success!',
+                            text: 'Category updated successfully!',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                        setTimeout(function() {
+                            window.location.href = "{{ route('categories.index') }}";
+                        }, 1500);
                     } else {
-                        var errors = response['errors'];
-                        if (errors['name']) {
-                            $("#name").addClass('is-invalid')
-                                .siblings('.invalid-feedback').html(errors['name']);
-                        } else {
-                            $("#name").removeClass('is-invalid')
-                                .siblings('.invalid-feedback').html('');
-                        }
-
-                        if (errors['slug']) {
-                            $("#slug").addClass('is-invalid')
-                                .siblings('.invalid-feedback').html(errors['slug']);
-                        } else {
-                            $("#slug").removeClass('is-invalid')
-                                .siblings('.invalid-feedback').html('');
-                        }
-
+                        var errors = response['errors'] || {};
+                        $('.form-control').removeClass('is-invalid');
+                        $('.invalid-feedback').html('');
+                        $.each(errors, function(key, value) {
+                            $('#' + key).addClass('is-invalid');
+                            $('#' + key).siblings('.invalid-feedback').html(value);
+                        });
                     }
-
-
-
                 },
                 error: function(jqXHR, exception) {
                     console.log("Something went wrong");
@@ -150,21 +123,16 @@
             $.ajax({
                 url: '{{ route('getSlug') }}',
                 type: 'get',
-                data: {
-                    title: element.val()
-                },
+                data: { title: element.val() },
                 dataType: 'json',
                 success: function(response) {
                     $("button[type=submit]").prop('disabled', false);
                     if (response["status"] == true) {
                         $("#slug").val(response["slug"]);
                     }
-
                 }
             });
-
         });
-
 
         Dropzone.autoDiscover = false;
         const dropzone = $("#image").dropzone({
@@ -185,7 +153,6 @@
             },
             success: function(file, response) {
                 $("#image_id").val(response.image_id);
-                //console.log(response)
             }
         });
     </script>

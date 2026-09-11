@@ -150,6 +150,7 @@
                                             <th width="120">Price</th>
                                             <th width="100">Qty</th>
                                             <th width="120">Discount</th>
+                                            <th width="120">Delivery</th>
                                             <th width="120">Total</th>
                                         </tr>
                                     </thead>
@@ -188,6 +189,14 @@
                                                 </td>
 
                                                 <td>
+                                                    @if ($item->free_delivery)
+                                                        <span class="badge bg-success">FREE</span>
+                                                    @else
+                                                        <span class="badge bg-secondary">Standard</span>
+                                                    @endif
+                                                </td>
+
+                                                <td>
                                                     Tk <span class="row-total-text">{{ $item->total }}</span>
                                                     <input type="hidden" class="row-total-input"
                                                         value="{{ $item->total }}">
@@ -198,7 +207,7 @@
 
                                     <tfoot>
                                         <tr>
-                                            <th colspan="4" class="text-end">Subtotal:</th>
+                                            <th colspan="5" class="text-end">Subtotal:</th>
                                             <td>
                                                 Tk <span id="subtotal-text">{{ $order->subtotal }}</span>
                                                 <input type="hidden" id="subtotal" name="subtotal"
@@ -207,7 +216,7 @@
                                         </tr>
 
                                         <tr>
-                                            <th colspan="4" class="text-end">Shipping:</th>
+                                            <th colspan="5" class="text-end">Shipping:</th>
                                             <td>
                                                 Tk <span id="shipping-text">{{ $order->shipping }}</span>
                                                 <input type="hidden" id="shipping" value="{{ $order->shipping }}">
@@ -215,7 +224,7 @@
                                         </tr>
 
                                         <tr>
-                                            <th colspan="4" class="text-end">Coupon Discount:</th>
+                                            <th colspan="5" class="text-end">Coupon Discount:</th>
                                             <td>
                                                 Tk - <span id="coupon-text">{{ $order->discount }}</span>
                                                 <input type="hidden" id="coupon" value="{{ $order->discount }}">
@@ -223,7 +232,7 @@
                                         </tr>
 
                                         <tr>
-                                            <th colspan="4" class="text-end fw-bold">Grand Total:</th>
+                                            <th colspan="5" class="text-end fw-bold">Grand Total:</th>
                                             <td>
                                                 Tk <span id="grand-total-text">{{ $order->grand_total }}</span>
                                                 <input type="hidden" id="grand-total"

@@ -27,7 +27,7 @@ class OrderController extends Controller
             $orders = $orders->orwhere('orders.order_id', 'like', '%' . $request->keyword . '%');
         }
 
-        $orders = $orders->paginate(10);
+        $orders = $orders->with('items')->paginate(10);
 
         $data['orders'] = $orders;
 
@@ -112,9 +112,6 @@ class OrderController extends Controller
             ],
         );
 
-        $grandTotal = $request->total_amount;
-        $subTotal = $grandTotal - $request->discount_amount - $request->discount_amount;
-
         // ✅ STEP 4: Create Order
         $order = new Order();
         $order->user_id = $user->id;
@@ -136,7 +133,7 @@ class OrderController extends Controller
 
         // ✅ STEP 5: Store Order Items from Request
         foreach ($request->products as $item) {
-            $product = ProductVariant::find($item['id']);
+            $product = ProductVariant::with('product')->find($item['id']);
             if (!$product) {
                 continue;
             }
@@ -149,6 +146,7 @@ class OrderController extends Controller
             $orderItem->price = $product->selling_price;
             $orderItem->discount = $item['discount'];
             $orderItem->total = $product->selling_price * $item['qty'] - $item['discount'];
+            $orderItem->free_delivery = (bool) ($product->product->free_delivery ?? false);
             $orderItem->save();
 
             // ✅ Decrease stock

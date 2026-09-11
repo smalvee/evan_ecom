@@ -26,10 +26,14 @@ class TempImagesController extends Controller
 
             $image->move(public_path() . '/temp', $newName);
 
-            // Generate thumb image
-            $sourcePath = public_path() . '/temp/' . $newName;
-            $destPath = public_path() . '/temp/thumb/' . $newName;
-            Image::read($sourcePath)->save($destPath);
+            // Generate thumb image (optional — do not fail the upload if image driver is unavailable)
+            try {
+                $sourcePath = public_path() . '/temp/' . $newName;
+                $destPath = public_path() . '/temp/thumb/' . $newName;
+                Image::read($sourcePath)->save($destPath);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Thumbnail generation failed: ' . $e->getMessage());
+            }
 
             return response()->json([
                 'status' => true,

@@ -18,7 +18,7 @@ class PageInfoController extends Controller
     public function ViewAboutUs()
     {
         $cartContent = Cart::content();
-        $about_us = AboutUs::find(1)->first();
+        $about_us = AboutUs::firstOrNew();
         $categories = Category::latest('id')->get();
 
         $user = Auth::user();
@@ -46,7 +46,7 @@ class PageInfoController extends Controller
     {
         $cartContent = Cart::content();
         $categories = Category::latest('id')->get();
-        $about_us = AboutUs::find(1)->first();
+        $about_us = AboutUs::firstOrNew();
 
         $user = Auth::user();
         $customerAddress = null; // default value
@@ -73,7 +73,7 @@ class PageInfoController extends Controller
         $cartContent = Cart::content();
         $categories = Category::latest('id')->get();
 
-        $about_us = AboutUs::find(1)->first();
+        $about_us = AboutUs::firstOrNew();
 
 
         $user = Auth::user();
@@ -98,7 +98,7 @@ class PageInfoController extends Controller
 
     public function displayaboutus()
     {
-        $about_us = AboutUs::find(1)->first();
+        $about_us = AboutUs::firstOrNew();
 
         // dd($about_us);
 
@@ -107,7 +107,7 @@ class PageInfoController extends Controller
 
       public function displayrefund()
     {
-        $about_us = AboutUs::find(1)->first();
+        $about_us = AboutUs::firstOrNew();
 
         // dd($about_us);
 
@@ -116,7 +116,7 @@ class PageInfoController extends Controller
 
          public function displayreturn()
     {
-        $about_us = AboutUs::find(1)->first();
+        $about_us = AboutUs::firstOrNew();
 
         // dd($about_us);
 

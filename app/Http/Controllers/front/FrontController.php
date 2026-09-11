@@ -163,7 +163,7 @@ class FrontController extends Controller
         $categories = Category::get();
         $cartContent = Cart::content();
         $banner = BannerPhoto::where('status', 1)->first();
-        $about_us = AboutUs::find(1)->first();
+        $about_us = AboutUs::firstOrNew();
 
         $data = [];
         // $data['products'] = $products;
@@ -180,7 +180,7 @@ class FrontController extends Controller
         $categories = Category::get();
         $cartContent = Cart::content();
         $banner = BannerPhoto::where('status', 1)->first();
-        $about_us = AboutUs::find(1)->first();
+        $about_us = AboutUs::firstOrNew();
 
         $user = Auth::user();
         $customerAddress = null; // default value
@@ -200,6 +200,8 @@ class FrontController extends Controller
 
         $data['customerAddress'] = $customerAddress;
         $data['shippingCharge'] = $shippingCharge;
+        $data['districtAmounts'] = ShippingCharge::ratesByDistrict();
+        $data['allFreeDelivery'] = Order::isFreeDeliveryCart(Cart::content());
 
         return view('front.pages.view_cart', $data);
     }
@@ -209,7 +211,7 @@ class FrontController extends Controller
         $categories = Category::get();
         $cartContent = Cart::content();
         $banner = BannerPhoto::where('status', 1)->first();
-        $about_us = AboutUs::find(1)->first();
+        $about_us = AboutUs::firstOrNew();
 
         $data = [];
         // $data['products'] = $products;
@@ -226,7 +228,7 @@ class FrontController extends Controller
         $categories = Category::get();
         $cartContent = Cart::content();
         $banner = BannerPhoto::where('status', 1)->first();
-        $about_us = AboutUs::find(1)->first();
+        $about_us = AboutUs::firstOrNew();
 
         $data = [];
         // $data['products'] = $products;
@@ -244,7 +246,7 @@ class FrontController extends Controller
         $categories = Category::get();
         $cartContent = Cart::content();
         $banner = BannerPhoto::where('status', 1)->first();
-        $about_us = AboutUs::find(1)->first();
+        $about_us = AboutUs::firstOrNew();
 
         $data = [];
         // $data['products'] = $products;

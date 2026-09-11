@@ -64,6 +64,13 @@
                     </li>
 
                     <li class="sidebar-list">
+                        <a class="sidebar-link sidebar-title link-nav" href="{{ route('users.index') }}">
+                            <i class="ri-user-3-line"></i>
+                            <span>Users</span>
+                        </a>
+                    </li>
+
+                    <li class="sidebar-list">
                         <a class="linear-icon-link sidebar-link sidebar-title" href="javascript:void(0)">
                             <i class="ri-store-3-line"></i>
                             <span>Product</span>
@@ -181,6 +188,20 @@
                         </ul>
                     </li>
                    
+
+                    <li class="sidebar-list">
+                        <a class="sidebar-link sidebar-title link-nav" href="{{ route('shipping.create') }}">
+                            <i class="ri-truck-line"></i>
+                            <span>Shipping</span>
+                        </a>
+                    </li>
+
+                    <li class="sidebar-list">
+                        <a class="sidebar-link sidebar-title link-nav" href="{{ route('banner.index') }}">
+                            <i class="ri-image-line"></i>
+                            <span>Banner</span>
+                        </a>
+                    </li>
 
                     <li class="sidebar-list">
                         <a class="sidebar-link sidebar-title link-nav" href="{{ route('advertise.index') }}">

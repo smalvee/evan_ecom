@@ -161,6 +161,10 @@
                                     <span style="color:#868686;font-size:12px;">
                                         SKU: {{ $product_variant_info->sku ?? '-' }}
                                     </span>
+                                    @if ($item->free_delivery)
+                                        <br>
+                                        <span style="color:#198754;font-weight:bold;font-size:12px;">Free Delivery</span>
+                                    @endif
                                 </td>
 
                                 <td style="border:1px solid #ddd;padding:8px;text-align:center;">{{ $item->qty }}

@@ -1,78 +1,73 @@
-@extends('admin.layouts.app')
+@extends('admin.layouts.new_app')
 
 @section('content')
-    <!-- Content Header (Page header) -->
-    <section class="content-header">
-        <div class="container-fluid my-2">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h1>Site Banner</h1>
-                </div>
-                <div class="col-sm-6 text-right">
-                    <a href="{{ route('products.index') }}" class="btn btn-primary">Back</a>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Main content -->
-    <section class="content">
-        <div class="container-fluid">
-            <form action="" method="post" name="createBanner" id="createBanner">
-                @csrf
-                <div class="row">
-                    <div class="col-md-8">
-                        <div class="card mb-3">
-                            <div class="card-body">
-                                <h2 class="h4 mb-3">Banner
-                                    <span style="color: red">(Please choose the Dimensions of 1100 x 480 pixels)</span>
-                                </h2>
-                                <div id="image" class="dropzone dz-clickable">
-                                    <div class="dz-message needsclick">
-                                        <br>Drop file here or click to upload.<br><br>
-                                    </div>
-                                </div>
-                            </div>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="card card-table">
+                    <div class="card-body">
+                        <div class="title-header option-title">
+                            <h5>Site Banner</h5>
                         </div>
 
-                        <!-- Preview -->
-                        <div class="row" id="product-gallery"></div>
-                        <input type="hidden" name="image_id" id="image_id">
+                        <form action="" method="post" name="createBanner" id="createBanner">
+                            @csrf
+                            <div class="row">
+                                <div class="col-lg-8">
+                                    <div class="card mb-3">
+                                        <div class="card-body">
+                                            <h5 class="mb-3">Banner
+                                                <span class="text-danger small">(Recommended dimensions 1100 x 480 pixels)</span>
+                                            </h5>
+                                            <div id="image" class="dropzone dz-clickable"
+                                                style="border: 2px dashed #6c757d; border-radius: 8px; padding: 30px; text-align: center; cursor: pointer;">
+                                                <div class="dz-message needsclick">Drop file here or click to upload.</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row g-3" id="product-gallery"></div>
+                                    <input type="hidden" name="image_id" id="image_id">
+                                </div>
+                            </div>
+
+                            <div class="pt-3">
+                                <button type="submit" class="btn btn-theme">Create</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
 
-                <div class="pb-5 pt-3">
-                    <button type="submit" class="btn btn-primary">Create</button>
+                <div class="card card-table">
+                    <div class="card-body">
+                        <div class="title-header option-title">
+                            <h5>Banner List</h5>
+                        </div>
+                        <div class="table-responsive category-table">
+                            <table class="table all-package theme-table" id="banners">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Image</th>
+                                        <th>Status</th>
+                                        <th>Option</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
-            </form>
-
-            <!-- Table will appear here -->
-            <div id="banner-table" class="mt-5">
-                <table class="table table-bordered" id="banners">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Image</th>
-                            <th>Status</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- rows will be appended dynamically -->
-                    </tbody>
-                </table>
             </div>
         </div>
-    </section>
+    </div>
 @endsection
 
 @section('customJs')
     <script>
-        // ✅ Form submit
         $("#createBanner").submit(function(event) {
             event.preventDefault();
 
-            // Must have an image
             if ($("#image_id").val() === '') {
                 alert("Please upload an image before saving.");
                 return false;
@@ -90,19 +85,20 @@
                     $("button[type=submit]").prop('disabled', false);
 
                     if (response["status"] === true) {
-                        // ✅ Show saved banners in table
-                        window.location.href = "{{ route('banner.index') }}";
-
-                        // renderBannerTable(response.data);
-
-                        // Reset form after save
-                        $("#product-gallery").empty();
-                        $("#image_id").val('');
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success!',
+                            text: 'Banner created successfully!',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                        setTimeout(function() {
+                            window.location.href = "{{ route('banner.index') }}";
+                        }, 1500);
                     } else {
                         var errors = response['errors'] || {};
                         $('.form-control').removeClass('is-invalid');
                         $('.invalid-feedback').html('');
-
                         $.each(errors, function(key, value) {
                             var input = $('#' + key);
                             input.addClass('is-invalid');
@@ -117,7 +113,6 @@
             });
         });
 
-        // ✅ Dropzone for single image
         Dropzone.autoDiscover = false;
         const dropzone = new Dropzone("#image", {
             url: "{{ route('temp-images.create') }}",
@@ -130,16 +125,15 @@
             },
             success: function(file, response) {
                 if (response && response.ImagePath) {
-                    // clear previous image
                     $("#product-gallery").html('');
                     $("#image_id").val(response.image_id);
 
                     let html = `
-                    <div class="col-md-3" id="image-row-${response.image_id}">
-                        <div class="card">
-                            <img class="card-img-top" src="${response.ImagePath}" alt="image">
-                            <div class="card-body">                        
-                                <a href="javascript:void(0)" onclick="deleteImage(${response.image_id})" class="btn btn-danger">Delete</a>
+                    <div class="col-6 col-md-3" id="image-row-${response.image_id}">
+                        <div class="card shadow-sm">
+                            <img class="card-img-top" src="${response.ImagePath}" alt="image" style="height:150px;object-fit:cover;">
+                            <div class="card-body text-center">
+                                <a href="javascript:void(0)" onclick="deleteImage(${response.image_id})" class="btn btn-danger btn-sm">Delete</a>
                             </div>
                         </div>
                     </div>`;
@@ -156,11 +150,9 @@
             $("#image_id").val('');
         }
 
-
         function deletebanner(id) {
-
             var url = '{{ route('banner.destroy', 'ID') }}';
-            var newUrl = url.replace("ID", id)
+            var newUrl = url.replace("ID", id);
 
             if (confirm("Are you sure to delete")) {
                 $.ajax({
@@ -176,26 +168,23 @@
                             window.location.href = "{{ route('banner.index') }}";
                         }
                     }
-                })
+                });
             }
-
-
         }
     </script>
 
-
     <script>
         const banners = <?= json_encode(
-                $banners
-                    ->map(function ($banner) {
-                        return [
-                            'id' => $banner->id,
-                            'image' => asset('uploads/banners/' . $banner->image),
-                            'status' => $banner->status == 1 ? 'Active' : 'Inactive', // convert 1/0
-                        ];
-                    })
-                    ->toArray(),
-            ) ?>;
+            $banners
+                ->map(function ($banner) {
+                    return [
+                        'id' => $banner->id,
+                        'image' => asset('uploads/banners/' . $banner->image),
+                        'status' => $banner->status == 1 ? 'Active' : 'Inactive',
+                    ];
+                })
+                ->toArray(),
+        ) ?>;
 
         const tbody = document.querySelector('#banners tbody');
 
@@ -205,22 +194,24 @@
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                 <td>${banner.id}</td>
-                <td><img src="${banner.image}" alt="Banner ${banner.id}" width="600"></td>
+                <td><img src="${banner.image}" alt="Banner ${banner.id}" class="img-fluid" style="max-width:300px;"></td>
                 <td id="status-${banner.id}" class="${banner.status === 'Active' ? 'text-success' : 'text-danger'}">
-                ${banner.status === 'Active' ? '✅ ' : ''}${banner.status}
+                    ${banner.status}
                 </td>
-
-            </td>
                 <td>
-                    <button class="btn btn-sm ${banner.status === 'Active' ? 'btn-primary' : 'btn-primary'}" 
-                        onclick="toggleStatus(${banner.id})">
-                        ${banner.status === 'Active' ? 'Make Deactivate' : 'Make Activate'}
-                    </button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="deletebanner(${banner.id})">
-                    Delete
-                </button>
+                    <ul>
+                        <li>
+                            <a href="javascript:void(0)" onclick="toggleStatus(${banner.id})">
+                                <i class="ri-toggle-line"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="javascript:void(0)" onclick="deletebanner(${banner.id})">
+                                <i class="ri-delete-bin-line"></i>
+                            </a>
+                        </li>
+                    </ul>
                 </td>
-                
             `;
                 tbody.appendChild(tr);
             });
@@ -237,13 +228,10 @@
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': '<?= csrf_token() ?>',
                     },
-                    body: JSON.stringify({
-                        id
-                    }),
+                    body: JSON.stringify({ id }),
                 });
 
-                // Update local state
-                banners.forEach(b => b.status = 'Inactive'); // deactivate all
+                banners.forEach(b => b.status = 'Inactive');
                 banner.status = 'Active';
 
                 renderTable();

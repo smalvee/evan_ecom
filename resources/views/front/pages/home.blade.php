@@ -105,26 +105,28 @@
     <!-- Category Section End -->
 
     <!-- Discount Section Start -->
-    {{-- <section>
+    <section>
         <div class="container-fluid-lg">
             <div class="row">
                 <div class="col-12">
                     <div class="banner-contain hover-effect">
-                        <img src=" {{ asset('uploads/add/' . $advertise->image_01) }}" class="bg-img blur-up lazyload"
-                            alt="">
-                        <div class="banner-details p-center p-sm-4 p-3 text-white text-center">
-                            <div style="visibility: hidden;">
-                                <h3 class="lh-base fw-bold text-white">
-                                    Get $3 Cashback! Min Order of $30
-                                </h3>
-                                <h6 class="coupon-code code-2">ASDFGH</h6>
+                        <a href="{{ $advertise->url_01 }}" target="_blank" class="d-block">
+                            <img src="{{ asset('uploads/add/' . $advertise->image_01) }}" class="bg-img blur-up lazyload"
+                                alt="{{ $advertise->name_01 }}">
+                            <div class="banner-details p-center p-sm-4 p-3 text-white text-center">
+                                <div style="visibility: hidden;">
+                                    <h3 class="lh-base fw-bold text-white">
+                                        Get $3 Cashback! Min Order of $30
+                                    </h3>
+                                    <h6 class="coupon-code code-2">ASDFGH</h6>
+                                </div>
                             </div>
-                        </div>
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
-    </section> --}}
+    </section>
     <!-- Discount Section End -->
 
     <!-- Banner Section Start -->
@@ -132,9 +134,9 @@
         <div class="container-fluid-lg">
             <div class="row g-3">
                 <div class="col-xxl-3 col-sm-6">
-                    <a href="{{ $advertise->url_02 }}" class="banner-contain-2 hover-effect">
+                    <a href="{{ $advertise->url_02 }}" target="_blank" class="banner-contain-2 hover-effect">
                         <img src="{{ asset('uploads/add/' . $advertise->image_02) }}" class="bg-img blur-up lazyload"
-                            alt="">
+                            alt="{{ $advertise->name_02 }}">
                         <div class="banner-detail p-top-left">
                             <div>
                                 {{-- <div class="banner-detail-box mb-md-3 mb-1">
@@ -148,9 +150,9 @@
                 </div>
 
                 <div class="col-xxl-3 col-sm-6">
-                    <a href="{{ $advertise->url_03 }}" class="banner-contain-2 hover-effect">
+                    <a href="{{ $advertise->url_03 }}" target="_blank" class="banner-contain-2 hover-effect">
                         <img src="{{ asset('uploads/add/' . $advertise->image_03) }}" class="bg-img blur-up lazyload"
-                            alt="">
+                            alt="{{ $advertise->name_03 }}">
                         <div class="banner-detail p-top-left">
                             <div style="visibility: hidden;">
                                 <div class="banner-detail-box mb-md-3 mb-1">
@@ -164,9 +166,9 @@
                 </div>
 
                 <div class="col-xxl-3 col-sm-6">
-                    <a href="{{ $advertise->url_04 }}" class="banner-contain-2 hover-effect">
+                    <a href="{{ $advertise->url_04 }}" target="_blank" class="banner-contain-2 hover-effect">
                         <img src="{{ asset('uploads/add/' . $advertise->image_04) }}" class="bg-img blur-up lazyload"
-                            alt="">
+                            alt="{{ $advertise->name_04 }}">
                         <div class="banner-detail p-top-left">
                             {{-- <div>
                                 <div class="banner-detail-box mb-md-3 mb-1">
@@ -180,9 +182,9 @@
                 </div>
 
                 <div class="col-xxl-3 col-sm-6">
-                    <a href="{{ $advertise->url_05 }}" class="banner-contain-2 hover-effect">
+                    <a href="{{ $advertise->url_05 }}" target="_blank" class="banner-contain-2 hover-effect">
                         <img src="{{ asset('uploads/add/' . $advertise->image_05) }}" class="bg-img blur-up lazyload"
-                            alt="">
+                            alt="{{ $advertise->name_05 }}">
                         <div class="banner-detail p-top-left">
                             {{-- <div>
                                 <div class="banner-detail-box mb-md-3 mb-1">
@@ -473,7 +475,7 @@
 
 
                         <img src=" {{ asset('uploads/add/' . $advertise->image_07) }}" class="img-fluid bg-img"
-                            alt="">
+                            alt="{{ $advertise->name_07 }}">
 
                         <div class="row">
                             <div class="col-xxl-8 col-xl-7">
