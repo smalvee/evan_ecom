@@ -2,104 +2,111 @@
 
 @section('content')
     <div class="container-fluid">
-        <div class="row">
-            <div class="col-sm-12">
-                <div class="card card-table">
-                    <div class="card-body">
-                        <div class="title-header option-title">
-                            <h5>Edit User</h5>
-                            <a href="{{ route('users.index') }}" class="align-items-center btn btn-theme d-flex">
-                                <i data-feather="arrow-left"></i>Back
-                            </a>
+        <div class="a-page-head">
+            <div class="a-page-head-text">
+                <ul class="a-breadcrumb">
+                    <li><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
+                    <li><a href="{{ route('users.index') }}">Users</a></li>
+                    <li class="is-active">Edit</li>
+                </ul>
+                <h4 class="a-page-title">Edit User</h4>
+                <p class="a-page-desc">Update customer or admin account details.</p>
+            </div>
+            <div class="a-actions">
+                <a href="{{ route('users.index') }}" class="btn btn-outline-secondary"><i class="ri-arrow-left-line"></i> Back</a>
+            </div>
+        </div>
+
+        <div class="a-card">
+            <div class="a-card-head">
+                <h5>User Information</h5>
+            </div>
+            <div class="a-card-body">
+                <form action="" method="POST" id="categoryForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="name" class="form-label a-required">Name</label>
+                                <input type="text" name="name" id="name" class="form-control"
+                                    placeholder="Name" value="{{ $user->name }}" required>
+                                <p class="invalid-feedback"></p>
+                            </div>
                         </div>
 
-                        <form action="" method="POST" id="categoryForm">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="name" class="form-label">Name</label>
-                                        <input type="text" name="name" id="name" class="form-control"
-                                            placeholder="Name" value="{{ $user->name }}" required>
-                                        <p class="invalid-feedback"></p>
-                                    </div>
-                                </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="text" name="email" id="email" value="{{ $user->email }}"
+                                    class="form-control" placeholder="Email">
+                                <p class="invalid-feedback"></p>
+                            </div>
+                        </div>
 
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="email" class="form-label">Email</label>
-                                        <input type="text" name="email" id="email" value="{{ $user->email }}"
-                                            class="form-control" placeholder="Email">
-                                        <p class="invalid-feedback"></p>
-                                    </div>
-                                </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="phone" class="form-label a-required">Phone</label>
+                                <input type="tel" name="phone" id="phone" class="form-control"
+                                    placeholder="Mobile Number" value="{{ $user->phone }}" required>
+                                <p class="invalid-feedback"></p>
+                            </div>
+                        </div>
 
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="phone" class="form-label">Phone</label>
-                                        <input type="tel" name="phone" id="phone" class="form-control"
-                                            placeholder="Mobile Number" value="{{ $user->phone }}" required>
-                                        <p class="invalid-feedback"></p>
-                                    </div>
-                                </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="status" class="form-label">Status</label>
+                                <select name="status" id="status" class="form-select">
+                                    <option {{ $user->status == 1 ? 'selected' : '' }} value="1">Active</option>
+                                    <option {{ $user->status == 0 ? 'selected' : '' }} value="0">Block</option>
+                                </select>
+                            </div>
+                        </div>
 
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="status" class="form-label">Status</label>
-                                        <select name="status" id="status" class="form-select">
-                                            <option {{ $user->status == 1 ? 'selected' : '' }} value="1">Active</option>
-                                            <option {{ $user->status == 0 ? 'selected' : '' }} value="0">Block</option>
-                                        </select>
-                                    </div>
-                                </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="role" class="form-label">Role</label>
+                                <select name="role" id="role" class="form-select">
+                                    <option {{ $user->role == 2 ? 'selected' : '' }} value="2">Admin</option>
+                                    <option {{ $user->role == 1 ? 'selected' : '' }} value="1">Customer</option>
+                                </select>
+                                <p class="invalid-feedback"></p>
+                            </div>
+                        </div>
 
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="role" class="form-label">Role</label>
-                                        <select name="role" id="role" class="form-select">
-                                            <option {{ $user->role == 2 ? 'selected' : '' }} value="2">Admin</option>
-                                            <option {{ $user->role == 1 ? 'selected' : '' }} value="1">Customer</option>
-                                        </select>
-                                        <p class="invalid-feedback"></p>
-                                    </div>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="password" class="form-label">Password</label>
-                                        <div class="position-relative">
-                                            <input type="password" name="password" id="password"
-                                                class="form-control pe-5" placeholder="Password" required>
-                                            <i class="ri-eye-line text-muted"
-                                                style="cursor: pointer; position: absolute; right: 12px; top: 50%; transform: translateY(-50%);"
-                                                onclick="togglePassword('password', this)"></i>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="confirm_password" class="form-label">Confirm Password</label>
-                                        <div class="position-relative">
-                                            <input type="password" name="confirm_password" id="confirm_password"
-                                                class="form-control pe-5" placeholder="Confirm Password" required>
-                                            <i class="ri-eye-line text-muted"
-                                                style="cursor: pointer; position: absolute; right: 12px; top: 50%; transform: translateY(-50%);"
-                                                onclick="togglePassword('confirm_password', this)"></i>
-                                        </div>
-                                        <p id="passwordError" class="text-danger small mt-1" style="display:none;">
-                                            Passwords do not match
-                                        </p>
-                                    </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Password</label>
+                                <div class="position-relative">
+                                    <input type="password" name="password" id="password"
+                                        class="form-control pe-5" placeholder="Password" required>
+                                    <i class="ri-eye-line text-muted"
+                                        style="cursor: pointer; position: absolute; right: 12px; top: 50%; transform: translateY(-50%);"
+                                        onclick="togglePassword('password', this)"></i>
                                 </div>
                             </div>
+                        </div>
 
-                            <div class="pt-3">
-                                <button type="submit" class="btn btn-theme">Update</button>
-                                <a href="{{ route('users.index') }}" class="btn btn-outline-secondary ms-2">Cancel</a>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="confirm_password" class="form-label">Confirm Password</label>
+                                <div class="position-relative">
+                                    <input type="password" name="confirm_password" id="confirm_password"
+                                        class="form-control pe-5" placeholder="Confirm Password" required>
+                                    <i class="ri-eye-line text-muted"
+                                        style="cursor: pointer; position: absolute; right: 12px; top: 50%; transform: translateY(-50%);"
+                                        onclick="togglePassword('confirm_password', this)"></i>
+                                </div>
+                                <p id="passwordError" class="text-danger small mt-1" style="display:none;">
+                                    Passwords do not match
+                                </p>
                             </div>
-                        </form>
+                        </div>
                     </div>
-                </div>
+
+                    <div class="pt-3">
+                        <button type="submit" class="btn btn-theme">Update</button>
+                        <a href="{{ route('users.index') }}" class="btn btn-outline-secondary ms-2">Cancel</a>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

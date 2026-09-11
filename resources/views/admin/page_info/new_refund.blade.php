@@ -2,26 +2,33 @@
 
 @section('content')
     <div class="container-fluid">
+        <div class="a-page-head">
+            <div class="a-page-head-text">
+                <ul class="a-breadcrumb">
+                    <li><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
+                    <li class="is-active">Refund Policy</li>
+                </ul>
+                <h4 class="a-page-title">Refund Policy</h4>
+                <p class="a-page-desc">Manage the Refund Policy page content.</p>
+            </div>
+        </div>
+
         <div class="row">
-            <div class="col-12">
-                <div class="row">
-                    <div class="col-sm-8 m-auto">
+            <div class="col-lg-9">
+                <div class="a-card">
+                    <div class="a-card-head">
+                        <h5>Refund Policy Content</h5>
+                    </div>
+                    <div class="a-card-body">
                         <form action="" method="POST" id="save_refund" name="save_refund">
                             @csrf
-                            <div class="card">
-                                <div class="card-body">
-                                    <div class="card-header-2">
-                                        <h5>Refund Policy</h5>
-                                    </div>
-                                    <textarea name="description" id="description" cols="30" rows="10" class="summernote"
-                                        placeholder="Description">{{ $about_us->refund_policy ?? 'Enter who we are...' }}</textarea>
-                                </div>
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Description</label>
+                                <textarea name="description" id="description" cols="30" rows="10" class="summernote"
+                                    placeholder="Description">{{ $about_us->refund_policy ?? 'Enter who we are...' }}</textarea>
                             </div>
-
-
-                            <button type="submit" class="btn btn-success mt-3">Save</button>
+                            <button type="submit" class="btn btn-theme">Save Changes</button>
                         </form>
-
                     </div>
                 </div>
             </div>

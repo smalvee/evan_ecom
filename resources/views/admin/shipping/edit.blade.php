@@ -2,49 +2,60 @@
 
 @section('content')
     <div class="container-fluid">
-        <div class="row">
-            <div class="col-sm-12">
-                <div class="card card-table">
-                    <div class="card-body">
-                        <div class="title-header option-title">
-                            <h5>Edit Shipping Charge</h5>
-                            <a href="{{ route('shipping.create') }}" class="align-items-center btn btn-theme d-flex">
-                                <i data-feather="arrow-left"></i>Back
-                            </a>
+        <div class="a-page-head">
+            <div class="a-page-head-text">
+                <ul class="a-breadcrumb">
+                    <li><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
+                    <li><a href="{{ route('shipping.create') }}">Shipping Charges</a></li>
+                    <li class="is-active">Edit</li>
+                </ul>
+                <h4 class="a-page-title">Edit Shipping Charge</h4>
+                <p class="a-page-desc">Update delivery charge details.</p>
+            </div>
+            <div class="a-actions">
+                <a href="{{ route('shipping.create') }}" class="btn btn-outline-secondary">
+                    <i class="ri-arrow-left-line"></i> Back
+                </a>
+            </div>
+        </div>
+
+        <div class="a-card">
+            <div class="a-card-head">
+                <h5>Shipping Charge Details</h5>
+            </div>
+            <div class="a-card-body">
+                <form action="" method="POST" id="shippingForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="district" class="form-label a-required">District</label>
+                                <select name="district" id="district" class="form-select">
+                                    <option value="">-- Select District --</option>
+                                    @foreach (config('districts.list') as $district)
+                                        <option value="{{ $district }}"
+                                            {{ !empty($shippingCharge->district) && $shippingCharge->district == $district ? 'selected' : '' }}>
+                                            {{ $district }}</option>
+                                    @endforeach
+                                </select>
+                                <p class="invalid-feedback"></p>
+                            </div>
                         </div>
-
-                        <form action="" method="POST" id="shippingForm">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="district">District</label>
-                                        <select name="district" id="district" class="form-control">
-                                            <option value="">-- Select District --</option>
-                                            @foreach (config('districts.list') as $district)
-                                                <option value="{{ $district }}" {{ !empty($shippingCharge->district) && $shippingCharge->district == $district ? 'selected' : '' }}>{{ $district }}</option>
-                                            @endforeach
-                                        </select>
-                                        <p class="invalid-feedback"></p>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="amount">Amount</label>
-                                        <input value="{{ !empty($shippingCharge->amount) ? $shippingCharge->amount : '' }}"
-                                            type="number" name="amount" id="amount" class="form-control"
-                                            placeholder="Amount">
-                                        <p class="invalid-feedback"></p>
-                                    </div>
-                                </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="amount" class="form-label a-required">Amount</label>
+                                <input value="{{ !empty($shippingCharge->amount) ? $shippingCharge->amount : '' }}"
+                                    type="number" name="amount" id="amount" class="form-control"
+                                    placeholder="Amount">
+                                <p class="invalid-feedback"></p>
                             </div>
-
-                            <div class="pb-3 pt-2">
-                                <button type="submit" class="btn btn-theme">Update</button>
-                                <a href="{{ route('shipping.create') }}" class="btn btn-outline-secondary ms-2">Cancel</a>
-                            </div>
-                        </form>
+                        </div>
                     </div>
-                </div>
+
+                    <div class="text-end pt-2">
+                        <button type="submit" class="btn btn-theme">Update</button>
+                        <a href="{{ route('shipping.create') }}" class="btn btn-outline-secondary ms-2">Cancel</a>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

@@ -358,12 +358,6 @@ class CartController extends Controller
                 $orderItem->total = $item->price * $item->qty;
                 $orderItem->free_delivery = (int) ($item->options->freeDelivery ?? 0);
                 $orderItem->save();
-
-                // Decrease stock
-                $product = ProductVariant::find($item->id);
-                if ($product) {
-                    $product->decrement('qty', $item->qty);
-                }
             }
 
             DB::commit();
@@ -614,12 +608,6 @@ class CartController extends Controller
             $orderItem->total = $request->subtotal;
             $orderItem->free_delivery = $freeDelivery;
             $orderItem->save();
-
-            // Decrease stock
-            $product = ProductVariant::find($request->product_id);
-            if ($product) {
-                $product->decrement('qty', $request->selected_qty);
-            }
 
             DB::commit();
         } catch (\Exception $e) {

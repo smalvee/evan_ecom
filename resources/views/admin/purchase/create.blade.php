@@ -3,123 +3,125 @@
 @section('content')
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        th,
-        td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: center;
-        }
-
-        th {
-            background-color: #4CAF50;
-            color: white;
-        }
-
         .delete-btn {
             cursor: pointer;
-            color: red;
+            color: var(--a-danger);
             font-weight: bold;
         }
     </style>
 
     <div class="container-fluid">
-        <div class="row">
-            <div class="col-sm-10 m-auto">
-                <div class="card">
-                    <form id="createPurchase">
-                        @csrf
-                        <div class="card-body">
+        <div class="a-page-head">
+            <div class="a-page-head-text">
+                <ul class="a-breadcrumb">
+                    <li><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
+                    <li><a href="{{ route('purchase.index') }}">Purchases</a></li>
+                    <li class="is-active">Create</li>
+                </ul>
+                <h4 class="a-page-title">Create Purchase</h4>
+                <p class="a-page-desc">Record a new purchase order and its products.</p>
+            </div>
+            <div class="a-actions">
+                <a href="{{ route('purchase.index') }}" class="btn btn-outline-secondary"><i class="ri-arrow-left-line"></i> Back</a>
+            </div>
+        </div>
 
-                            <h5>Purchase Information</h5>
-
-                            {{-- Supplier --}}
-                            <div class="mb-3">
-                                <label>Supplier</label>
-                                <input list="supplier_list" id="supplier_name" class="form-control">
-                                <input type="hidden" name="supplier_id" id="supplier_id">
-                                <datalist id="supplier_list">
-                                    @foreach ($supplier as $s)
-                                        <option value="{{ $s->name }}" data-id="{{ $s->id }}"></option>
-                                    @endforeach
-                                </datalist>
+        <div class="a-card">
+            <form id="createPurchase">
+                @csrf
+                <div class="a-card-head">
+                    <h5>Purchase Information</h5>
+                </div>
+                <div class="a-card-body">
+                    <div class="a-form-section">
+                        <h6 class="a-section-title">Supplier & Date</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="supplier_name" class="form-label a-required">Supplier</label>
+                                    <input list="supplier_list" id="supplier_name" class="form-control">
+                                    <input type="hidden" name="supplier_id" id="supplier_id">
+                                    <datalist id="supplier_list">
+                                        @foreach ($supplier as $s)
+                                            <option value="{{ $s->name }}" data-id="{{ $s->id }}"></option>
+                                        @endforeach
+                                    </datalist>
+                                </div>
                             </div>
 
-                            {{-- Date --}}
-                            <div class="mb-3">
-                                <label>Date</label>
-                                <input type="date" name="date" class="form-control" style="max-width: 250px">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="date" class="form-label a-required">Date</label>
+                                    <input type="date" name="date" class="form-control">
+                                </div>
                             </div>
+                        </div>
+                    </div>
 
-                            {{-- Product SKU --}}
-                            <div class="mb-3">
-                                <label>Product SKU</label>
-                                <input list="product_list" id="product_input" class="form-control">
-                                <input type="hidden" id="variant_id">
-                                <datalist id="product_list">
-                                    @foreach ($product_sku as $p)
-                                        <option value="{{ $p->sku }}" data-id="{{ $p->id }}"
-                                            data-name="{{ $p->product->name }}" data-cost="0">
-                                        </option>
-                                    @endforeach
-                                </datalist>
-                            </div>
+                    <div class="a-form-section">
+                        <h6 class="a-section-title">Product Selection</h6>
+                        <div class="mb-3">
+                            <label for="product_input" class="form-label">Product SKU</label>
+                            <input list="product_list" id="product_input" class="form-control">
+                            <input type="hidden" id="variant_id">
+                            <datalist id="product_list">
+                                @foreach ($product_sku as $p)
+                                    <option value="{{ $p->sku }}" data-id="{{ $p->id }}"
+                                        data-name="{{ $p->product->name }}" data-cost="0">
+                                    </option>
+                                @endforeach
+                            </datalist>
+                        </div>
 
-                            {{-- Product Entry --}}
-                            <div id="purchase_info" style="display:none;border:1px solid #ddd;padding:15px;">
-                                <div class="row">
-
-                                    <div class="col-md-3">
-                                        <label>Product</label>
-                                        <input type="text" id="p_name" class="form-control" readonly>
-                                    </div>
-
-                                    <div class="col-md-2">
-                                        <label>Purchase Qty</label>
-                                        <input type="number" id="qty" class="form-control calc" value="1"
-                                            min="1">
-                                    </div>
-
-                                    <div class="col-md-2">
-                                        <label>Unit Cost</label>
-                                        <input type="number" id="unit_cost" class="form-control calc">
-                                    </div>
-
-                                    <div class="col-md-2">
-                                        <label>Profit Amount</label>
-                                        <input type="number" id="profit_amount" class="form-control calc" value="0">
-                                    </div>
-
-                                    <div class="col-md-2">
-                                        <label>Discount</label>
-                                        <input type="number" id="discount" class="form-control calc" value="0">
-                                    </div>
-
-                                    <div class="col-md-2 mt-2">
-                                        <label>MRP</label>
-                                        <input type="number" id="mrp" class="form-control" readonly>
-                                    </div>
-
-                                    <div class="col-md-2 mt-2">
-                                        <label>Selling Price</label>
-                                        <input type="number" id="selling_price" class="form-control" readonly>
-                                    </div>
-
+                        <div id="purchase_info"
+                            style="display:none; border:1px solid var(--a-border); border-radius: var(--a-radius-sm); padding:15px;">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <label class="form-label">Product</label>
+                                    <input type="text" id="p_name" class="form-control" readonly>
                                 </div>
 
-                                <button type="button" class="btn btn-success mt-3" id="addProduct">
-                                    Add Product
-                                </button>
+                                <div class="col-md-2">
+                                    <label class="form-label">Purchase Qty</label>
+                                    <input type="number" id="qty" class="form-control calc" value="1" min="1">
+                                </div>
+
+                                <div class="col-md-2">
+                                    <label class="form-label">Unit Cost</label>
+                                    <input type="number" id="unit_cost" class="form-control calc">
+                                </div>
+
+                                <div class="col-md-2">
+                                    <label class="form-label">Profit Amount</label>
+                                    <input type="number" id="profit_amount" class="form-control calc" value="0">
+                                </div>
+
+                                <div class="col-md-2">
+                                    <label class="form-label">Discount</label>
+                                    <input type="number" id="discount" class="form-control calc" value="0">
+                                </div>
+
+                                <div class="col-md-2 mt-2">
+                                    <label class="form-label">MRP</label>
+                                    <input type="number" id="mrp" class="form-control" readonly>
+                                </div>
+
+                                <div class="col-md-2 mt-2">
+                                    <label class="form-label">Selling Price</label>
+                                    <input type="number" id="selling_price" class="form-control" readonly>
+                                </div>
                             </div>
 
+                            <button type="button" class="btn btn-theme mt-3" id="addProduct">
+                                <i class="ri-add-line"></i> Add Product
+                            </button>
+                        </div>
+                    </div>
 
-                            {{-- Product Table --}}
-                            <table id="purchaseTable">
+                    <div class="a-form-section">
+                        <h6 class="a-section-title">Products</h6>
+                        <div class="table-responsive">
+                            <table class="table all-package theme-table" id="purchaseTable">
                                 <thead>
                                     <tr>
                                         <th>SKU</th>
@@ -135,22 +137,23 @@
                                 </thead>
                                 <tbody></tbody>
                             </table>
-                            <div class="row mt-3">
-                                <div class="col-md-4 offset-md-8">
-                                    <label><strong>Total Purchase Amount</strong></label>
-                                    <input type="number" id="total_purchase" name="total_purchase" class="form-control" readonly>
-                                </div>
-                            </div>
-
-
-                            <button type="submit" class="btn btn-primary mt-4">
-                                Save Purchase
-                            </button>
-
                         </div>
-                    </form>
+                        <div class="row mt-3">
+                            <div class="col-md-4 offset-md-8">
+                                <label class="form-label"><strong>Total Purchase Amount</strong></label>
+                                <input type="number" id="total_purchase" name="total_purchase" class="form-control" readonly>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-3">
+                        <button type="submit" class="btn btn-theme">
+                            Save Purchase
+                        </button>
+                        <a href="{{ route('purchase.index') }}" class="btn btn-outline-secondary ms-2">Cancel</a>
+                    </div>
                 </div>
-            </div>
+            </form>
         </div>
     </div>
 @endsection

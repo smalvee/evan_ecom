@@ -2,184 +2,150 @@
 
 @section('content')
     <div class="container-fluid">
-        <div class="row">
-            <div class="col-sm-12">
-                <div class="card card-table">
-                    <div class="card-body">
-                        <div class="title-header option-title">
-                            <h5>Suppliers</h5>
-                            <form class="d-inline-flex">
-                                {{-- <a href="" class="align-items-center btn btn-theme d-flex" data-bs-toggle="modal"
-                                    data-bs-target="#exampleModalCenter">
-                                    <i data-feather="plus"></i>Add New
-                                </a> --}}
+        <div class="a-page-head">
+            <div class="a-page-head-text">
+                <ul class="a-breadcrumb">
+                    <li><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
+                    <li class="is-active">Variations</li>
+                </ul>
+                <h4 class="a-page-title">Variations</h4>
+                <p class="a-page-desc">Manage your product variations and their values.</p>
+            </div>
+            <div class="a-actions">
+                <button type="button" class="btn btn-theme" data-bs-toggle="modal" data-bs-target="#addModal">
+                    <i class="ri-add-line"></i> Add Variation
+                </button>
+            </div>
+        </div>
 
-                                <button type="button" class="align-items-center btn btn-theme d-flex" data-bs-toggle="modal"
-                                    data-bs-target="#addModal"><i data-feather="plus"></i>
-                                    Add
-                                </button>
-                            </form>
-                        </div>
+        <div class="a-card">
+            <div class="a-card-head">
+                <h5>All Variations</h5>
+                <button type="button" class="btn btn-theme btn-sm" data-bs-toggle="modal" data-bs-target="#addModal">
+                    <i class="ri-add-line"></i> Add Variation
+                </button>
+            </div>
+            <div class="table-responsive">
+                <table class="table all-package theme-table" id="table_id">
+                    <thead>
+                        <tr>
+                            <th>Variations</th>
+                            <th>Values</th>
+                            <th>Option</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($variations as $variation)
+                            <tr>
+                                <td>
+                                    <span class="a-cell-main">{{ $variation->variations }}</span>
+                                </td>
+                                <td>
+                                    {{ $variation->values->pluck('value')->join(', ') }}
+                                </td>
+                                <td>
+                                    <div class="a-actions-cell">
+                                        <a href="#" data-id="{{ $variation->id }}"
+                                            data-name="{{ $variation->variations }}"
+                                            data-values="{{ $variation->values->pluck('value')->join('|') }}"
+                                            data-url="{{ route('variations.update', $variation->id) }}"
+                                            data-bs-toggle="modal" data-bs-target="#editModal"
+                                            class="a-action-btn a-view" title="Edit">
+                                            <i class="ri-pencil-line"></i>
+                                        </a>
+                                        <a href="javascript:void(0)"
+                                            onclick="deleteVariation({{ $variation->id }})"
+                                            class="a-action-btn a-danger" title="Delete">
+                                            <i class="ri-delete-bin-line"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
 
-                        {{-- <button type="button" class="btn btn-primary" data-bs-toggle="modal"
-                                data-bs-target="#exampleModal">
-                                Launch demo modal
-                            </button> --}}
+                <!-- Add Modal -->
+                <div class="modal fade" id="addModal" data-bs-backdrop="static" data-bs-keyboard="false"
+                    tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h1 class="modal-title fs-5" id="addModalLabel">Add Variation</h1>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
+                            </div>
+                            <form action="" method="POST" id="createvariation" name="createvariation">
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label for="variations" class="form-label">Variation Name</label>
+                                        <input type="text" id="variations" name="variations" class="form-control">
+                                        <p class="invalid-feedback"></p>
+                                    </div>
 
-                        <div class="table-responsive table-product">
-                            <table class="table all-package theme-table" id="table_id">
-                                <thead>
-                                    <tr>
-                                        <th>Variations</th>
-                                        <th>Values</th>
-                                        <th>Option</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($variations as $variation)
-                                        <tr>
-                                            <td>
-                                                <div class="user-name" style="text-align: center">
-                                                    <span>{{ $variation->variations }}</span>
-                                                </div>
-                                            </td>
+                                    <div class="mb-3">
+                                        <label class="form-label">Add Variation Values</label>
 
-                                            <td>
-                                                {{-- Display all values as comma-separated --}}
-                                                {{ $variation->values->pluck('value')->join(', ') }}
-                                            </td>
-
-                                            <td>
-                                                <ul>
-                                                    <li>
-                                                        <a href="#" data-id="{{ $variation->id }}"
-                                                            data-name="{{ $variation->variations }}"
-                                                            data-values="{{ $variation->values->pluck('value')->join('|') }}"
-                                                            data-url="{{ route('variations.update', $variation->id) }}"
-                                                            data-bs-toggle="modal" data-bs-target="#editModal">
-                                                            <i class="ri-pencil-line"></i>
-                                                        </a>
-
-                                                    </li>
-                                                    <li>
-                                                        <a href="javascript:void(0)"
-                                                            onclick="deleteVariation({{ $variation->id }})">
-                                                            <i class="ri-delete-bin-line"></i>
-                                                        </a>
-                                                    </li>
-                                                </ul>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-
-
-                            <!-- Button trigger modal -->
-                            {{-- <button type="button" class="btn btn-primary" data-bs-toggle="modal"
-                                data-bs-target="#addModal">
-                                Launch static backdrop modal
-                            </button> --}}
-
-                            <!-- Add Modal -->
-                            <div class="modal fade" id="addModal" data-bs-backdrop="static" data-bs-keyboard="false"
-                                tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h1 class="modal-title fs-5" id="addModalLabel">Add Unit</h1>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                                aria-label="Close"></button>
+                                        <div id="inputContainer">
+                                            <!-- FIRST (main) input field – only + button -->
+                                            <div class="input-group mb-2">
+                                                <input type="text" name="values[]" class="form-control"
+                                                    placeholder="Enter value">
+                                                <p class="invalid-feedback"></p>
+                                                <button type="button" class="btn btn-success addBtn">+</button>
+                                            </div>
                                         </div>
-                                        <form action="" method="POST" id="createvariation" name="createvariation">
-                                            <div class="modal-body">
-                                                <div>
-                                                    <label for="variations">Variation Name</label>
-                                                    <input type="text" id="variations" name="variations"
-                                                        class="form-control">
-                                                    <p class="invalid-feedback"></p>
-
-                                                </div>
-
-                                                <div>
-                                                    <label>Add Variation Values</label>
-
-                                                    <div id="inputContainer">
-
-                                                        <!-- FIRST (main) input field – only + button -->
-                                                        <div class="input-group mb-2">
-                                                            <input type="text" name="values[]" class="form-control"
-                                                                placeholder="Enter value">
-                                                            <p class="invalid-feedback"></p>
-                                                            <button type="button" class="btn btn-success addBtn">+</button>
-                                                        </div>
-
-                                                    </div>
-
-
-
-                                                    <p class="invalid-feedback"></p>
-
-                                                </div>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary"
-                                                    data-bs-dismiss="modal">Close</button>
-                                                <button type="submit" class="btn btn-primary">Save</button>
-                                            </div>
-                                        </form>
                                     </div>
                                 </div>
-                            </div>
-
-                            <!-- Edit Modal -->
-                            <div class="modal fade" id="editModal" data-bs-backdrop="static" data-bs-keyboard="false">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-
-                                        <div class="modal-header">
-                                            <h1 class="modal-title fs-5">Edit Variation</h1>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                        </div>
-
-                                        <form action="" method="POST" id="editVariationForm">
-                                            @csrf
-
-                                            <div class="modal-body">
-
-                                                <label>Variation Name</label>
-                                                <input type="text" id="edit_variation_name" name="variations"
-                                                    class="form-control mb-3">
-
-                                                <label>Edit Variation Values</label>
-                                                <div id="inputEditContainer"></div>
-
-                                            </div>
-
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary"
-                                                    data-bs-dismiss="modal">Close</button>
-                                                <button type="submit" class="btn btn-primary">Save</button>
-                                            </div>
-                                        </form>
-
-                                    </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-outline-secondary"
+                                        data-bs-dismiss="modal">Close</button>
+                                    <button type="submit" class="btn btn-theme">Save</button>
                                 </div>
-                            </div>
-
-                            <form id="deleteVariationForm" method="POST" style="display:none;">
-                                @csrf
-                                @method('DELETE')
                             </form>
-
-
-
-
-
-
                         </div>
                     </div>
                 </div>
+
+                <!-- Edit Modal -->
+                <div class="modal fade" id="editModal" data-bs-backdrop="static" data-bs-keyboard="false">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h1 class="modal-title fs-5">Edit Variation</h1>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+
+                            <form action="" method="POST" id="editVariationForm">
+                                @csrf
+
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label class="form-label">Variation Name</label>
+                                        <input type="text" id="edit_variation_name" name="variations"
+                                            class="form-control">
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Edit Variation Values</label>
+                                        <div id="inputEditContainer"></div>
+                                    </div>
+                                </div>
+
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-outline-secondary"
+                                        data-bs-dismiss="modal">Close</button>
+                                    <button type="submit" class="btn btn-theme">Save</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <form id="deleteVariationForm" method="POST" style="display:none;">
+                    @csrf
+                    @method('DELETE')
+                </form>
             </div>
         </div>
     </div>

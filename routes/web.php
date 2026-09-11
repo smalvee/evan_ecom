@@ -14,6 +14,7 @@ use App\Http\Controllers\admin\ProductController;
 use App\Http\Controllers\admin\ProductImageController;
 use App\Http\Controllers\admin\ProductSubCategoryController;
 use App\Http\Controllers\admin\PurchaseController;
+use App\Http\Controllers\admin\SettingController;
 use App\Http\Controllers\admin\Report;
 use App\Http\Controllers\admin\ReportController;
 use App\Http\Controllers\admin\ShippingController;
@@ -172,11 +173,13 @@ Route::group(['prefix' => 'admin'], function () {
         // orders
         Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
         Route::get('/orders/{id}', [OrderController::class, 'details'])->name('orders.details');
+        Route::delete('/orders/{id}', [OrderController::class, 'destroy'])->name('orders.delete');
         Route::post('/orders/change-status/{id}', [OrderController::class, 'ChangeOrderStatus'])->name('orders.changeStatus');
         Route::get('/orders-create', [OrderController::class, 'create_order'])->name('orders.create');
         Route::post('/orders-store', [OrderController::class, 'order_store'])->name('orders.store');
         Route::post('/orders-address-update/{id}', [OrderController::class, 'order_address_update'])->name('orders.address_update');
         Route::post('/orders-update/{id}', [OrderController::class, 'order_update'])->name('orders.order_update');
+        Route::post('/orders-full-update/{id}', [OrderController::class, 'updateOrder'])->name('orders.update_full');
 
         // users
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
@@ -255,6 +258,24 @@ Route::group(['prefix' => 'admin'], function () {
         Route::get('/sales-report', [ReportController::class, 'sales_index'])->name('sales.index');
         Route::get('/item-wise-sales-report', [ReportController::class, 'item_sales_index'])->name('item_sales.index');
         Route::get('reports/sales/export', [ReportController::class, 'exportExcel'])->name('admin.reports.sales.export');
+
+        // reports dashboard + analytics
+        Route::get('/reports', [ReportController::class, 'dashboard'])->name('admin.reports.index');
+        Route::get('/reports/product-performance', [ReportController::class, 'product_performance'])->name('admin.reports.product_performance');
+        Route::get('/reports/profit-loss', [ReportController::class, 'profit_loss'])->name('admin.reports.profit_loss');
+        Route::get('/reports/orders', [ReportController::class, 'orders'])->name('admin.reports.orders');
+        Route::get('/reports/customers', [ReportController::class, 'customers'])->name('admin.reports.customers');
+        Route::get('/reports/payments', [ReportController::class, 'payments'])->name('admin.reports.payments');
+        Route::get('/reports/inventory', [ReportController::class, 'inventory'])->name('admin.reports.inventory');
+        Route::get('/reports/purchases', [ReportController::class, 'purchases'])->name('admin.reports.purchases');
+        Route::get('/reports/purchase-returns', [ReportController::class, 'purchase_returns'])->name('admin.reports.purchase_returns');
+        Route::get('/reports/coupons', [ReportController::class, 'coupons'])->name('admin.reports.coupons');
+        Route::get('/reports/shipping', [ReportController::class, 'shipping'])->name('admin.reports.shipping');
+        Route::get('/reports/export/{report}', [ReportController::class, 'export'])->name('admin.reports.export');
+
+        // website settings
+        Route::get('/settings', [SettingController::class, 'index'])->name('admin.settings');
+        Route::put('/settings', [SettingController::class, 'update'])->name('admin.settings.update');
 
 
 

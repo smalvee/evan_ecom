@@ -148,10 +148,10 @@ src="https://www.facebook.com/tr?id=2261244381019011&ev=PageView&noscript=1"
                                      <i class="fa-solid fa-bars"></i>
                                  </span>
                              </button>
-                             <a href="{{ route('front.home') }}" class="web-logo nav-logo">
-                                 <img src="{{ asset('new-front-assets/images/logo/8.png') }}"
-                                     class="img-fluid blur-up lazyload" alt="">
-                             </a>
+                              <a href="{{ route('front.home') }}" class="web-logo nav-logo">
+                                  <img src="{{ $settings['site_logo_url'] ?? asset('new-front-assets/images/logo/8.png') }}"
+                                      class="img-fluid blur-up lazyload" alt="Evan Store">
+                              </a>
 
                              <div class="middle-box">
                                  <div class="location-box">
@@ -202,18 +202,20 @@ src="https://www.facebook.com/tr?id=2261244381019011&ev=PageView&noscript=1"
                                              </div>
                                          </div>
                                      </li>
-                                     <li class="right-side">
-                                         <a href="tel:+8801324670090" class="delivery-login-box">
-                                             <div class="delivery-icon">
-                                                 <i data-feather="phone-call"></i>
-                                             </div>
-                                             <div class="delivery-detail">
-                                                 <h6>24/7 Delivery</h6>
-                                                 <h5>+880 1324 670 090</h5>
-                                             </div>
-                                         </a>
-
-                                     </li>
+                                      @if (!empty($settings['site_phone']))
+                                          <li class="right-side">
+                                              <a href="tel:{{ preg_replace('/[^0-9+]/', '', $settings['site_phone']) }}"
+                                                  class="delivery-login-box">
+                                                  <div class="delivery-icon">
+                                                      <i data-feather="phone-call"></i>
+                                                  </div>
+                                                  <div class="delivery-detail">
+                                                      <h6>24/7 Delivery</h6>
+                                                      <h5>{{ $settings['site_phone'] }}</h5>
+                                                  </div>
+                                              </a>
+                                          </li>
+                                      @endif
                                      <li class="right-side">
                                          <a href="#" class="btn p-0 position-relative header-wishlist">
                                              <i data-feather="heart"></i>
@@ -347,41 +349,25 @@ src="https://www.facebook.com/tr?id=2261244381019011&ev=PageView&noscript=1"
              <div class="main-footer">
                  <div class="row g-md-4 gy-sm-5">
                      <div class="col-xxl-3 col-xl-4 col-sm-6">
-                         <a href="{{ route('front.home') }}" class="foot-logo theme-logo">
-                             <img src="../assets/images/logo/4.png" class="img-fluid blur-up lazyload"
-                                 alt="">
-                         </a>
+                          <a href="{{ route('front.home') }}" class="foot-logo theme-logo">
+                              <img src="{{ $settings['site_logo_url'] ?? asset('new-front-assets/images/logo/8.png') }}"
+                                  class="img-fluid blur-up lazyload" alt="Evan Store">
+                          </a>
                          <p class="information-text information-text-2">it is a long established fact that a reader
                              will
                              be distracted by the readable content.</p>
-                         <ul class="social-icon">
-                             <li class="light-bg">
-                                 <a href="https://www.facebook.com/" class="footer-link-color">
-                                     <i class="fab fa-facebook-f"></i>
-                                 </a>
-                             </li>
-                             <li class="light-bg">
-                                 <a href="https://accounts.google.com/signin/v2/identifier?flowName=GlifWebSignIn&flowEntry=ServiceLogin"
-                                     class="footer-link-color">
-                                     <i class="fab fa-google"></i>
-                                 </a>
-                             </li>
-                             <li class="light-bg">
-                                 <a href="https://twitter.com/i/flow/login" class="footer-link-color">
-                                     <i class="fab fa-twitter"></i>
-                                 </a>
-                             </li>
-                             <li class="light-bg">
-                                 <a href="https://www.instagram.com/" class="footer-link-color">
-                                     <i class="fab fa-instagram"></i>
-                                 </a>
-                             </li>
-                             <li class="light-bg">
-                                 <a href="https://in.pinterest.com/" class="footer-link-color">
-                                     <i class="fab fa-pinterest-p"></i>
-                                 </a>
-                             </li>
-                         </ul>
+                          @if (!empty($socialLinks))
+                              <ul class="social-icon">
+                                  @foreach ($socialLinks as $social)
+                                      <li class="light-bg">
+                                          <a href="{{ $social['url'] }}" target="_blank" rel="noopener noreferrer"
+                                              class="footer-link-color" title="{{ $social['label'] }}">
+                                              <i class="{{ $social['icon'] }}"></i>
+                                          </a>
+                                      </li>
+                                  @endforeach
+                              </ul>
+                          @endif
                      </div>
 
                      <div class="col-xxl-2 col-xl-4 col-sm-6">
@@ -447,36 +433,41 @@ src="https://www.facebook.com/tr?id=2261244381019011&ev=PageView&noscript=1"
                          <div class="footer-title">
                              <h4 class="text-white">Store information</h4>
                          </div>
-                         <ul class="footer-address footer-contact">
-                             <li>
-                                 <a href="javascript:void(0)" class="light-text">
-                                     <div class="inform-box flex-start-box">
-                                         <i data-feather="map-pin"></i>
-                                         <p>Uttora, Sector 14</p>
-                                     </div>
-                                 </a>
-                             </li>
+                          <ul class="footer-address footer-contact">
+                              @if (!empty($settings['site_address']))
+                                  <li>
+                                      <a href="javascript:void(0)" class="light-text">
+                                          <div class="inform-box flex-start-box">
+                                              <i data-feather="map-pin"></i>
+                                              <p>{!! nl2br(e($settings['site_address'])) !!}</p>
+                                          </div>
+                                      </a>
+                                  </li>
+                              @endif
 
-                             <li>
-                                 <a href="javascript:void(0)" class="light-text">
-                                     <div class="inform-box">
-                                         <i data-feather="phone"></i>
-                                         <p>Call us: +880 1324 670 090</p>
-                                     </div>
-                                 </a>
-                             </li>
+                              @if (!empty($settings['site_phone']))
+                                  <li>
+                                      <a href="tel:{{ preg_replace('/[^0-9+]/', '', $settings['site_phone']) }}"
+                                          class="light-text">
+                                          <div class="inform-box">
+                                              <i data-feather="phone"></i>
+                                              <p>Call us: {{ $settings['site_phone'] }}</p>
+                                          </div>
+                                      </a>
+                                  </li>
+                              @endif
 
-                             <li>
-                                 <a href="javascript:void(0)" class="light-text">
-                                     <div class="inform-box">
-                                         <i data-feather="mail"></i>
-                                         <p>Email Us: Support@evan.com.bd</p>
-                                     </div>
-                                 </a>
-                             </li>
-
-
-                         </ul>
+                              @if (!empty($settings['site_email']))
+                                  <li>
+                                      <a href="mailto:{{ $settings['site_email'] }}" class="light-text">
+                                          <div class="inform-box">
+                                              <i data-feather="mail"></i>
+                                              <p>Email Us: {{ $settings['site_email'] }}</p>
+                                          </div>
+                                      </a>
+                                  </li>
+                              @endif
+                          </ul>
                      </div>
                  </div>
              </div>

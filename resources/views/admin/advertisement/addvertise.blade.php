@@ -2,61 +2,58 @@
 
 @section('content')
 <div class="container-fluid">
-    <div class="row">
-        <div class="col-sm-12">
-            <div class="card card-table">
-                <div class="card-body">
-                    <div class="title-header option-title">
-                        <h5>Advertisements</h5>
-                    </div>
+    <div class="a-page-head">
+        <div class="a-page-head-text">
+            <ul class="a-breadcrumb">
+                <li><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
+                <li class="is-active">Advertisements</li>
+            </ul>
+            <h4 class="a-page-title">Advertisements</h4>
+            <p class="a-page-desc">Manage advertisement slots across your store.</p>
+        </div>
+    </div>
 
-                    @php
-                        $placements = [
-                            1 => 'Home Page Add - 01 (1600 x 138)',
-                            2 => 'Home Page Add - 02 (376 x 231)',
-                            3 => 'Home Page Add - 03 (376 x 231)',
-                            4 => 'Home Page Add - 04 (376 x 231)',
-                            5 => 'Home Page Add - 05 (376 x 231)',
-                            6 => 'Product Details Page Add - 06 (375 x 586)',
-                            7 => 'Home Page Bottom (1588 x 408)',
-                        ];
-                    @endphp
+    @php
+        $placements = [
+            1 => 'Home Page Add - 01 (1600 x 138)',
+            2 => 'Home Page Add - 02 (376 x 231)',
+            3 => 'Home Page Add - 03 (376 x 231)',
+            4 => 'Home Page Add - 04 (376 x 231)',
+            5 => 'Home Page Add - 05 (376 x 231)',
+            6 => 'Product Details Page Add - 06 (375 x 586)',
+            7 => 'Home Page Bottom (1588 x 408)',
+        ];
+    @endphp
 
-                    <div class="table-responsive table-product">
-                        <table class="table all-package theme-table" id="table_id">
-                            <thead>
-                                <tr>
-                                    <th>Placement</th>
-                                    <th>Title</th>
-                                    <th>Image</th>
-                                    <th>Option</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($placements as $key => $placement)
-                                <tr>
-                                    <td><span>{{ $placement }}</span></td>
-                                    <td><span id="name-display-{{ $key }}">{{ $add_infos->{'name_0'.$key} ?? '' }}</span></td>
-                                    <td>
-                                        @if (!empty($add_infos->{'image_0'.$key}))
-                                            <img id="image-display-{{ $key }}" style="width: 200px"
-                                                src="{{ asset('uploads/add/' . $add_infos->{'image_0'.$key}) }}" alt="">
-                                        @else
-                                            <span id="image-display-{{ $key }}" class="text-muted">No image</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        <button data-bs-toggle="modal" data-bs-target="#addModal_{{ $key }}"
-                                            class="btn btn-theme">Change</button>
-                                    </td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+    <div class="row g-3">
+        @foreach($placements as $key => $placement)
+        <div class="col-sm-6 col-xl-4 col-xxl-3">
+            <div class="a-card h-100">
+                <div class="a-card-body">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        @if (!empty($add_infos->{'image_0'.$key}))
+                            <img id="image-display-{{ $key }}" src="{{ asset('uploads/add/' . $add_infos->{'image_0'.$key}) }}"
+                                alt="" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--a-border);">
+                        @else
+                            <div id="image-display-{{ $key }}"
+                                style="width:64px;height:64px;flex:none;border-radius:8px;background:var(--a-bg);display:flex;align-items:center;justify-content:center;color:var(--a-muted-2);font-size:22px;">
+                                <i class="ri-image-line"></i>
+                            </div>
+                        @endif
+                        <div class="overflow-hidden">
+                            <h6 class="a-cell-main mb-1">{{ $placement }}</h6>
+                            <div id="name-display-{{ $key }}" class="a-cell-sub text-truncate">{{ $add_infos->{'name_0'.$key} ?: 'No title' }}</div>
+                        </div>
                     </div>
+                    <div class="a-cell-sub mb-3 text-truncate">
+                        {{ $add_infos->{'url_0'.$key} ?: 'No target URL set' }}
+                    </div>
+                    <button data-bs-toggle="modal" data-bs-target="#addModal_{{ $key }}"
+                        class="btn btn-theme btn-sm"><i class="ri-edit-line"></i> Change</button>
                 </div>
             </div>
         </div>
+        @endforeach
     </div>
 </div>
 

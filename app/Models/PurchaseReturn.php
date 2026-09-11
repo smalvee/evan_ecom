@@ -8,15 +8,16 @@ use Illuminate\Database\Eloquent\Model;
 class PurchaseReturn extends Model
 {
     use HasFactory;
+
     protected $guarded = [];
 
-    public function variant()
+    public function purchase()
     {
-        return $this->belongsTo(ProductVariant::class, 'variant_id');
+        return $this->belongsTo(Purchase::class, 'purchase_id');
     }
 
     public function items()
     {
-        return $this->hasMany(PurchaseItem::class, 'purchase_id');
+        return $this->hasMany(PurchaseReturnItems::class, 'purchase_return_id');
     }
 }

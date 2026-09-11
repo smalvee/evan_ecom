@@ -21,128 +21,120 @@
     ?>
 
     <div class="container-fluid">
+        <div class="a-page-head">
+            <div class="a-page-head-text">
+                <ul class="a-breadcrumb">
+                    <li><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
+                    <li><a href="{{ route('products.index') }}">Products</a></li>
+                    <li class="is-active">Image Manager</li>
+                </ul>
+                <h4 class="a-page-title">Product Image Manager</h4>
+                <p class="a-page-desc">Manage thumbnail and gallery images for this product variant.</p>
+            </div>
+        </div>
+
         <div class="row">
             <div class="col-sm-8 m-auto">
-                <div class="card">
-                    <form method="POST" id="productImage" name="productImage">
-                        @csrf
-                        <div class="card-body">
+                <form method="POST" id="productImage" name="productImage">
+                    @csrf
 
-                            <h5 class="mb-3">Product Image Manager</h5>
-
-                            <!-- ================= THUMB IMAGE ================= -->
-                            <div class="border p-3 rounded mb-4">
-                                <h6>Product SKU</h6>
-
-                                <div class="input-group">
-                                    <input type="text" class="form-control" id="variant_sku" name="variant_sku"
-                                        value="{{ $product_info->sku }}" readonly>
-                                    <input type="hidden" class="form-control" id="variant_id" name="variant_id"
-                                        value="{{ $product_info->id }}">
-
-                                </div>
-                                <br>
-                                @php
-                                    $thumb_image = ProductImage::where('product_id', $product_info->id)
-                                        ->where('is_thumb', 1)
-                                        ->first();
-                                    $gallery_images = ProductImage::where('product_id', $product_info->id)
-                                        ->where('is_thumb', 0)
-                                        ->get();
-                                @endphp
-
-                                <div class="input-group">
-
-                                    <h6>Product Thumbnail</h6>
-
-                                    <div class="input-group" style="padding-top: 10px;">
-
-
-                                        @if (!empty($thumb_image))
-                                            <div class="col-md-3 col-sm-4 col-6">
-                                               
-
-
-                                                    <!-- Thumb Image -->
-                                                    <img src="{{ asset('uploads/products/thumb/' . $thumb_image->image) }}"
-                                                        class="card-img-top" style="width: 100%;" alt="Product">
-
-
-                                               
-                                            </div>
-                                        @endif
-
-                                    </div>
-                                </div>
-
-                                <div class="input-group" style="padding-top:10px">
-
-                                    <h6>Product Galary</h6>
-
-                                    <div class="row g-3 pt-3">
-                                        @if (!empty($gallery_images))
-                                            @foreach ($gallery_images as $gallery_image)
-                                                <div class="col-md-3 col-sm-4 col-6">
-                                                    
-                                                        <!--  Image -->
-                                                        <img src="{{ asset('uploads/products/small/' . $gallery_image->image) }}"
-                                                            class="card-img-top" style="width: 100%;"
-                                                            alt="Product">
-
-                                                        <!-- Button at Bottom -->
-                                                        <div class="card-body p-2 text-center">
-
-                                                            <button type="button" class="btn btn-danger btn-sm w-100"
-                                                                onclick="deleteGaleryImage({{ $gallery_image->id }})">
-                                                                Delete
-                                                            </button>
-
-                                                        </div>
-
-                                                   
-                                                </div>
-                                            @endforeach
-                                        @endif
-                                    </div>
-
-
-                                </div>
-                            </div>
-
-                            <!-- ================= THUMB IMAGE ================= -->
-                            <div class="border p-3 rounded mb-4">
-                                <h6>Product Thumbnail</h6>
-
-                                <div class="input-group">
-                                    <input type="file" class="form-control" id="thumb_image" accept="image/*">
-                                    <p class="btn btn-success" id="thumb_upload_btn">Upload</p>
-                                </div>
-
-                                <div id="thumb_preview" class="mt-2"></div>
-                                <div id="thumb_gallery" class="row mt-3"></div>
-                                <input type="hidden" name="thumb_image_id" id="thumb_image_id">
-
-                            </div>
-
-                            <!-- ================= GALLERY IMAGES ================= -->
-                            <div class="border p-3 rounded mb-4">
-                                <h6>Product Gallery Images</h6>
-
-                                <div class="input-group">
-                                    <input type="file" class="form-control" id="gallery_images" multiple
-                                        accept="image/*">
-                                    <p class="btn btn-success" id="gallery_upload_btn">Upload</p>
-                                </div>
-
-                                <div id="gallery_preview" class="mt-2"></div>
-                                <div id="gallery_container" class="row mt-3"></div>
-                            </div>
-
-                            <button type="submit" class="btn btn-primary d-none" id="save_btn">Save</button>
-
+                    <div class="a-card">
+                        <div class="a-card-head">
+                            <h5>Current Images</h5>
                         </div>
-                    </form>
-                </div>
+                        <div class="a-card-body">
+                            <div class="mb-3">
+                                <label class="form-label" for="variant_sku">Product SKU</label>
+                                <input type="text" class="form-control" id="variant_sku" name="variant_sku"
+                                    value="{{ $product_info->sku }}" readonly>
+                                <input type="hidden" class="form-control" id="variant_id" name="variant_id"
+                                    value="{{ $product_info->id }}">
+                            </div>
+
+                            @php
+                                $thumb_image = ProductImage::where('product_id', $product_info->id)
+                                    ->where('is_thumb', 1)
+                                    ->first();
+                                $gallery_images = ProductImage::where('product_id', $product_info->id)
+                                    ->where('is_thumb', 0)
+                                    ->get();
+                            @endphp
+
+                            <div class="mb-4">
+                                <h6 class="a-section-title">Product Thumbnail</h6>
+                                @if (!empty($thumb_image))
+                                    <div class="row">
+                                        <div class="col-md-3 col-sm-4 col-6">
+                                            <div class="a-card">
+                                                <img src="{{ asset('uploads/products/thumb/' . $thumb_image->image) }}"
+                                                    class="card-img-top" style="width: 100%;" alt="Product">
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+
+                            <div>
+                                <h6 class="a-section-title">Product Gallery</h6>
+                                <div class="row g-3">
+                                    @if (!empty($gallery_images))
+                                        @foreach ($gallery_images as $gallery_image)
+                                            <div class="col-md-3 col-sm-4 col-6">
+                                                <div class="a-card">
+                                                    <img src="{{ asset('uploads/products/small/' . $gallery_image->image) }}"
+                                                        class="card-img-top" style="width: 100%;"
+                                                        alt="Product">
+
+                                                    <div class="card-body p-2 text-center">
+                                                        <button type="button" class="btn btn-danger btn-sm w-100"
+                                                            onclick="deleteGaleryImage({{ $gallery_image->id }})">
+                                                            Delete
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="a-card">
+                        <div class="a-card-head">
+                            <h5>Upload Thumbnail</h5>
+                        </div>
+                        <div class="a-card-body">
+                            <div class="input-group">
+                                <input type="file" class="form-control" id="thumb_image" accept="image/*">
+                                <button type="button" class="btn btn-theme" id="thumb_upload_btn">Upload</button>
+                            </div>
+
+                            <div id="thumb_preview" class="mt-2"></div>
+                            <div id="thumb_gallery" class="row mt-3"></div>
+                            <input type="hidden" name="thumb_image_id" id="thumb_image_id">
+                        </div>
+                    </div>
+
+                    <div class="a-card">
+                        <div class="a-card-head">
+                            <h5>Upload Gallery Images</h5>
+                        </div>
+                        <div class="a-card-body">
+                            <div class="input-group">
+                                <input type="file" class="form-control" id="gallery_images" multiple
+                                    accept="image/*">
+                                <button type="button" class="btn btn-theme" id="gallery_upload_btn">Upload</button>
+                            </div>
+
+                            <div id="gallery_preview" class="mt-2"></div>
+                            <div id="gallery_container" class="row mt-3"></div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-theme d-none" id="save_btn">Save</button>
+
+                </form>
             </div>
         </div>
     </div>

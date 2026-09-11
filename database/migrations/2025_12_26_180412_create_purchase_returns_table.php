@@ -13,9 +13,7 @@ return new class extends Migration {
         Schema::create('purchase_returns', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('purchase_id');
-            $table->unsignedBigInteger('variant_id');
-            $table->integer('qty');
-            $table->integer('unit_cost');
+            $table->decimal('return_amount', 12, 2)->default(0);
             $table->timestamps();
         });
     }

@@ -2,78 +2,78 @@
 
 @section('content')
     <div class="container-fluid">
-        <div class="row">
-            <div class="col-12">
-                <div class="row">
-                    <div class="col-sm-8 m-auto">
-                        <div class="card">
+        <div class="a-page-head">
+            <div class="a-page-head-text">
+                <ul class="a-breadcrumb">
+                    <li><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
+                    <li><a href="{{ route('sub-categories.index') }}">Sub Categories</a></li>
+                    <li class="is-active">Add Sub Category</li>
+                </ul>
+                <h4 class="a-page-title">Add Sub Category</h4>
+                <p class="a-page-desc">Create a new product sub category.</p>
+            </div>
+            <div class="a-actions">
+                <a href="{{ route('sub-categories.index') }}" class="btn btn-outline-secondary"><i class="ri-arrow-left-line"></i> Back</a>
+            </div>
+        </div>
 
-                            <form action="" name="subCategoryForm" id="subCategoryForm">
-                                <div class="card-body">
-                                    <div class="card-header-2">
-                                        <h5>Sub Category Information</h5>
-                                    </div>
+        <div class="a-card">
+            <div class="a-card-head">
+                <h5>Sub Category Information</h5>
+            </div>
+            <div class="a-card-body">
+                <form action="" name="subCategoryForm" id="subCategoryForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label a-required">Category</label>
+                                <select id="category" class="form-select" name="category">
+                                    @if ($categories->isNotEmpty())
+                                        <option value="">Select Category</option>
+                                        @foreach ($categories as $category)
+                                            <option value="{{ $category->id }}">{{ $category->name }}</option>
+                                        @endforeach
+                                    @endif
+                                </select>
+                                <p class="invalid-feedback"></p>
+                            </div>
+                        </div>
 
-                                    <div class="theme-form theme-form-2 mega-form">
-                                        <div class="mb-4 row align-items-center">
-                                            <label class="form-label-title col-sm-3 mb-0">Category</label>
-                                            <div class="col-sm-9">
-                                                <select id="category" class="form-control" name="category">                                                   
-                                                    @if ($categories->isNotEmpty())
-                                                        <option value="">Select Category</option>
-                                                        @foreach ($categories as $category)
-                                                            <option value="{{ $category->id }}">{{ $category->name }}
-                                                            </option>
-                                                        @endforeach
-                                                    @endif
-                                                </select>
-                                                <p class="invalid-feedback"></p>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label a-required">Sub Category Name</label>
+                                <input class="form-control" type="text" placeholder="Sub Category Name"
+                                    id="name" name="name">
+                                <p class="invalid-feedback"></p>
+                            </div>
+                        </div>
 
-                                            </div>
-                                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Slug</label>
+                                <input class="form-control" type="text" placeholder="Slug"
+                                    id="slug" name="slug" readonly>
+                                <p class="invalid-feedback"></p>
+                            </div>
+                        </div>
 
-                                        <div class="mb-4 row align-items-center">
-                                            <label class="form-label-title col-sm-3 mb-0">Sub Category Name</label>
-                                            <div class="col-sm-9">
-                                                <input class="form-control" type="text" placeholder="Brands Name"
-                                                    id="name" name="name">
-                                                <p class="invalid-feedback"></p>
-
-                                            </div>
-                                        </div>
-
-                                        <div class="mb-4 row align-items-center">
-                                            <label class="form-label-title col-sm-3 mb-0">Slug</label>
-                                            <div class="col-sm-9">
-                                                <input class="form-control" type="text" placeholder="Brands Slug"
-                                                    id="slug" name="slug" readonly>
-                                                <p class="invalid-feedback"></p>
-
-                                            </div>
-                                        </div>
-
-                                        <div class="mb-4 row align-items-center">
-                                            <label class="form-label-title col-sm-3 mb-0">Status</label>
-                                            <div class="col-sm-9">
-                                                <select name="status" id="status" class="form-control">
-                                                    <option value="1">Active</option>
-                                                    <option value="0">Inactive</option>
-                                                </select>
-                                                <p class="invalid-feedback"></p>
-
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="card-submit-button">
-                                    <button class="btn btn-animation ms-auto" type="submit">Submit</button>
-                                </div>
-                            </form>
-
-
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Status</label>
+                                <select name="status" id="status" class="form-select">
+                                    <option value="1">Active</option>
+                                    <option value="0">Inactive</option>
+                                </select>
+                                <p class="invalid-feedback"></p>
+                            </div>
                         </div>
                     </div>
-                </div>
+
+                    <div class="pt-3">
+                        <button class="btn btn-theme" type="submit">Create</button>
+                        <a href="{{ route('sub-categories.index') }}" class="btn btn-outline-secondary ms-2">Cancel</a>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

@@ -15,6 +15,10 @@
     <title>Dashboard</title>
 
     <!-- Google font-->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap">
 
@@ -52,6 +56,9 @@
     <!-- App css -->
     <link rel="stylesheet" type="text/css" href="{{ asset('new-admin-assets/css/style.css') }}  ">
 
+    <!-- Evan Admin design system -->
+    <link rel="stylesheet" type="text/css" href="{{ asset('new-admin-assets/css/admin.css') }}  ">
+
     <link rel="stylesheet" href="{{ asset('admin-assets/plugins/dropzone/dropzone.css') }}">
     <link rel="stylesheet" href="{{ asset('admin-assets/plugins/dropzone/min/dropzone.min.css') }}">
     <link rel="stylesheet" href="{{ asset('admin-assets/plugins/summernote/summernote-bs4.min.css') }}">
@@ -67,12 +74,12 @@
 
     <style>
         .page-wrapper.compact-wrapper .page-body-wrapper .page-body {
-            min-height: calc(100vh - 80px);
-            margin-top: 43px;
+            min-height: calc(100vh - 64px);
+            margin-top: 64px;
             margin-left: 264px;
-            background-color: #f9f9f6;
-            padding-top: 20px;
-            padding-bottom: 54px !important;
+            background-color: #f4f6f9;
+            padding-top: 24px;
+            padding-bottom: 48px !important;
         }
     </style>
 </head>

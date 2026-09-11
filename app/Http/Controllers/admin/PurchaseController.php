@@ -3,94 +3,97 @@
 namespace App\Http\Controllers\admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\NewProduct;
-use App\Models\ProductImage;
 use App\Models\ProductVariant;
 use App\Models\Purchase;
 use App\Models\PurchaseItem;
 use App\Models\PurchaseReturn;
 use App\Models\PurchaseReturnItems;
 use App\Models\Supplier;
-use App\Models\TempImage;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Validator;
-use Intervention\Image\Laravel\Facades\Image;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class PurchaseController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Purchase::latest('id')->with('variant.product');
+        $query = Purchase::latest('id')->with('supplier');
 
         if (!empty($request->get('keyword'))) {
             $keyword = $request->get('keyword');
 
-            $query
-                ->leftJoin('suppliers', 'suppliers.id', '=', 'purchases.supplier_id')
-                ->where(function ($q) use ($keyword) {
-                    $q->where('purchases.id', 'like', "%{$keyword}%")->orWhere('suppliers.name', 'like', "%{$keyword}%");
-                })
-                ->select('purchases.*');
+            $query->where(function ($q) use ($keyword) {
+                $q->where('purchases.id', 'like', "%{$keyword}%")
+                    ->orWhereHas('supplier', function ($s) use ($keyword) {
+                        $s->where('name', 'like', "%{$keyword}%");
+                    });
+            });
         }
 
-        // paginate AFTER filters
-        $purchase = $query->paginate(10);
+        $purchase = $query->paginate(10)->appends($request->query());
 
         return view('admin.purchase.list', compact('purchase'));
     }
 
     public function return_list(Request $request)
     {
-        $query = PurchaseReturn::latest('id')->with('variant.product');
+        $query = PurchaseReturn::latest('id')->with(['purchase.supplier', 'items.variant.product']);
 
         if (!empty($request->get('keyword'))) {
             $keyword = $request->get('keyword');
 
-            $query->whereHas('variant', function ($q) use ($keyword) {
-                $q->where('sku', 'like', '%' . $keyword . '%')->orWhereHas('product', function ($p) use ($keyword) {
-                    $p->where('name', 'like', '%' . $keyword . '%');
-                });
+            $query->where(function ($q) use ($keyword) {
+                $q->where('purchase_returns.id', 'like', "%{$keyword}%")
+                    ->orWhereHas('purchase.supplier', function ($s) use ($keyword) {
+                        $s->where('name', 'like', "%{$keyword}%");
+                    })
+                    ->orWhereHas('items.variant', function ($v) use ($keyword) {
+                        $v->where('sku', 'like', "%{$keyword}%")
+                            ->orWhereHas('product', function ($p) use ($keyword) {
+                                $p->where('name', 'like', "%{$keyword}%");
+                            });
+                    });
             });
         }
 
-        // paginate AFTER filters
-        $purchase_return = $query->paginate(10);
+        $purchase_return = $query->paginate(10)->appends($request->query());
 
         return view('admin.purchase.return_list', compact('purchase_return'));
     }
 
     public function return_view($id)
     {
-        $purchase_return_list = PurchaseReturnItems::where('purchase_return_id', $id)->get();
-        return view('admin.purchase.return_view', compact('purchase_return_list'));
+        $purchase_return = PurchaseReturn::with(['items.variant.product', 'purchase.supplier'])->findOrFail($id);
+        $purchase_return_list = $purchase_return->items;
+
+        return view('admin.purchase.return_view', compact('purchase_return_list', 'purchase_return'));
     }
+
     public function create()
     {
         $product_sku = ProductVariant::latest('id')->with('product')->get();
-        // dd($product_sku);
         $supplier = Supplier::all();
+
         return view('admin.purchase.create', compact('product_sku', 'supplier'));
     }
 
     public function store(Request $request)
     {
-        $rules = [
-            'supplier_id' => 'required',
-            'total_purchase' => 'required',
-            'date' => 'required',
-            'p_name' => 'required',
-            'variant_id' => 'required|array',
+        $validator = Validator::make($request->all(), [
+            'supplier_id' => 'required|exists:suppliers,id',
+            'date' => 'required|date',
+            'p_name' => 'required|array',
+            'variant_id' => 'required|array|min:1',
+            'variant_id.*' => 'required|distinct|exists:product_variants,id',
             'qty' => 'required|array',
+            'qty.*' => 'required|integer|min:1',
             'unit_cost' => 'required|array',
+            'unit_cost.*' => 'required|numeric|min:0',
             'profit_amount' => 'required|array',
+            'profit_amount.*' => 'required|numeric|min:0',
             'discount' => 'required|array',
-            'selling_price' => 'required|array',
-            'mrp' => 'required|array', // MRP
-        ];
-
-        $validator = Validator::make($request->all(), $rules);
+            'discount.*' => 'required|numeric|min:0',
+        ]);
 
         if ($validator->fails()) {
             return response()->json([
@@ -99,54 +102,62 @@ class PurchaseController extends Controller
             ]);
         }
 
-        $purchase = new Purchase();
-        $purchase->supplier_id = $request->supplier_id;
-        $purchase->total = $request->total_purchase;
-        $purchase->date = $request->date;
-        $purchase->save();
+        try {
+            DB::transaction(function () use ($request) {
+                $purchase = new Purchase();
+                $purchase->supplier_id = $request->supplier_id;
+                $purchase->date = $request->date;
+                $purchase->total = 0;
+                $purchase->save();
 
-        foreach ($request->variant_id as $index => $variantId) {
-            $qty = (int) $request->qty[$index];
-            $unitCost = (float) $request->unit_cost[$index];
-            $profitAmount = (float) $request->profit_amount[$index];
-            $discount = (float) $request->discount[$index];
-            $pname = $request->p_name[$index];
+                $total = 0;
 
-            // 🔹 Calculations (trusted on backend)
-            $baseAmount = $unitCost;
-            $mrp = $baseAmount + $profitAmount;
-            $selling = $baseAmount + $profitAmount - $discount;
+                foreach ($request->variant_id as $index => $variantId) {
+                    $qty = (int) $request->qty[$index];
+                    $unitCost = (float) $request->unit_cost[$index];
+                    $profitAmount = (float) $request->profit_amount[$index];
+                    $discount = (float) $request->discount[$index];
+                    $pname = $request->p_name[$index];
 
-            if ($selling < 0) {
-                $selling = 0;
-            }
+                    // Server-side pricing calculations.
+                    $mrp = $unitCost + $profitAmount;
+                    $selling = max(0, $unitCost + $profitAmount - $discount);
 
-            // 🔹 Save purchase row
-            $purchaseItem = new PurchaseItem();
-            $purchaseItem->purchase_id = $purchase->id;
-            $purchaseItem->date = $request->date;
-            $purchaseItem->variant_id = $variantId;
-            $purchaseItem->p_name = $pname;
-            $purchaseItem->qty = $qty;
-            $purchaseItem->unit_cost = $unitCost;
-            $purchaseItem->profit_margin = $profitAmount;
-            $purchaseItem->discount = $discount;
-            $purchaseItem->selling_price = $selling;
-            $purchaseItem->save();
+                    $purchaseItem = new PurchaseItem();
+                    $purchaseItem->purchase_id = $purchase->id;
+                    $purchaseItem->date = $request->date;
+                    $purchaseItem->variant_id = $variantId;
+                    $purchaseItem->p_name = $pname;
+                    $purchaseItem->qty = $qty;
+                    $purchaseItem->unit_cost = $unitCost;
+                    $purchaseItem->profit_margin = $profitAmount;
+                    $purchaseItem->discount = $discount;
+                    $purchaseItem->selling_price = $selling;
+                    $purchaseItem->save();
 
-            // 🔹 Update stock qty
-            $variant = ProductVariant::find($variantId);
-            $previousQty = $variant ? $variant->qty : 0;
+                    // Purchase total is derived from the items (never trusted from the request).
+                    $total += $qty * $unitCost;
 
-            ProductVariant::updateOrCreate(
-                ['id' => $variantId],
-                [
-                    'purchase_price' => $unitCost,
-                    'selling_price' => $selling,
-                    'compare_price' => $mrp, // ✅ MRP
-                    'qty' => $previousQty + $qty,
-                ],
-            );
+                    $variant = ProductVariant::find($variantId);
+                    if ($variant) {
+                        $variant->purchase_price = $unitCost;
+                        $variant->selling_price = $selling;
+                        $variant->compare_price = $mrp;
+                        $variant->save();
+
+                        // Atomic stock increase (creating a purchase means goods received).
+                        $variant->increment('qty', $qty);
+                    }
+                }
+
+                $purchase->total = $total;
+                $purchase->save();
+            });
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Unable to save the purchase. Please try again.',
+            ]);
         }
 
         return response()->json([
@@ -158,31 +169,32 @@ class PurchaseController extends Controller
     public function edit($id)
     {
         $product_sku = ProductVariant::latest('id')->with('product')->get();
-        // dd($product_sku);
         $supplier = Supplier::all();
 
-        $purchase_info = Purchase::where('id', $id)->first();
-        $purchaseItems = PurchaseItem::where('purchase_id', $purchase_info->id)->get();
+        $purchase_info = Purchase::with(['items.variant.product', 'supplier'])->findOrFail($id);
+        $purchaseItems = $purchase_info->items;
+        $supplier_info = $purchase_info->supplier;
+        $variant_info = $purchaseItems->first()?->variant;
 
-        $supplier_info = Supplier::where('id', $purchase_info->supplier_id)->first();
-        $variant_info = ProductVariant::where('id', $purchase_info->variant_id)->first();
         return view('admin.purchase.edit', compact('product_sku', 'supplier', 'purchase_info', 'supplier_info', 'variant_info', 'purchaseItems'));
     }
 
     public function update($id, Request $request)
     {
-        $rules = [
-            'supplier_id' => 'required',
-            'total_purchase' => 'required',
-            'date' => 'required',
-            'variant_id' => 'required|array',
+        $validator = Validator::make($request->all(), [
+            'supplier_id' => 'required|exists:suppliers,id',
+            'date' => 'required|date',
+            'variant_id' => 'required|array|min:1',
+            'variant_id.*' => 'required|distinct|exists:product_variants,id',
             'item_id' => 'required|array',
+            'item_id.*' => 'required|exists:purchase_items,id',
             'unit_cost' => 'required|array',
+            'unit_cost.*' => 'required|numeric|min:0',
             'profit_amount' => 'required|array',
+            'profit_amount.*' => 'required|numeric|min:0',
             'discount' => 'required|array',
-        ];
-
-        $validator = Validator::make($request->all(), $rules);
+            'discount.*' => 'required|numeric|min:0',
+        ]);
 
         if ($validator->fails()) {
             return response()->json([
@@ -191,52 +203,59 @@ class PurchaseController extends Controller
             ]);
         }
 
-        /* =======================
-       Update Purchase
-    ======================= */
-        $purchase = Purchase::findOrFail($id);
-        $purchase->supplier_id = $request->supplier_id;
-        $purchase->total = $request->total_purchase;
-        $purchase->date = $request->date;
-        $purchase->save();
+        try {
+            DB::transaction(function () use ($id, $request) {
+                $purchase = Purchase::findOrFail($id);
+                $purchase->supplier_id = $request->supplier_id;
+                $purchase->date = $request->date;
+                $purchase->save();
 
-        /* =======================
-       Update Items (NO QTY)
-    ======================= */
-        foreach ($request->variant_id as $index => $variantId) {
-            $itemId = $request->item_id[$index];
-            $unitCost = (float) $request->unit_cost[$index];
-            $profitAmount = (float) $request->profit_amount[$index];
-            $discount = (float) $request->discount[$index];
+                $total = 0;
 
-            // 🔹 Backend calculations
-            $mrp = $unitCost + $profitAmount;
-            $selling = $unitCost + $profitAmount - $discount;
-            if ($selling < 0) {
-                $selling = 0;
-            }
+                // Items are updated WITHOUT changing quantities (existing behaviour).
+                foreach ($request->variant_id as $index => $variantId) {
+                    $itemId = $request->item_id[$index];
+                    $unitCost = (float) $request->unit_cost[$index];
+                    $profitAmount = (float) $request->profit_amount[$index];
+                    $discount = (float) $request->discount[$index];
 
-            /* =======================
-           Update Purchase Item
-        ======================= */
-            $purchaseItem = PurchaseItem::findOrFail($itemId);
-            $purchaseItem->unit_cost = $unitCost;
-            $purchaseItem->profit_margin = $profitAmount;
-            $purchaseItem->discount = $discount;
-            $purchaseItem->selling_price = $selling;
-            $purchaseItem->date = $request->date;
-            $purchaseItem->save();
+                    $mrp = $unitCost + $profitAmount;
+                    $selling = max(0, $unitCost + $profitAmount - $discount);
 
-            /* =======================
-           Update Variant Prices
-        ======================= */
-            $variant = ProductVariant::find($variantId);
-            if ($variant) {
-                $variant->purchase_price = $unitCost;
-                $variant->selling_price = $selling;
-                $variant->compare_price = $mrp; // MRP
-                $variant->save();
-            }
+                    $purchaseItem = PurchaseItem::where('id', $itemId)
+                        ->where('purchase_id', $purchase->id)
+                        ->first();
+
+                    if (!$purchaseItem) {
+                        continue;
+                    }
+
+                    $purchaseItem->unit_cost = $unitCost;
+                    $purchaseItem->profit_margin = $profitAmount;
+                    $purchaseItem->discount = $discount;
+                    $purchaseItem->selling_price = $selling;
+                    $purchaseItem->date = $request->date;
+                    $purchaseItem->save();
+
+                    $total += $purchaseItem->qty * $unitCost;
+
+                    $variant = ProductVariant::find($variantId);
+                    if ($variant) {
+                        $variant->purchase_price = $unitCost;
+                        $variant->selling_price = $selling;
+                        $variant->compare_price = $mrp;
+                        $variant->save();
+                    }
+                }
+
+                $purchase->total = $total;
+                $purchase->save();
+            });
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Unable to update the purchase. Please try again.',
+            ]);
         }
 
         return response()->json([
@@ -248,16 +267,14 @@ class PurchaseController extends Controller
     public function purchase_return(Request $request)
     {
         $product_sku = ProductVariant::latest('id')->with('product')->get();
-        // dd($product_sku);
         $supplier = Supplier::all();
+
         return view('admin.purchase.return', compact('product_sku', 'supplier'));
     }
 
     public function search(Request $request)
     {
-        $purchaseId = $request->purchase_id;
-
-        $purchase = Purchase::with(['items.variant'])->find($purchaseId);
+        $purchase = Purchase::with(['items.variant.product'])->find($request->purchase_id);
 
         if (!$purchase) {
             return response()->json([
@@ -265,6 +282,20 @@ class PurchaseController extends Controller
                 'message' => 'Purchase not found',
             ]);
         }
+
+        // Quantity already returned per variant for this purchase.
+        $returned = PurchaseReturnItems::whereIn('purchase_return_id', function ($q) use ($purchase) {
+            $q->select('id')->from('purchase_returns')->where('purchase_id', $purchase->id);
+        })
+            ->selectRaw('variant_id, SUM(qty) as returned_qty')
+            ->groupBy('variant_id')
+            ->pluck('returned_qty', 'variant_id');
+
+        $purchase->items->each(function ($item) use ($returned) {
+            $returnedQty = (int) ($returned[$item->variant_id] ?? 0);
+            $item->returned_qty = $returnedQty;
+            $item->remaining_qty = max(0, (int) $item->qty - $returnedQty);
+        });
 
         return response()->json([
             'status' => true,
@@ -274,76 +305,133 @@ class PurchaseController extends Controller
 
     public function return_store(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'purchase_id' => 'required|exists:purchases,id',
+            'return_qty' => 'required|array',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ]);
+        }
+
+        $purchase = Purchase::findOrFail($request->purchase_id);
+
         DB::beginTransaction();
 
         try {
-            if (!$request->has('return_qty')) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'No items selected for return',
-                ]);
-            }
-
-            // Create return master ONCE
-            $p_return = PurchaseReturn::create([
-                'purchase_id' => $request->purchase_id,
+            $pReturn = PurchaseReturn::create([
+                'purchase_id' => $purchase->id,
                 'return_amount' => 0,
             ]);
 
-            $total_return_amount = 0;
+            $totalReturnAmount = 0;
+            $hasItems = false;
 
             foreach ($request->return_qty as $variantId => $returnQty) {
+                $returnQty = (int) $returnQty;
+
                 if ($returnQty <= 0) {
                     continue;
+                }
+
+                // The item must belong to this purchase.
+                $purchaseItem = PurchaseItem::where('purchase_id', $purchase->id)
+                    ->where('variant_id', $variantId)
+                    ->first();
+
+                if (!$purchaseItem) {
+                    DB::rollBack();
+
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Invalid item selected for return.',
+                    ]);
+                }
+
+                // How much of this purchase item has already been returned.
+                $alreadyReturned = PurchaseReturnItems::where('variant_id', $variantId)
+                    ->whereIn('purchase_return_id', function ($q) use ($purchase) {
+                        $q->select('id')->from('purchase_returns')->where('purchase_id', $purchase->id);
+                    })
+                    ->sum('qty');
+
+                $remaining = (int) $purchaseItem->qty - (int) $alreadyReturned;
+
+                if ($returnQty > $remaining) {
+                    DB::rollBack();
+
+                    return response()->json([
+                        'status' => false,
+                        'message' => "Return quantity exceeds the purchased quantity (remaining: {$remaining}).",
+                    ]);
                 }
 
                 $variant = ProductVariant::find($variantId);
 
                 if (!$variant) {
-                    continue;
-                }
-
-                if ($returnQty > $variant->qty) {
                     DB::rollBack();
+
                     return response()->json([
                         'status' => false,
-                        'message' => 'Return quantity exceeds current stock',
+                        'message' => 'Product variant not found.',
                     ]);
                 }
 
-                // Reduce stock
-                $variant->qty -= $returnQty;
-                $variant->save();
+                if ($returnQty > (int) $variant->qty) {
+                    DB::rollBack();
 
-                // Calculate amount
-                $lineAmount = $returnQty * $variant->purchase_price;
-                $total_return_amount += $lineAmount;
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Return quantity exceeds current stock.',
+                    ]);
+                }
 
-                // Save return item
+                // Value the return at the ORIGINAL purchase cost.
+                $unitCost = (float) $purchaseItem->unit_cost;
+
+                // Atomic stock decrease.
+                $variant->decrement('qty', $returnQty);
+
+                $lineAmount = $returnQty * $unitCost;
+                $totalReturnAmount += $lineAmount;
+
                 PurchaseReturnItems::create([
-                    'purchase_return_id' => $p_return->id,
+                    'purchase_return_id' => $pReturn->id,
                     'variant_id' => $variantId,
                     'qty' => $returnQty,
-                    'unit_cost' => $variant->purchase_price,
+                    'unit_cost' => $unitCost,
+                ]);
+
+                $hasItems = true;
+            }
+
+            if (!$hasItems) {
+                DB::rollBack();
+
+                return response()->json([
+                    'status' => false,
+                    'message' => 'No items selected for return.',
                 ]);
             }
 
-            // Update total return amount
-            $p_return->return_amount = $total_return_amount;
-            $p_return->save();
+            $pReturn->return_amount = $totalReturnAmount;
+            $pReturn->save();
 
             DB::commit();
 
             return response()->json([
                 'status' => true,
-                'message' => 'Selected items returned successfully',
+                'message' => 'Purchase return saved successfully.',
             ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
 
             return response()->json([
                 'status' => false,
-                'message' => $e->getMessage(),
+                'message' => 'Unable to save the purchase return. Please try again.',
             ]);
         }
     }

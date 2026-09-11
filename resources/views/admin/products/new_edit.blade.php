@@ -2,174 +2,193 @@
 
 @section('content')
     <div class="container-fluid">
+        <div class="a-page-head">
+            <div class="a-page-head-text">
+                <ul class="a-breadcrumb">
+                    <li><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
+                    <li><a href="{{ route('products.index') }}">Products</a></li>
+                    <li class="is-active">Edit Product</li>
+                </ul>
+                <h4 class="a-page-title">Edit Product</h4>
+                <p class="a-page-desc">Update product information.</p>
+            </div>
+            <div class="a-actions">
+                <a href="{{ route('products.index') }}" class="btn btn-outline-secondary"><i class="ri-arrow-left-line"></i> Back</a>
+            </div>
+        </div>
+
         <div class="row">
             <div class="col-12">
                 <div class="row">
                     <div class="col-sm-8 m-auto">
 
-
-
-
                         <form action="" method="POST" id="update_product" name="update_product">
                             @csrf
-                            <div class="card">
-                                <div class="card-body">
-                                    <div class="card-header-2">
-                                        <h5>Product Information</h5>
-                                    </div>
+                            <div class="a-card">
+                                <div class="a-card-body">
+                                    <div class="a-form-section">
+                                        <h6 class="a-section-title">Basic Information</h6>
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label class="form-label a-required" for="name">Product Name</label>
+                                                    <input type="text" class="form-control" id="name" name="name"
+                                                        value="{{ $product->name }}">
+                                                    <p class="invalid-feedback"></p>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label class="form-label" for="slug">Product slug</label>
+                                                    <input type="text" class="form-control" id="slug" name="slug"
+                                                        value="{{ $product->slug }}" readonly>
+                                                    <p class="invalid-feedback"></p>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label class="form-label a-required" for="product_sku">SKU</label>
+                                                    <input type="text" class="form-control" id="product_sku" name="product_sku"
+                                                        value="{{ $product->sku }}">
+                                                    <p class="invalid-feedback"></p>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label class="form-label" for="units_id">Unit</label>
+                                                    <select class="form-control" name="units_id" id="units_id">
+                                                        <option value="">Select a Units</option>
 
-                                    <div class="col-md-6">
-                                        <label for="">Product Name</label>
-                                        <input type="text" class="form-control" id="name" name="name"
-                                            value="{{ $product->name }}">
-                                        <p class="invalid-feedback"></p>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="">Product slug</label>
-                                        <input type="text" class="form-control" id="slug" name="slug"
-                                            value="{{ $product->slug }}" readonly>
-                                        <p class="invalid-feedback"></p>
-                                    </div>
+                                                        @if ($units->isNotEmpty())
+                                                            @foreach ($units as $unit)
+                                                                <option value="{{ $unit->id }}"
+                                                                    {{ $product->unit_id == $unit->id ? 'selected' : '' }}>
+                                                                    {{ $unit->name }}
+                                                                </option>
+                                                            @endforeach
+                                                        @endif
+                                                    </select>
+                                                    <p class="invalid-feedback"></p>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label class="form-label" for="brand_id">Brand</label>
+                                                    <select class="form-control" name="brand_id" id="brand_id">
+                                                        <option value="">Select a Brand</option>
 
-                                    <div class="col-md-6">
-                                        <label for="">SKU</label>
-                                        <input type="text" class="form-control" id="product_sku" name="product_sku"
-                                            value="{{ $product->sku }}">
-                                        <p class="invalid-feedback"></p>
-                                    </div>
+                                                        @if ($brands->isNotEmpty())
+                                                            @foreach ($brands as $brand)
+                                                                <option value="{{ $brand->id }}"
+                                                                    {{ $product->brand_id == $brand->id ? 'selected' : '' }}>
+                                                                    {{ $brand->name }}</option>
+                                                            @endforeach
+                                                        @endif
+                                                    </select>
+                                                    <p class="invalid-feedback"></p>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label class="form-label a-required" for="category">Category</label>
+                                                    <select class="form-control" name="category" id="category">
+                                                        <option value="">Select a Category</option>
 
-                                    <div class="col-md-6">
-                                        <label for="">Unit</label>
-                                        <select class="form-control" name="units_id" id="units_id">
-                                            <option value="">Select a Units</option>
+                                                        @if ($categories->isNotEmpty())
+                                                            @foreach ($categories as $category)
+                                                                <option value="{{ $category->id }}"
+                                                                    {{ $product->cat_id == $category->id ? 'selected' : '' }}>
+                                                                    {{ $category->name }}
+                                                                </option>
+                                                            @endforeach
+                                                        @endif
 
-                                            @if ($units->isNotEmpty())
-                                                @foreach ($units as $unit)
-                                                    <option value="{{ $unit->id }}"
-                                                        {{ $product->unit_id == $unit->id ? 'selected' : '' }}>
-                                                        {{ $unit->name }}
-                                                    </option>
-                                                @endforeach
-                                            @endif
-                                        </select>
-                                        <p class="invalid-feedback"></p>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="">Brand</label>
-                                        <select class="form-control" name="brand_id" id="brand_id">
-                                            <option value="">Select a Brand</option>
+                                                    </select>
+                                                    <p class="invalid-feedback"></p>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label class="form-label" for="sub_category">Sub Category</label>
+                                                    <select name="sub_category" id="sub_category" class="form-control">
+                                                        <option value="">Select a Sub Category</option>
+                                                        @foreach ($subCategories as $subCategory)
+                                                            <option value="{{ $subCategory->id }}"
+                                                                {{ $product->sub_cat_id == $subCategory->id ? 'selected' : '' }}>
+                                                                {{ $subCategory->name }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                    <p class="invalid-feedback"></p>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label class="form-label" for="hot_products">In Hot Products</label>
+                                                    <select name="hot_products" id="hot_products" class="form-control">
+                                                        <option value="0"
+                                                            {{ (int) $product->hot_products === 0 ? 'selected' : '' }}>
+                                                            Inactive
+                                                        </option>
+                                                        <option value="1"
+                                                            {{ (int) $product->hot_products === 1 ? 'selected' : '' }}>
+                                                            Active
+                                                        </option>
+                                                    </select>
 
-                                            @if ($brands->isNotEmpty())
-                                                @foreach ($brands as $brand)
-                                                    <option value="{{ $brand->id }}"
-                                                        {{ $product->brand_id == $brand->id ? 'selected' : '' }}>
-                                                        {{ $brand->name }}</option>
-                                                @endforeach
-                                            @endif
-                                        </select>
-                                        <p class="invalid-feedback"></p>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="">Category</label>
-                                        <select class="form-control" name="category" id="category">
-                                            <option value="">Select a Category</option>
+                                                    <p class="invalid-feedback"></p>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label class="form-label" for="status">Product Status</label>
+                                                    <select name="status" id="status" class="form-control">
+                                                       <option value="0"
+                                                            {{ (int) $product->status === 0 ? 'selected' : '' }}>
+                                                            Inactive
+                                                        </option>
+                                                        <option value="1"
+                                                            {{ (int) $product->status === 1 ? 'selected' : '' }}>
+                                                            Active
+                                                        </option>
 
-                                            @if ($categories->isNotEmpty())
-                                                @foreach ($categories as $category)
-                                                    <option value="{{ $category->id }}"
-                                                        {{ $product->cat_id == $category->id ? 'selected' : '' }}>
-                                                        {{ $category->name }}
-                                                    </option>
-                                                @endforeach
-                                            @endif
-
-
-
-
-
-
-
-                                        </select>
-                                        <p class="invalid-feedback"></p>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="">Sub Category</label>
-                                        <select name="sub_category" id="sub_category" class="form-control">
-                                            <option value="">Select a Sub Category</option>
-                                            @foreach ($subCategories as $subCategory)
-                                                <option value="{{ $subCategory->id }}"
-                                                    {{ $product->sub_cat_id == $subCategory->id ? 'selected' : '' }}>
-                                                    {{ $subCategory->name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                        <p class="invalid-feedback"></p>
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <label for="">In Hot Products</label>
-                                        <select name="hot_products" id="hot_products" class="form-control">
-                                            <option value="0"
-                                                {{ (int) $product->hot_products === 0 ? 'selected' : '' }}>
-                                                Inactive
-                                            </option>
-                                            <option value="1"
-                                                {{ (int) $product->hot_products === 1 ? 'selected' : '' }}>
-                                                Active
-                                            </option>
-                                        </select>
-
-                                        <p class="invalid-feedback"></p>
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <label for="">Product Status</label>
-                                        <select name="status" id="status" class="form-control">
-                                           <option value="0"
-                                                {{ (int) $product->status === 0 ? 'selected' : '' }}>
-                                                Inactive
-                                            </option>
-                                            <option value="1"
-                                                {{ (int) $product->status === 1 ? 'selected' : '' }}>
-                                                Active
-                                            </option>
-
-                                        </select>
-                                        <p class="invalid-feedback"></p>
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <label for="free_delivery">Free Delivery</label>
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" name="free_delivery"
-                                                id="free_delivery" value="1" {{ $product->free_delivery ? 'checked' : '' }}>
-                                            <label class="form-check-label" for="free_delivery">Free Delivery</label>
+                                                    </select>
+                                                    <p class="invalid-feedback"></p>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label class="form-label" for="free_delivery">Free Delivery</label>
+                                                    <div class="form-check form-switch">
+                                                        <input class="form-check-input" type="checkbox" name="free_delivery"
+                                                            id="free_delivery" value="1" {{ $product->free_delivery ? 'checked' : '' }}>
+                                                        <label class="form-check-label" for="free_delivery">Free Delivery</label>
+                                                    </div>
+                                                    <small class="text-muted">Enable if this product should be delivered without
+                                                        delivery charge.</small>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <small class="text-muted">Enable if this product should be delivered without
-                                            delivery charge.</small>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="card">
-                                <div class="card-body">
-                                    <div class="card-header-2">
-                                        <h5>Description</h5>
+                            <div class="a-card">
+                                <div class="a-card-body">
+                                    <div class="a-form-section">
+                                        <h6 class="a-section-title">Description</h6>
+                                        <textarea name="description" id="description" cols="30" rows="10" class="summernote"
+                                            placeholder="Description">{!! $product->description !!}</textarea>
                                     </div>
-                                    <textarea name="description" id="description" cols="30" rows="10" class="summernote"
-                                        placeholder="Description">{!! $product->description !!}</textarea>
                                 </div>
                             </div>
 
-
-                            <div class="card">
-                                <div class="card-body">
-                                    <div class="card-header-2">
-                                        <h5>Product variations</h5>
-                                    </div>
-                                    <div class="mb-4 row align-items-center">
-                                        <label class="col-sm-3 col-form-label form-label-title">Product Type</label>
-                                        <div class="col-sm-9">
+                            <div class="a-card">
+                                <div class="a-card-body">
+                                    <div class="a-form-section">
+                                        <h6 class="a-section-title">Product Type</h6>
+                                        <div class="mb-3">
+                                            <label class="form-label" for="product_type">Product Type</label>
                                             <select class="form-control" id="product_type" name="product_type">
                                                 <option {{ $product->type == 0 ? 'selected' : '' }} value="0">Single
                                                 </option>
@@ -183,108 +202,108 @@
                                 </div>
                             </div>
 
-
-
-                            <div class="card" id="product-variations-card" style="display:none;">
-                                <div class="card-body">
-                                    <div class="card-header-2">
-                                        <h5>Product variations</h5>
-                                    </div>
-                                    @foreach ($variations as $variation)
-                                        <div class="mb-4 row align-items-center variation-row">
-                                            <label
-                                                class="form-label-title col-sm-3 mb-0">{{ $variation->variations }}</label>
-                                            <div class="col-sm-9">
-                                                @php
-                                                    $values = App\Models\VariationValues::where(
-                                                        'variation_id',
-                                                        $variation->id,
-                                                    )->get();
-                                                @endphp
-                                                <input type="hidden" class="variation-id" value="{{ $variation->id }}">
-                                                <input type="hidden" class="variation-name"
-                                                    value="{{ $variation->variations }}">
-                                                <select class="form-control variation-value">
-                                                    <option value="">Select Value</option>
-                                                    @foreach ($values as $value)
-                                                        <option value="{{ $value->id }}"
-                                                            data-value-name="{{ $value->value }}">
-                                                            {{ $value->value }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
+                            <div class="a-card" id="product-variations-card" style="display:none;">
+                                <div class="a-card-body">
+                                    <div class="a-form-section">
+                                        <h6 class="a-section-title">Product Variations</h6>
+                                        @foreach ($variations as $variation)
+                                            <div class="mb-4 row align-items-center variation-row">
+                                                <label
+                                                    class="form-label-title col-sm-3 mb-0">{{ $variation->variations }}</label>
+                                                <div class="col-sm-9">
+                                                    @php
+                                                        $values = App\Models\VariationValues::where(
+                                                            'variation_id',
+                                                            $variation->id,
+                                                        )->get();
+                                                    @endphp
+                                                    <input type="hidden" class="variation-id" value="{{ $variation->id }}">
+                                                    <input type="hidden" class="variation-name"
+                                                        value="{{ $variation->variations }}">
+                                                    <select class="form-control variation-value">
+                                                        <option value="">Select Value</option>
+                                                        @foreach ($values as $value)
+                                                            <option value="{{ $value->id }}"
+                                                                data-value-name="{{ $value->value }}">
+                                                                {{ $value->value }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
                                             </div>
-                                        </div>
-                                    @endforeach
-                                    <a href="#" class="add-option btn btn-primary mt-3">Add Another Option</a>
-                                </div>
-                            </div>
-
-
-
-
-                            <div class="card">
-                                <div class="card-body">
-                                    <div class="card-header-2">
-                                        <h5>variation Table</h5>
+                                        @endforeach
+                                        <a href="#" class="add-option btn btn-theme mt-3">Add Another Option</a>
                                     </div>
-                                    <table class="table table-bordered" id="variation-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Product SKU</th>
-                                                <th>Variation Values</th>
-                                                <th>Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach ($product_variation as $variation)
-                                                @php
-                                                    // Decode JSON stored in variation_values
-                                                    $values = json_decode($variation->variation_values, true);
-                                                    $variationDisplay = [];
-                                                    if ($values) {
-                                                        foreach ($values as $v) {
-                                                            // Replace these with your actual logic to get names from IDs if needed
-                                                            $variationName =
-                                                                \App\Models\Variation::find($v['variation_id'])
-                                                                    ->variations ?? 'Unknown';
-                                                            $valueName =
-                                                                \App\Models\VariationValues::find($v['value_id'])
-                                                                    ->value ?? 'Unknown';
-                                                            $variationDisplay[] = "$variationName -> $valueName";
-                                                        }
-                                                    }
-                                                @endphp
-                                                <tr>
-                                                    <td>
-                                                        {{ $variation->sku }}
-                                                        <input type="hidden" name="variation_sku[]"
-                                                            value="{{ $variation->sku }}">
-                                                    </td>
-                                                    <td>
-                                                        {{ implode(', ', $variationDisplay) }}
-                                                        <input type="hidden" name="variation_values[]"
-                                                            value="{{ urlencode($variation->variation_values) }}">
-                                                    </td>
-                                                    <td>
-                                                        @if (!empty($variation->qty))
-                                                            <button type="button" disabled
-                                                                class="btn btn-danger btn-sm delete-row">Delete</button>
-                                                            <p style="color: red">Has Product</p>
-                                                        @else
-                                                            <button type="button"
-                                                                onclick="deleteVariant({{ $variation->id }})"
-                                                                class="btn btn-danger btn-sm delete-row">Delete</button>
-                                                        @endif
-                                                    </td>
-                                                </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
-
                                 </div>
                             </div>
-                            <button type="submit" class="btn btn-success mt-3">Update Product</button>
+
+                            <div class="a-card">
+                                <div class="a-card-body">
+                                    <div class="a-form-section">
+                                        <h6 class="a-section-title">Variation Table</h6>
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered" id="variation-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Product SKU</th>
+                                                        <th>Variation Values</th>
+                                                        <th>Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach ($product_variation as $variation)
+                                                        @php
+                                                            // Decode JSON stored in variation_values
+                                                            $values = json_decode($variation->variation_values, true);
+                                                            $variationDisplay = [];
+                                                            if ($values) {
+                                                                foreach ($values as $v) {
+                                                                    // Replace these with your actual logic to get names from IDs if needed
+                                                                    $variationName =
+                                                                        \App\Models\Variation::find($v['variation_id'])
+                                                                            ->variations ?? 'Unknown';
+                                                                    $valueName =
+                                                                        \App\Models\VariationValues::find($v['value_id'])
+                                                                            ->value ?? 'Unknown';
+                                                                    $variationDisplay[] = "$variationName -> $valueName";
+                                                                }
+                                                            }
+                                                        @endphp
+                                                        <tr>
+                                                            <td>
+                                                                {{ $variation->sku }}
+                                                                <input type="hidden" name="variation_sku[]"
+                                                                    value="{{ $variation->sku }}">
+                                                            </td>
+                                                            <td>
+                                                                {{ implode(', ', $variationDisplay) }}
+                                                                <input type="hidden" name="variation_values[]"
+                                                                    value="{{ urlencode($variation->variation_values) }}">
+                                                            </td>
+                                                            <td>
+                                                                @if (!empty($variation->qty))
+                                                                    <button type="button" disabled
+                                                                        class="btn btn-danger btn-sm delete-row">Delete</button>
+                                                                    <p style="color: red">Has Product</p>
+                                                                @else
+                                                                    <button type="button"
+                                                                        onclick="deleteVariant({{ $variation->id }})"
+                                                                        class="btn btn-danger btn-sm delete-row">Delete</button>
+                                                                @endif
+                                                            </td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-2 mt-3">
+                                <button type="submit" class="btn btn-theme">Save Changes</button>
+                                <a href="{{ route('products.index') }}" class="btn btn-outline-secondary">Cancel</a>
+                            </div>
                         </form>
 
                         <br>

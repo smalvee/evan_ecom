@@ -2,94 +2,81 @@
 
 @section('content')
     <div class="container-fluid">
-        <div class="row">
-            <div class="col-sm-12">
-                <div class="card card-table">
-                    <div class="card-body">
-                        <div class="title-header option-title d-sm-flex d-block">
-                            <h5>Products List</h5>
-                            <form action="" method="GET">
-                                <div style="position: relative; display: inline-block;">
-                                    <input type="text" class=""
-                                        style="border-radius: 5px; border-color: #028e84; padding-right: 35px;"
-                                        placeholder="search" value="{{ Request::get('keyword') }}" name="keyword">
-                                    <button type="submit"
-                                        style="position: absolute; right: 5px; top: 50%; transform: translateY(-50%); border: none; background: none; cursor: pointer;">
-                                        <i class="fas fa-search"></i>
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                        <div>
-                            <div class="table-responsive">
-                                <table class="table all-package theme-table table-product" id="table_id">
-                                    <thead>
-                                        <tr>
+        <div class="a-page-head">
+            <div class="a-page-head-text">
+                <ul class="a-breadcrumb">
+                    <li><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
+                    <li><a href="{{ route('products.index') }}">Products</a></li>
+                    <li class="is-active">Image Manager</li>
+                </ul>
+                <h4 class="a-page-title">Product Image Manager</h4>
+                <p class="a-page-desc">Manage product variant images.</p>
+            </div>
+            <div class="a-actions">
+                <form action="" method="GET" class="d-flex align-items-center gap-2">
+                    <input type="text" class="form-control" style="width: auto;"
+                        placeholder="Search products" value="{{ Request::get('keyword') }}" name="keyword">
+                    <button type="submit" class="btn btn-outline-secondary"><i class="ri-search-line"></i></button>
+                </form>
+            </div>
+        </div>
 
-                                            <th>Product Name</th>
-                                            <th>Variant Sku</th>
-                                            <th>Category</th>
-                                            <th>Sub Category</th>
+        <div class="a-card">
+            <div class="table-responsive">
+                <table class="table all-package theme-table table-product" id="table_id">
+                    <thead>
+                        <tr>
 
-                                            <th>Option</th>
-                                        </tr>
-                                    </thead>
+                            <th>Product Name</th>
+                            <th>Variant Sku</th>
+                            <th>Category</th>
+                            <th>Sub Category</th>
 
-                                    <tbody>
-                                        {{-- @dd($products) --}}
+                            <th>Option</th>
+                        </tr>
+                    </thead>
 
-                                        @if (!empty($products))
-                                            @foreach ($products as $product_info)
-                                                <tr>
-                                                    <td>{{ $product_info->product->name }}</td>
-                                                    <td>{{ $product_info->sku }}</td>
+                    <tbody>
+                        {{-- @dd($products) --}}
 
-                                                    <td>{{ $product_info->product->cat_id }}</td>
-                                                    <td>{{ $product_info->product->sub_cat_id }}</td>
+                        @if (!empty($products))
+                            @foreach ($products as $product_info)
+                                <tr>
+                                    <td>
+                                        <div class="a-cell-main">{{ $product_info->product->name }}</div>
+                                    </td>
+                                    <td>{{ $product_info->sku }}</td>
 
+                                    <td>{{ $product_info->product->cat_id }}</td>
+                                    <td>{{ $product_info->product->sub_cat_id }}</td>
 
+                                    <td>
+                                        <div class="a-actions-cell">
+                                            <a class="btn btn-theme btn-sm"
+                                                href="{{ route('image_edit.edit', $product_info->id) }}">
+                                                <i class="ri-image-edit-line"></i> Add Or Edit
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        @else
+                            <tr>
+                                <td colspan="5">
+                                    <div class="a-empty">
+                                        <div class="a-empty-icon"><i class="ri-inbox-line"></i></div>
+                                        <h5>No products found</h5>
+                                        <p>No product variants available for image management.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endif
 
-
-
-
-                                                    <td>
-                                                        <ul>
-                                                            <li>
-                                                                <a
-                                                                    href="{{ route('image_edit.edit', $product_info->id) }}">
-                                                                    <button class="btn btn-primary">Add Or Edit</button>
-                                                                </a>
-                                                            </li>
-
-
-
-                                                            {{-- <li>
-                                                                <button type="button" class="btn btn-link p-0"
-                                                                    data-bs-toggle="modal"
-                                                                    data-bs-target="#exampleModalToggle"
-                                                                    onclick="deleteNewProduct({{ $product_info->id }})"
-                                                                    @if ($product_info->type == 1) disabled @endif>
-                                                                    <i class="ri-delete-bin-line"></i>
-                                                                </button>
-                                                            </li> --}}
-
-                                                        </ul>
-                                                    </td>
-                                                </tr>
-                                            @endforeach
-                                        @endif
-
-
-
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div class="card-footer clearfix">
-                                {{ $products->links() }}
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                    </tbody>
+                </table>
+            </div>
+            <div class="a-card-footer clearfix">
+                {{ $products->links() }}
             </div>
         </div>
     </div>

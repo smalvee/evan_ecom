@@ -2,62 +2,56 @@
 
 @section('content')
     <div class="container-fluid">
-        <div class="row">
-            <div class="col-sm-12">
-                <div class="card card-table">
-                    <div class="card-body">
-                        <div class="title-header option-title">
-                            <h5>Site Banner</h5>
-                        </div>
+        <div class="a-page-head">
+            <div class="a-page-head-text">
+                <ul class="a-breadcrumb">
+                    <li><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
+                    <li class="is-active">Banners</li>
+                </ul>
+                <h4 class="a-page-title">Banners</h4>
+                <p class="a-page-desc">Manage homepage banners.</p>
+            </div>
+        </div>
 
-                        <form action="" method="post" name="createBanner" id="createBanner">
-                            @csrf
-                            <div class="row">
-                                <div class="col-lg-8">
-                                    <div class="card mb-3">
-                                        <div class="card-body">
-                                            <h5 class="mb-3">Banner
-                                                <span class="text-danger small">(Recommended dimensions 1100 x 480 pixels)</span>
-                                            </h5>
-                                            <div id="image" class="dropzone dz-clickable"
-                                                style="border: 2px dashed #6c757d; border-radius: 8px; padding: 30px; text-align: center; cursor: pointer;">
-                                                <div class="dz-message needsclick">Drop file here or click to upload.</div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="row g-3" id="product-gallery"></div>
-                                    <input type="hidden" name="image_id" id="image_id">
-                                </div>
-                            </div>
-
-                            <div class="pt-3">
-                                <button type="submit" class="btn btn-theme">Create</button>
-                            </div>
-                        </form>
+        <div class="a-card mb-3">
+            <div class="a-card-head">
+                <h5>Add Banner</h5>
+                <span class="a-cell-sub">Recommended dimensions 1100 x 480 pixels</span>
+            </div>
+            <div class="a-card-body">
+                <form action="" method="post" name="createBanner" id="createBanner">
+                    @csrf
+                    <div id="image" class="dropzone dz-clickable"
+                        style="border: 2px dashed #6c757d; border-radius: 8px; padding: 30px; text-align: center; cursor: pointer;">
+                        <div class="dz-message needsclick">Drop file here or click to upload.</div>
                     </div>
-                </div>
 
-                <div class="card card-table">
-                    <div class="card-body">
-                        <div class="title-header option-title">
-                            <h5>Banner List</h5>
-                        </div>
-                        <div class="table-responsive category-table">
-                            <table class="table all-package theme-table" id="banners">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Image</th>
-                                        <th>Status</th>
-                                        <th>Option</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
-                        </div>
+                    <div class="row g-3 mt-3" id="product-gallery"></div>
+                    <input type="hidden" name="image_id" id="image_id">
+
+                    <div class="pt-3">
+                        <button type="submit" class="btn btn-theme">Create</button>
                     </div>
-                </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="a-card">
+            <div class="a-card-head">
+                <h5>Banner List</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table all-package theme-table" id="banners">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Image</th>
+                            <th>Status</th>
+                            <th>Option</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
             </div>
         </div>
     </div>

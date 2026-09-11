@@ -2,75 +2,69 @@
 
 @section('content')
     <div class="container-fluid">
-        <div class="row">
-            <div class="col-12">
-                <div class="row">
-                    <div class="col-sm-8 m-auto">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="title-header option-title">
-                                    <h5>Add New Supplier</h5>
-                                </div>
+        <div class="a-page-head">
+            <div class="a-page-head-text">
+                <ul class="a-breadcrumb">
+                    <li><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
+                    <li><a href="{{ route('supply.index') }}">Suppliers</a></li>
+                    <li class="is-active">Create</li>
+                </ul>
+                <h4 class="a-page-title">Add New Supplier</h4>
+                <p class="a-page-desc">Fill in the details to create a new supplier.</p>
+            </div>
+            <div class="a-actions">
+                <a href="{{ route('supply.index') }}" class="btn btn-outline-secondary"><i class="ri-arrow-left-line"></i> Back</a>
+            </div>
+        </div>
 
-
-                                <div class="tab-content" id="pills-tabContent">
-                                    <div class="tab-pane fade show active" id="pills-home" role="tabpanel">
-                                        <form class="theme-form theme-form-2 mega-form" action="" method="POST"
-                                            id="createSupplier" name="createSupplier">
-
-
-                                            <div class="row">
-                                                <div class="mb-4 row align-items-center">
-                                                    <label class="form-label-title col-lg-2 col-md-3 mb-0">
-                                                        Name</label>
-                                                    <div class="col-md-9 col-lg-10">
-                                                        <input class="form-control" type="text" id="name"
-                                                            name="name">
-                                                        <p class="invalid-feedback"></p>
-                                                    </div>
-                                                </div>
-
-                                                <div class="mb-4 row align-items-center">
-                                                    <label class="col-lg-2 col-md-3 col-form-label form-label-title">Email
-                                                    </label>
-                                                    <div class="col-md-9 col-lg-10">
-                                                        <input class="form-control" type="email" id="email"
-                                                            name="email">
-                                                        <p class="invalid-feedback"></p>
-                                                    </div>
-                                                </div>
-
-                                                <div class="mb-4 row align-items-center">
-                                                    <label
-                                                        class="col-lg-2 col-md-3 col-form-label form-label-title">Phone</label>
-                                                    <div class="col-md-9 col-lg-10">
-                                                        <input class="form-control" type="text" id="phone"
-                                                            name="phone">
-                                                        <p class="invalid-feedback"></p>
-                                                    </div>
-                                                </div>
-
-                                                <div class="row align-items-center">
-                                                    <label
-                                                        class="col-lg-2 col-md-3 col-form-label form-label-title">Address</label>
-                                                    <div class="col-md-9 col-lg-10">
-                                                        <input class="form-control" type="text" id="address"
-                                                            name="address">
-                                                        <p class="invalid-feedback"></p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="card-submit-button">
-                                                <button class="btn btn-animation ms-auto" type="submit">Submit</button>
-                                            </div>
-                                        </form>
-                                    </div>
+        <div class="a-card">
+            <div class="a-card-head">
+                <h5>Supplier Information</h5>
+            </div>
+            <div class="a-card-body">
+                <form action="" method="POST" id="createSupplier" name="createSupplier">
+                    <div class="a-form-section">
+                        <h6 class="a-section-title">Supplier</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="name" class="form-label a-required">Name</label>
+                                    <input class="form-control" type="text" id="name" name="name">
+                                    <p class="invalid-feedback"></p>
                                 </div>
                             </div>
 
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="email" class="form-label a-required">Email</label>
+                                    <input class="form-control" type="email" id="email" name="email">
+                                    <p class="invalid-feedback"></p>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="phone" class="form-label a-required">Phone</label>
+                                    <input class="form-control" type="text" id="phone" name="phone">
+                                    <p class="invalid-feedback"></p>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="address" class="form-label a-required">Address</label>
+                                    <input class="form-control" type="text" id="address" name="address">
+                                    <p class="invalid-feedback"></p>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
+
+                    <div class="pt-3">
+                        <button class="btn btn-theme" type="submit">Submit</button>
+                        <a href="{{ route('supply.index') }}" class="btn btn-outline-secondary ms-2">Cancel</a>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

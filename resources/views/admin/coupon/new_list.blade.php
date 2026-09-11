@@ -2,95 +2,73 @@
 
 @section('content')
     <div class="container-fluid">
-        <div class="row">
-            <div class="col-sm-12">
-                <div class="card card-table">
-                    <div class="card-body">
-                        <div class="title-header option-title">
-                            <h5>Coupon List</h5>
-                            <form class="d-inline-flex">
-                                <a href="{{ route('coupon.create') }}" class="btn btn-primary">New Coupon</a>
-                            </form>
-                        </div>
+        <div class="a-page-head">
+            <div class="a-page-head-text">
+                <ul class="a-breadcrumb">
+                    <li><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
+                    <li class="is-active">Coupons</li>
+                </ul>
+                <h4 class="a-page-title">Coupons</h4>
+                <p class="a-page-desc">Manage discount coupons for your store.</p>
+            </div>
+            <div class="a-actions">
+                <a href="{{ route('coupon.create') }}" class="btn btn-theme"><i class="ri-add-line"></i> New Coupon</a>
+            </div>
+        </div>
 
-                        <div class="table-responsive category-table">
-                            <div>
-                                <table class="table all-package theme-table" id="table_id">
-                                    <thead>
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>code</th>
-                                            <th>Name</th>
-                                            <th>description</th>
-                                            <th>max_uses</th>
-                                            <th>max_uses_user</th>
-                                            <th>type</th>
-                                            <th>discount_amount</th>
-                                            <th>min_amount</th>
-                                            <th>starts_at</th>
-                                            <th>expires_at</th>
-                                            {{-- <th width="100">Status</th> --}}
-                                            {{-- <th width="100">Action</th> --}}
-                                        </tr>
-                                    </thead>
-
-                                    <tbody>
-
-                                        @if ($coupons->isNotEmpty())
-                                            @foreach ($coupons as $coupon)
-                                                <tr>
-                                                    <td>{{ $coupon->id }}</td>
-                                                    <td>{{ $coupon->code }}</td>
-                                                    <td>{{ $coupon->name }}</td>
-                                                    <td>{{ $coupon->description }}</td>
-                                                    <td>{{ $coupon->max_uses }}</td>
-                                                    <td>{{ $coupon->max_uses_user }}</td>
-                                                    <td>{{ $coupon->type }}</td>
-                                                    <td>{{ $coupon->discount_amount }}</td>
-                                                    <td>{{ $coupon->min_amount }}</td>
-                                                    <td>{{ $coupon->starts_at }}</td>
-                                                    <td>{{ $coupon->expires_at }}</td>
-
-                                                    {{-- <td>
-                                                        @if ($coupon->status == 1)
-                                                            <svg class="text-success-500 h-6 w-6 text-success"
-                                                                xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                                viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
-                                                                aria-hidden="true">
-                                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z">
-                                                                </path>
-                                                            </svg>
-                                                        @else
-                                                            <svg class="text-danger h-6 w-6"
-                                                                xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                                viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
-                                                                aria-hidden="true">
-                                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                                    d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z">
-                                                                </path>
-                                                            </svg>
-                                                        @endif
-
-                                                    </td> --}}
-                                                </tr>
-                                            @endforeach
-                                        @else
-                                            <tr>
-                                                <td colspan="5">Records Not Found</td>
-                                            </tr>
-                                        @endif
-
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        <div class="card-footer clearfix">
-                            {{ $coupons->links() }}
-                        </div>
-                    </div>
-                </div>
+        <div class="a-card">
+            <div class="a-card-head">
+                <h5>Coupon List</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table all-package theme-table" id="table_id">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Code</th>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>Max Uses</th>
+                            <th>Max Uses User</th>
+                            <th>Type</th>
+                            <th>Discount Amount</th>
+                            <th>Min Amount</th>
+                            <th>Starts At</th>
+                            <th>Expires At</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if ($coupons->isNotEmpty())
+                            @foreach ($coupons as $coupon)
+                                <tr>
+                                    <td>{{ $coupon->id }}</td>
+                                    <td><span class="a-cell-main">{{ $coupon->code }}</span></td>
+                                    <td>{{ $coupon->name }}</td>
+                                    <td>{{ $coupon->description }}</td>
+                                    <td>{{ $coupon->max_uses }}</td>
+                                    <td>{{ $coupon->max_uses_user }}</td>
+                                    <td>{{ $coupon->type }}</td>
+                                    <td>{{ $coupon->discount_amount }}</td>
+                                    <td>{{ $coupon->min_amount }}</td>
+                                    <td>{{ $coupon->starts_at }}</td>
+                                    <td>{{ $coupon->expires_at }}</td>
+                                </tr>
+                            @endforeach
+                        @else
+                            <tr>
+                                <td colspan="11">
+                                    <div class="a-empty">
+                                        <div class="a-empty-icon"><i class="ri-inbox-line"></i></div>
+                                        <h5>No coupons found</h5>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endif
+                    </tbody>
+                </table>
+            </div>
+            <div class="a-card-footer">
+                {{ $coupons->links() }}
             </div>
         </div>
     </div>

@@ -9,6 +9,10 @@ class Order extends Model
 {
     use HasFactory;
 
+    protected $casts = [
+        'stock_deducted' => 'boolean',
+    ];
+
     public function items()
     {
         return $this->hasMany(OrderItem::class, 'order_id');

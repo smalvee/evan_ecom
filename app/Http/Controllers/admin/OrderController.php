@@ -10,6 +10,7 @@ use App\Models\ProductVariant;
 use App\Models\ShippingCharge;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
@@ -17,41 +18,127 @@ class OrderController extends Controller
 {
     public function index(Request $request)
     {
-        $orders = Order::latest('orders.created_at')->select('orders.*', 'users.name', 'users.email');
-        $orders = $orders->leftJoin('users', 'users.id', 'orders.user_id');
+        $query = Order::latest('orders.created_at')->select('orders.*', 'users.name', 'users.email');
+        $query = $query->leftJoin('users', 'users.id', 'orders.user_id');
 
-        if ($request->get('keyword') != '') {
-            $orders = $orders->where('users.name', 'like', '%' . $request->keyword . '%');
-            $orders = $orders->orwhere('users.email', 'like', '%' . $request->keyword . '%');
-            $orders = $orders->orwhere('users.phone', 'like', '%' . $request->keyword . '%');
-            $orders = $orders->orwhere('orders.order_id', 'like', '%' . $request->keyword . '%');
+        if ($request->filled('keyword')) {
+            $keyword = $request->get('keyword');
+            $query->where(function ($q) use ($keyword) {
+                $q->where('users.name', 'like', '%' . $keyword . '%')
+                    ->orWhere('users.email', 'like', '%' . $keyword . '%')
+                    ->orWhere('users.phone', 'like', '%' . $keyword . '%')
+                    ->orWhere('orders.order_id', 'like', '%' . $keyword . '%')
+                    ->orWhere('orders.phone', 'like', '%' . $keyword . '%');
+            });
         }
 
-        $orders = $orders->with('items')->paginate(10);
+        if ($request->filled('status')) {
+            $query->where('orders.status', $request->get('status'));
+        }
+
+        $orders = $query->with('items')->paginate(10)->appends($request->query());
 
         $data['orders'] = $orders;
 
         return view('admin.orders.new_list', $data);
     }
 
+    public function destroy($id)
+    {
+        $order = Order::find($id);
+
+        if (!$order) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Order not found.',
+            ]);
+        }
+
+        // Confirmed or shipped orders must be cancelled instead of deleted,
+        // so that stock is restored correctly.
+        if (in_array($order->status, ['confirm', 'shipped'], true)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Confirmed or shipped orders cannot be deleted. Please cancel the order instead.',
+            ]);
+        }
+
+        DB::beginTransaction();
+
+        try {
+            // Remove order items explicitly (do not rely on FK cascade).
+            OrderItem::where('order_id', $order->id)->delete();
+            $order->delete();
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'status' => false,
+                'message' => 'Unable to delete the order.',
+            ]);
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Order deleted successfully.',
+        ]);
+    }
+
     public function details($orderId)
     {
         $order = Order::where('id', $orderId)->first();
-        $orderedItems = OrderItem::where('order_id', $order->id)->get();
 
-        $data = [];
-        $data['order'] = $order;
-        $data['orderedItems'] = $orderedItems;
-        return view('admin.orders.new_details', $data);
+        if (!$order) {
+            abort(404);
+        }
+
+        $orderedItems = OrderItem::with('variant.product')->where('order_id', $order->id)->get();
+        $variants = ProductVariant::with('product')->get();
+
+        return view('admin.orders.new_details', [
+            'order' => $order,
+            'orderedItems' => $orderedItems,
+            'variants' => $variants,
+        ]);
     }
 
     public function ChangeOrderStatus($order_id, Request $request)
     {
-        $order = Order::find($order_id);
+        $request->validate([
+            'status' => 'required|in:pending,confirm,shipped,cancell',
+        ]);
 
-        $order->status = $request->status;
-        $order->admin_note = $request->admin_note;
-        $order->save();
+        DB::beginTransaction();
+
+        try {
+            $order = Order::with('items')->lockForUpdate()->find($order_id);
+
+            if (!$order) {
+                DB::rollBack();
+
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Order not found.',
+                ]);
+            }
+
+            $this->applyStockForStatusChange($order, $request->status);
+
+            $order->status = $request->status;
+            $order->admin_note = $request->admin_note;
+            $order->save();
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage() ?: 'Unable to update the order status.',
+            ]);
+        }
 
         $request->session()->flash('success', 'Status Changed successfully');
 
@@ -59,6 +146,63 @@ class OrderController extends Controller
             'status' => true,
             'message' => 'Status Changed successfully',
         ]);
+    }
+
+    /**
+     * Adjust a variant's stock by $delta (positive = add, negative = deduct).
+     * Locks the row and refuses to go negative.
+     *
+     * @throws \RuntimeException
+     */
+    protected function adjustVariantStock($variantId, int $delta): void
+    {
+        if ($delta === 0) {
+            return;
+        }
+
+        $variant = ProductVariant::where('id', $variantId)->lockForUpdate()->first();
+
+        if (!$variant) {
+            throw new \RuntimeException('Product variant not found.');
+        }
+
+        if ($delta < 0) {
+            $needed = -$delta;
+
+            if ((int) $variant->qty < $needed) {
+                throw new \RuntimeException('Insufficient stock for ' . ($variant->sku ?? ('variant #' . $variantId)) . '.');
+            }
+
+            $variant->decrement('qty', $needed);
+        } else {
+            $variant->increment('qty', $delta);
+        }
+    }
+
+    /**
+     * Deduct stock once when an order reaches "confirmed" (or beyond), and
+     * restore it once when a stock-deducted order is cancelled.
+     *
+     * The stock_deducted flag guarantees the deduction/restoration happens
+     * exactly once, even if a status is re-applied.
+     */
+    protected function applyStockForStatusChange(Order $order, string $newStatus): void
+    {
+        // Deduct only once, when the order becomes confirmed or shipped.
+        if (in_array($newStatus, ['confirm', 'shipped'], true) && !$order->stock_deducted) {
+            foreach ($order->items as $item) {
+                $this->adjustVariantStock($item->product_id, -(int) $item->qty);
+            }
+            $order->stock_deducted = true;
+        }
+
+        // Restore only once, when cancelling an order whose stock is currently deducted.
+        if ($newStatus === 'cancell' && $order->stock_deducted) {
+            foreach ($order->items as $item) {
+                $this->adjustVariantStock($item->product_id, (int) $item->qty);
+            }
+            $order->stock_deducted = false;
+        }
     }
 
     public function create_order(Request $request)
@@ -148,9 +292,6 @@ class OrderController extends Controller
             $orderItem->total = $product->selling_price * $item['qty'] - $item['discount'];
             $orderItem->free_delivery = (bool) ($product->product->free_delivery ?? false);
             $orderItem->save();
-
-            // ✅ Decrease stock
-            $product->decrement('qty', $item['qty']);
         }
 
         return response()->json([
@@ -227,6 +368,173 @@ class OrderController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'Order updated successfully',
+        ]);
+    }
+
+    /**
+     * Single-transaction update for the order detail page.
+     *
+     * Saves status, customer/order address, existing item edits, item
+     * cancellations and newly added items together, applying the order stock
+     * rules and rolling back entirely on any failure.
+     */
+    public function updateOrder(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'status' => 'required|in:pending,confirm,shipped,cancell',
+            'f_name' => 'required|string|max:255',
+            'address' => 'required|string',
+            'item_qty' => 'nullable|array',
+            'item_qty.*' => 'required|integer|min:1',
+            'item_discount' => 'nullable|array',
+            'item_discount.*' => 'nullable|numeric|min:0',
+            'cancel_items' => 'nullable|array',
+            'cancel_items.*' => 'nullable|integer',
+            'new_variant_id' => 'nullable|array',
+            'new_variant_id.*' => 'nullable|exists:product_variants,id',
+            'new_qty' => 'nullable|array',
+            'new_qty.*' => 'nullable|integer|min:1',
+            'new_discount' => 'nullable|array',
+            'new_discount.*' => 'nullable|numeric|min:0',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first(),
+                'errors' => $validator->errors(),
+            ]);
+        }
+
+        DB::beginTransaction();
+
+        try {
+            $order = Order::with('items')->lockForUpdate()->findOrFail($id);
+            $newStatus = $request->status;
+
+            /* 1) Cancel / remove selected items (restore stock once, if deducted). */
+            foreach (array_filter((array) $request->cancel_items) as $itemId) {
+                $item = OrderItem::where('id', $itemId)->where('order_id', $order->id)->first();
+
+                if (!$item) {
+                    continue; // Already removed -> no duplicate stock restoration.
+                }
+
+                if ($order->stock_deducted) {
+                    $this->adjustVariantStock($item->product_id, (int) $item->qty);
+                }
+
+                $item->delete();
+            }
+
+            /* 2) Update existing items (qty / discount) and adjust stock by the difference. */
+            $itemQtys = (array) $request->item_qty;
+            $itemDiscounts = (array) $request->item_discount;
+
+            foreach ($itemQtys as $itemId => $newQty) {
+                $item = OrderItem::where('id', $itemId)->where('order_id', $order->id)->first();
+
+                if (!$item) {
+                    continue;
+                }
+
+                $newQty = (int) $newQty;
+                $newDiscount = (float) ($itemDiscounts[$itemId] ?? 0);
+                $delta = $newQty - (int) $item->qty;
+
+                if ($order->stock_deducted && $delta !== 0) {
+                    // delta > 0 => deduct more; delta < 0 => return the difference.
+                    $this->adjustVariantStock($item->product_id, -$delta);
+                }
+
+                $item->qty = $newQty;
+                $item->discount = $newDiscount;
+                $item->total = max(0, ((float) $item->price * $newQty) - $newDiscount);
+                $item->save();
+            }
+
+            /* 3) Add new items. */
+            $newVariantIds = (array) $request->new_variant_id;
+            $newQtys = (array) $request->new_qty;
+            $newDiscounts = (array) $request->new_discount;
+
+            foreach ($newVariantIds as $i => $variantId) {
+                if (empty($variantId)) {
+                    continue;
+                }
+
+                $qty = (int) ($newQtys[$i] ?? 0);
+
+                if ($qty < 1) {
+                    continue;
+                }
+
+                $discount = (float) ($newDiscounts[$i] ?? 0);
+
+                $variant = ProductVariant::with('product')->find($variantId);
+
+                if (!$variant) {
+                    throw new \RuntimeException('Selected product not found.');
+                }
+
+                $price = (float) $variant->selling_price;
+
+                $orderItem = new OrderItem();
+                $orderItem->order_id = $order->id;
+                $orderItem->product_id = $variant->id;
+                $orderItem->name = $variant->sku;
+                $orderItem->qty = $qty;
+                $orderItem->price = $price;
+                $orderItem->discount = $discount;
+                $orderItem->total = max(0, ($price * $qty) - $discount);
+                $orderItem->free_delivery = (bool) ($variant->product->free_delivery ?? false);
+                $orderItem->save();
+
+                // Already-confirmed order: deduct the added quantity now.
+                if ($order->stock_deducted) {
+                    $this->adjustVariantStock($variant->id, -$qty);
+                }
+            }
+
+            /* 4) Status-transition stock handling against the current item set. */
+            $order->load('items');
+            $this->applyStockForStatusChange($order, $newStatus);
+
+            /* 5) Recalculate totals from the current items. */
+            $subtotal = (float) $order->items->sum(fn ($it) => (float) $it->total);
+            $order->subtotal = $subtotal;
+            $order->grand_total = max(0, $subtotal + (float) $order->shipping - (float) $order->discount);
+
+            /* 6) Order + customer fields. */
+            $order->status = $newStatus;
+            $order->admin_note = $request->admin_note;
+            $order->name = $request->f_name;
+            $order->address = $request->address;
+            $order->save();
+
+            /* 7) Keep the saved customer address in sync. */
+            CustomerAddress::updateOrCreate(
+                ['user_id' => $order->user_id],
+                [
+                    'name' => $request->f_name,
+                    'phone' => $order->phone,
+                    'address' => $request->address,
+                ]
+            );
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage() ?: 'Unable to update the order.',
+            ]);
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Order updated successfully.',
         ]);
     }
 }

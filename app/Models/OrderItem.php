@@ -14,4 +14,12 @@ class OrderItem extends Model
     protected $casts = [
         'free_delivery' => 'boolean',
     ];
+
+    /**
+     * The product variant this order item refers to (order_items.product_id => product_variants.id).
+     */
+    public function variant()
+    {
+        return $this->belongsTo(ProductVariant::class, 'product_id');
+    }
 }

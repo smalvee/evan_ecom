@@ -1,147 +1,108 @@
 @extends('admin.layouts.new_app')
 
 @section('content')
-    <?php
-    use App\Models\NewProduct;
-    use App\Models\Unit;
-    use App\Models\Category;
-    use App\Models\SubCategory;
-    use App\Models\OrderItem;
-    
-    ?>
-    <section class="content-header">
-        <div class="container-fluid my-2">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h2>Item Wise Sales Report</h2>
-                </div>
-                <div class="col-sm-6 text-right">
-                    <form action="{{ route('admin.reports.sales.export') }}" method="GET" class="d-inline">
-                        <input type="hidden" name="from_date" value="{{ request('from_date') }}">
-                        <input type="hidden" name="to_date" value="{{ request('to_date') }}">
-                        <input type="hidden" name="status" value="{{ request('status') }}">
-                        {{-- <button style="float: right" class="btn btn-success"><i class="fas fa-file-excel"></i> Export
-                            Excel</button> --}}
-                    </form>
-
-                </div>
+    <div class="container-fluid">
+        <div class="a-page-head">
+            <div class="a-page-head-text">
+                <ul class="a-breadcrumb">
+                    <li><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
+                    <li><a href="{{ route('admin.reports.index') }}">Reports</a></li>
+                    <li class="is-active">Product Sales</li>
+                </ul>
+                <h4 class="a-page-title">Product Sales Report</h4>
+                <p class="a-page-desc">Revenue, cost and profit by product · {{ $rangeLabel }}</p>
             </div>
         </div>
-    </section>
 
-    <section class="content">
-        <div class="container-fluid">
+        @include('admin.reports.partials.filter', [
+            'route' => route('item_sales.index'),
+            'reportTitle' => 'Product Sales Report',
+            'exportReport' => 'product_sales',
+            'showSearch' => true,
+            'searchPlaceholder' => 'Product name or SKU',
+            'selects' => [
+                ['name' => 'status', 'label' => 'Order Status', 'options' => ['' => 'All'] + $statuses],
+                ['name' => 'category', 'label' => 'Category', 'options' => ['' => 'All'] + $categories->pluck('name', 'id')->toArray()],
+                ['name' => 'brand', 'label' => 'Brand', 'options' => ['' => 'All'] + $brands->pluck('name', 'id')->toArray()],
+            ],
+        ])
 
-            <!-- Filter -->
-            <div class="card mb-3">
-                <div class="card-header">
-                    <form method="GET" action="{{ route('sales.index') }}" class="row g-3">
-                        <div class="col-md-3">
-                            <label>From Date</label>
-                            <input type="date" name="from_date" class="form-control" value="{{ request('from_date') }}">
-                        </div>
-                        <div class="col-md-3">
-                            <label>To Date</label>
-                            <input type="date" name="to_date" class="form-control" value="{{ request('to_date') }}">
-                        </div>
-                        <div class="col-md-3" style="pointer-events: none">
-                            <label>Status</label>
-                            <select name="status" class="form-control">
-                                <option value=""></option>
-                                <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending
-                                </option>
-                                <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>
-                                    Processing</option>
-                                <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed
-                                </option>
-                                <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>
-                                    Cancelled</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3 d-flex align-items-end">
-                            <button class="btn btn-primary w-100"><i class="fas fa-filter"></i> Filter</button>
-                        </div>
-                    </form>
-                </div>
+        @php
+            $totalUnits = $products->sum('units');
+            $totalRevenue = $products->sum('revenue');
+            $totalCost = $products->sum('cost');
+            $totalProfit = $totalRevenue - $totalCost;
+        @endphp
+
+        @include('admin.reports.partials.kpi', [
+            'cards' => [
+                ['label' => 'Units Sold (page)', 'value' => number_format($totalUnits), 'icon' => 'ri-shopping-bag-3-line', 'color' => 'info'],
+                ['label' => 'Revenue (page)', 'value' => '৳ ' . number_format($totalRevenue, 2), 'icon' => 'ri-money-dollar-circle-line', 'color' => 'primary'],
+                ['label' => 'Cost (page)', 'value' => '৳ ' . number_format($totalCost, 2), 'icon' => 'ri-shopping-cart-2-line', 'color' => 'warning', 'hint' => 'Variant purchase price × qty.'],
+                ['label' => 'Profit (page)', 'value' => '৳ ' . number_format($totalProfit, 2), 'icon' => 'ri-line-chart-line', 'color' => 'success', 'sub' => $totalRevenue > 0 ? round(($totalProfit / $totalRevenue) * 100, 2) . '% margin' : null, 'delta' => 'flat'],
+            ],
+        ])
+
+        <div class="a-card">
+            <div class="a-card-head">
+                <h5>Product Sales</h5>
             </div>
-
-            <!-- Table -->
-            <div class="card">
-                <div class="card-body table-responsive">
-                    <table class="table table-bordered table-hover text-center">
-                        <thead class="thead-dark">
+            <div class="table-responsive">
+                <table class="table all-package theme-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Product</th>
+                            <th>SKU</th>
+                            <th>Category</th>
+                            <th>Brand</th>
+                            <th class="a-table-num">Units</th>
+                            <th class="a-table-num">Revenue</th>
+                            <th class="a-table-num">Cost</th>
+                            <th class="a-table-num">Profit</th>
+                            <th class="a-table-num">Margin</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($products as $index => $p)
+                            @php
+                                $profit = (float) $p->revenue - (float) $p->cost;
+                                $margin = (float) $p->revenue > 0 ? ($profit / (float) $p->revenue) * 100 : 0;
+                            @endphp
                             <tr>
-                                <th>#</th>
-                                <th>Product Name</th>
-                                <th>Variant SKU</th>
-                                <th>Category</th>
-                                <th>Sub Category</th>
-                                <th>Unit</th>
-                                <th>Qty Sold</th>
-                                <th>Rate</th>
-                                <th>Gross Sales</th>
-                                <th>Discount</th>
-                                <th>Net Sales</th>
+                                <td>{{ $products->firstItem() + $index }}</td>
+                                <td class="a-cell-main">{{ $p->product ?? '—' }}</td>
+                                <td>{{ $p->sku ?? '—' }}</td>
+                                <td>{{ $p->category ?? '—' }}</td>
+                                <td>{{ $p->brand ?? '—' }}</td>
+                                <td class="a-table-num">{{ number_format($p->units) }}</td>
+                                <td class="a-table-num">৳ {{ number_format($p->revenue, 2) }}</td>
+                                <td class="a-table-num">৳ {{ number_format($p->cost, 2) }}</td>
+                                <td class="a-table-num {{ $profit >= 0 ? 'text-success' : 'text-danger' }}">৳
+                                    {{ number_format($profit, 2) }}</td>
+                                <td class="a-table-num">{{ round($margin, 1) }}%</td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            @forelse ($product_variant as $index => $variant)
-                                @php
-                                    $product_info = NewProduct::where('id', $variant->product_id)->first();
-                                    $get_unit = Unit::where('id', $product_info->unit_id)->first();
-                                    $get_cat = Category::where('id', $product_info->cat_id)->first();
-                                    $get_sub_cat = SubCategory::where('id', $product_info->sub_cat_id)->first();
-
-                                    $total_sold_qty = OrderItem::where('product_id', $variant->id)->sum('qty');
-                                    $total_discount = OrderItem::where('product_id', $variant->id)->sum('discount');
-
-                                    $gross_sale = $variant->selling_price * $total_sold_qty
-
-                                @endphp
-                                <tr>
-                                    <td>{{ $index + 1 }}</td>
-                                    <td>{{ $product_info->name }}</td>
-                                    <td>{{ $variant->sku }}</td>
-                                    <td>{{ $get_cat->name }}</td>
-                                    <td>{{ $get_sub_cat->name }}</td>
-                                    <td>{{ $get_unit->name }}</td>
-                                    <td>{{ $total_sold_qty }}</td>
-                                    <td>{{ $variant->selling_price }}</td>
-                                    <td>{{ $gross_sale }}</td>
-                                    <td>{{ $total_discount }}</td>
-                                    <td>{{ $gross_sale - $total_discount }}</td>
-
-
-                                    {{-- <td>{{ number_format($variant->subtotal, 2) }} ৳</td>
-                                    <td>{{ number_format($variant->shipping, 2) }} ৳</td>
-                                    <td>{{ number_format($variant->discount, 2) }} ৳</td>
-                                    <td><strong>{{ number_format($variant->grand_total, 2) }} ৳</strong></td>
-                                    <td>{{ \Carbon\Carbon::parse($variant->created_at)->format('d M Y') }}</td> --}}
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="10">No orders found.</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-
-                        {{-- @if ($orders->count() > 0)
-                            <tfoot>
-                                <tr>
-                                    <th colspan="8" class="text-right">Total Sales:</th>
-                                    <th colspan="2">{{ number_format($orders->sum('grand_total'), 2) }} ৳</th>
-                                </tr>
-                            </tfoot>
-                        @endif --}}
-                    </table>
-
-                    <div class="mt-3">
-                        {{ $product_variant->links() }}
-                    </div>
-                </div>
+                        @empty
+                            <tr>
+                                <td colspan="10">
+                                    <div class="a-empty">
+                                        <div class="a-empty-icon"><i class="ri-inbox-line"></i></div>
+                                        <h5>No data found</h5>
+                                        <p>There is no product sales data matching the selected filters.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
+            @if ($products->hasPages())
+                <div class="a-card-footer">
+                    {{ $products->links() }}
+                </div>
+            @endif
         </div>
-    </section>
+    </div>
 @endsection
 
 @section('customJs')

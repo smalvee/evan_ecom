@@ -1,81 +1,75 @@
 @extends('admin.layouts.new_app')
 
 @section('content')
-    <style>
-        .dropzone {
-            border: 2px dashed #6c757d;
-            border-radius: 8px;
-            padding: 30px;
-            text-align: center;
-            color: #6c757d;
-            cursor: pointer;
-            transition: 0.3s ease;
-            min-height: 120px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+    <div class="container-fluid">
+        <div class="a-page-head">
+            <div class="a-page-head-text">
+                <ul class="a-breadcrumb">
+                    <li><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
+                    <li><a href="{{ route('categories.index') }}">Categories</a></li>
+                    <li class="is-active">Add Category</li>
+                </ul>
+                <h4 class="a-page-title">Add Category</h4>
+                <p class="a-page-desc">Create a new product category.</p>
+            </div>
+            <div class="a-actions">
+                <a href="{{ route('categories.index') }}" class="btn btn-outline-secondary"><i class="ri-arrow-left-line"></i> Back</a>
+            </div>
+        </div>
 
-        .dropzone.dragover {
-            background: #f1f1f1;
-            border-color: #0d6efd;
-            color: #0d6efd;
-        }
-    </style>
+        <div class="a-card">
+            <div class="a-card-head">
+                <h5>Category Information</h5>
+            </div>
+            <div class="a-card-body">
+                <form action="" method="POST" id="categoryForm">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label a-required">Name</label>
+                                <input type="text" class="form-control" id="name" name="name">
+                                <p class="invalid-feedback"></p>
+                            </div>
+                        </div>
 
-    <div class="container mt-4">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Slug</label>
+                                <input type="text" class="form-control" id="slug" name="slug" readonly>
+                                <p class="invalid-feedback"></p>
+                            </div>
+                        </div>
 
-        <form action="" method="POST" id="categoryForm">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Status</label>
+                                <select class="form-select" name="status">
+                                    <option value="1">Active</option>
+                                    <option value="0">Inactive</option>
+                                </select>
+                            </div>
+                        </div>
 
-            <div class="row g-4">
-
-                <div class="col-md-6">
-                    <label class="form-label">Name</label>
-                    <input type="text" class="form-control" id="name" name="name">
-                    <p class="invalid-feedback"></p>
-
-                </div>
-
-                <div class="col-md-6">
-                    <label class="form-label">Slug</label>
-                    <input type="text" class="form-control" id="slug" name="slug" readonly>
-                    <p class="invalid-feedback"></p>
-
-                </div>
-
-                <div class="col-md-6">
-                    <label class="form-label">Status</label>
-                    <select class="form-select" name="status">
-                        <option value="1">Active</option>
-                        <option value="0">Inactive</option>
-                    </select>
-                </div>
-                <div class="mb-2">
-                    <label class="form-label">Product Images</label>
-
-                    <div class="input-group">
-                        <input type="file" class="form-control" id="product_image" accept="image/*">
-                        <button type="button" class="btn btn-success" id="upload_btn">Upload</button>
-
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Product Images</label>
+                                <div class="input-group">
+                                    <input type="file" class="form-control" id="product_image" accept="image/*">
+                                    <button type="button" class="btn btn-theme" id="upload_btn">Upload</button>
+                                </div>
+                                <div id="image_preview" class="row g-2 mt-3"></div>
+                            </div>
+                        </div>
                     </div>
 
-                    <div id="image_preview" class="row g-2 mt-3"></div>
-                </div>
+                    <div id="product-gallery" class="row g-3 mt-3"></div>
 
-                <div id="product-gallery" class="row g-3 mt-3"></div>
-
-                {{-- <input type="text" id="image_id" name="image_id"> --}}
-
-                <div class="col-md-12 mt-3">
-                    <button type="submit" class="btn btn-primary d-none" id="submit_btn">
-                        Submit
-                    </button>
-                </div>
-
+                    <div class="col-md-12 mt-3">
+                        <button type="submit" class="btn btn-theme d-none" id="submit_btn">Submit</button>
+                    </div>
+                </form>
             </div>
-        </form>
-
-
+        </div>
     </div>
 @endsection
 

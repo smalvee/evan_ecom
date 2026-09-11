@@ -2,75 +2,82 @@
 
 @section('content')
     <div class="container-fluid">
-        <div class="row">
-            <div class="col-sm-12">
-                <div class="card card-table">
-                    <div class="card-body">
-                        <div class="title-header option-title">
-                            <h5>Edit Category</h5>
-                            <a href="{{ route('categories.index') }}" class="align-items-center btn btn-theme d-flex">
-                                <i data-feather="arrow-left"></i>Back
-                            </a>
+        <div class="a-page-head">
+            <div class="a-page-head-text">
+                <ul class="a-breadcrumb">
+                    <li><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
+                    <li><a href="{{ route('categories.index') }}">Categories</a></li>
+                    <li class="is-active">Edit Category</li>
+                </ul>
+                <h4 class="a-page-title">Edit Category</h4>
+                <p class="a-page-desc">Update this product category.</p>
+            </div>
+            <div class="a-actions">
+                <a href="{{ route('categories.index') }}" class="btn btn-outline-secondary"><i class="ri-arrow-left-line"></i> Back</a>
+            </div>
+        </div>
+
+        <div class="a-card">
+            <div class="a-card-head">
+                <h5>Edit Category</h5>
+            </div>
+            <div class="a-card-body">
+                <form action="" method="POST" id="categoryForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="name" class="form-label a-required">Name</label>
+                                <input type="text" name="name" id="name" class="form-control"
+                                    placeholder="Name" value="{{ $category->name }}">
+                                <p class="invalid-feedback"></p>
+                            </div>
                         </div>
 
-                        <form action="" method="POST" id="categoryForm">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="name" class="form-label">Name</label>
-                                        <input type="text" name="name" id="name" class="form-control"
-                                            placeholder="Name" value="{{ $category->name }}">
-                                        <p class="invalid-feedback"></p>
-                                    </div>
-                                </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="slug" class="form-label">Slug</label>
+                                <input type="text" name="slug" id="slug" readonly class="form-control"
+                                    placeholder="Slug" value="{{ $category->slug }}">
+                                <p class="invalid-feedback"></p>
+                            </div>
+                        </div>
 
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="slug" class="form-label">Slug</label>
-                                        <input type="text" name="slug" id="slug" readonly class="form-control"
-                                            placeholder="Slug" value="{{ $category->slug }}">
-                                        <p class="invalid-feedback"></p>
-                                    </div>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="image" class="form-label">Image Upload</label>
-                                        <input type="hidden" id="image_id" name="image_id" value="">
-                                        <div id="image" class="dropzone dz-clickable"
-                                            style="border: 2px dashed #6c757d; border-radius: 8px; background: #f8f9fa; padding: 30px; text-align: center; cursor: pointer;">
-                                            <div class="dz-message needsclick">
-                                                <i class="ri-upload-cloud-2-line" style="font-size: 40px; color: #6c757d;"></i>
-                                                <p class="mb-0 mt-2">Drag &amp; drop files here or click to browse</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    @if (!empty($category->image))
-                                        <div class="mb-3">
-                                            <img width="200" src="{{ asset('uploads/category/thumb/' . $category->image) }}"
-                                                alt="">
-                                        </div>
-                                    @endif
-                                </div>
-
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="status" class="form-label">Status</label>
-                                        <select name="status" id="status" class="form-select">
-                                            <option {{ $category->status == 1 ? 'selected' : '' }} value="1">Active</option>
-                                            <option {{ $category->status == 0 ? 'selected' : '' }} value="0">Block</option>
-                                        </select>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="image" class="form-label">Image Upload</label>
+                                <input type="hidden" id="image_id" name="image_id" value="">
+                                <div id="image" class="dropzone dz-clickable"
+                                    style="border: 2px dashed #6c757d; border-radius: 8px; background: #f8f9fa; padding: 30px; text-align: center; cursor: pointer;">
+                                    <div class="dz-message needsclick">
+                                        <i class="ri-upload-cloud-2-line" style="font-size: 40px; color: #6c757d;"></i>
+                                        <p class="mb-0 mt-2">Drag &amp; drop files here or click to browse</p>
                                     </div>
                                 </div>
                             </div>
+                            @if (!empty($category->image))
+                                <div class="mb-3">
+                                    <img width="200" src="{{ asset('uploads/category/thumb/' . $category->image) }}"
+                                        alt="">
+                                </div>
+                            @endif
+                        </div>
 
-                            <div class="pt-3">
-                                <button type="submit" class="btn btn-theme">Update</button>
-                                <a href="{{ route('categories.index') }}" class="btn btn-outline-secondary ms-2">Cancel</a>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="status" class="form-label">Status</label>
+                                <select name="status" id="status" class="form-select">
+                                    <option {{ $category->status == 1 ? 'selected' : '' }} value="1">Active</option>
+                                    <option {{ $category->status == 0 ? 'selected' : '' }} value="0">Block</option>
+                                </select>
                             </div>
-                        </form>
+                        </div>
                     </div>
-                </div>
+
+                    <div class="pt-3">
+                        <button type="submit" class="btn btn-theme">Update</button>
+                        <a href="{{ route('categories.index') }}" class="btn btn-outline-secondary ms-2">Cancel</a>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
