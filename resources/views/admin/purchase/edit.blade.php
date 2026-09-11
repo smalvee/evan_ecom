@@ -44,8 +44,8 @@
                                 <div class="mb-3">
                                     <label for="supplier_name" class="form-label a-required">Supplier</label>
                                     <input list="supplier_list" id="supplier_name" class="form-control"
-                                        value="{{ $supplier_info->name }}">
-                                    <input type="hidden" name="supplier_id" id="supplier_id" value="{{ $supplier_info->id }}">
+                                        value="{{ $supplier_info->name ?? '' }}">
+                                    <input type="hidden" name="supplier_id" id="supplier_id" value="{{ $supplier_info->id ?? '' }}">
                                     <datalist id="supplier_list">
                                         @foreach ($supplier as $s)
                                             <option value="{{ $s->name }}" data-id="{{ $s->id }}"></option>
@@ -123,14 +123,19 @@
                                 <tbody>
                                     {{-- Existing Items --}}
                                     @foreach ($purchaseItems as $item)
-                                        @php $variant_info = $item->variant; @endphp
+                                        @php
+                                            $variant_info = $item->variant;
+                                            $product_name = $variant_info->product->name ?? ($item->p_name ?: '—');
+                                            $sku = $variant_info->sku ?? ($item->p_name ?: '—');
+                                            $variant_id_value = $variant_info->id ?? ($item->variant_id ?? '');
+                                        @endphp
                                         <tr>
                                             <td>
-                                                {{ $variant_info->sku }}
+                                                {{ $sku }}
                                                 <br>
-                                                <input type="hidden" name="variant_id[]" value="{{ $variant_info->id }}">
+                                                <input type="hidden" name="variant_id[]" value="{{ $variant_id_value }}">
                                                 <input type="hidden" name="item_id[]" value="{{ $item->id }}">
-                                                <strong>{{ $variant_info->product->name }}</strong>
+                                                <strong>{{ $product_name }}</strong>
                                             </td>
                                             <td><input type="number" name="qty[]" value="{{ $item->qty }}"
                                                     class="form-control row-calc" readonly></td>
@@ -141,7 +146,7 @@
                                             <td><input type="number" name="discount[]" value="{{ $item->discount }}"
                                                     class="form-control row-calc"></td>
                                             <td><input type="number" name="compare_price[]"
-                                                    value="{{ $variant_info->compare_price }}" class="form-control"
+                                                    value="{{ $variant_info->compare_price ?? '' }}" class="form-control"
                                                     readonly></td>
                                             <td><input type="number" name="selling_price[]"
                                                     value="{{ $item->selling_price }}" class="form-control" readonly></td>

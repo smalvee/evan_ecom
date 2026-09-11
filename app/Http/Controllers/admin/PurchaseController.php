@@ -184,10 +184,12 @@ class PurchaseController extends Controller
         $validator = Validator::make($request->all(), [
             'supplier_id' => 'required|exists:suppliers,id',
             'date' => 'required|date',
-            'variant_id' => 'required|array|min:1',
-            'variant_id.*' => 'required|distinct|exists:product_variants,id',
             'item_id' => 'required|array',
             'item_id.*' => 'required|exists:purchase_items,id',
+            // variant_id is only used to sync variant pricing; it may be absent if the
+            // linked variant was removed, so it is validated leniently here.
+            'variant_id' => 'nullable|array',
+            'variant_id.*' => 'nullable|integer',
             'unit_cost' => 'required|array',
             'unit_cost.*' => 'required|numeric|min:0',
             'profit_amount' => 'required|array',
@@ -213,11 +215,12 @@ class PurchaseController extends Controller
                 $total = 0;
 
                 // Items are updated WITHOUT changing quantities (existing behaviour).
-                foreach ($request->variant_id as $index => $variantId) {
-                    $itemId = $request->item_id[$index];
-                    $unitCost = (float) $request->unit_cost[$index];
-                    $profitAmount = (float) $request->profit_amount[$index];
-                    $discount = (float) $request->discount[$index];
+                $variantIds = (array) $request->variant_id;
+
+                foreach ((array) $request->item_id as $index => $itemId) {
+                    $unitCost = (float) ($request->unit_cost[$index] ?? 0);
+                    $profitAmount = (float) ($request->profit_amount[$index] ?? 0);
+                    $discount = (float) ($request->discount[$index] ?? 0);
 
                     $mrp = $unitCost + $profitAmount;
                     $selling = max(0, $unitCost + $profitAmount - $discount);
@@ -239,7 +242,8 @@ class PurchaseController extends Controller
 
                     $total += $purchaseItem->qty * $unitCost;
 
-                    $variant = ProductVariant::find($variantId);
+                    $variantId = $variantIds[$index] ?? $purchaseItem->variant_id;
+                    $variant = $variantId ? ProductVariant::find($variantId) : null;
                     if ($variant) {
                         $variant->purchase_price = $unitCost;
                         $variant->selling_price = $selling;
