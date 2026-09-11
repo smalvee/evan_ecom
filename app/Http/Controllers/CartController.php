@@ -1,0 +1,600 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Category;
+use App\Models\CustomerAddress;
+use App\Models\DiscountCoupon;
+use App\Models\NewProduct;
+use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\Product;
+use App\Models\ProductImage;
+use App\Models\ProductVariant;
+use App\Models\ShippingCharge;
+use App\Models\User;
+use Gloudemans\Shoppingcart\Facades\Cart;
+use GuzzleHttp\Psr7\Message;
+use Illuminate\Http\Request;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
+use Hash;
+
+class CartController extends Controller
+{
+    public function addToCart(Request $request)
+    {
+        $request->validate([
+            'id' => 'required',
+            'qty' => 'required|integer|min:1',
+        ]);
+        $product = DB::table('product_variants as pv')->leftJoin('product_images as pi', 'pi.product_id', '=', 'pv.id')->select('pv.id', 'pv.sku', 'pv.selling_price', 'pv.qty', 'pi.image')->where('pv.id', $request->id)->orderBy('pi.sort_order', 'asc')->first();
+
+        if (!$product) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Product not found',
+            ]);
+        }
+
+        // Stock check
+        // if ($request->qty > $product->qty) {
+        //     return response()->json([
+        //         'status' => false,
+        //         'message' => 'Only ' . $product->qty . ' items in stock',
+        //     ]);
+        // }
+
+        // Check if product already exists in cart
+        $exists = Cart::search(function ($cartItem) use ($product) {
+            return $cartItem->id == $product->id;
+        })->isNotEmpty();
+
+        if ($exists) {
+            return response()->json([
+                'status' => false,
+                'message' => $product->sku . ' already added to cart',
+                'cartCount' => Cart::count(),
+            ]);
+        }
+
+        // Add to cart using fields from DB query
+        Cart::add(
+            $product->id,
+            $product->sku, // Using sku as title
+            $request->qty,
+            $product->selling_price,
+            [
+                'productImage' => $product->image,
+            ],
+        );
+
+        // Render updated cart sidebar
+        $cartView = view('front.layouts.card-sidebar', [
+            'cartContent' => Cart::content(),
+        ])->render();
+
+        $pop_uo_cartView = view('front.layouts.cart-pop-up', [
+            'cartContent' => Cart::content(),
+        ])->render();
+
+        return response()->json([
+            'status' => true,
+            'message' => $product->sku . ' added to cart',
+            'cartView' => $cartView,
+            'pop_uo_cartView' => $pop_uo_cartView,
+            'cartCount' => Cart::count(),
+            'swalType' => 'success', // optional, could be 'error'
+        ]);
+    }
+
+    public function cart()
+    {
+        $cartContent = Cart::content();
+        $categories = Category::latest('id')->get();
+
+        $user = Auth::user();
+        $customerAddress = null; // default value
+
+        if ($user) {
+            $customerAddress = CustomerAddress::where('user_id', $user->id)->first();
+
+            // dd($customerAddress); // only for debugging
+        }
+
+        $shippingCharge = ShippingCharge::all();
+        $products = Product::latest('id')->where('status', 1)->where('qty', '>=', 1)->with('product_image')->get();
+
+        $data['cartContent'] = $cartContent;
+        $data['customerAddress'] = $customerAddress;
+        $data['shippingCharge'] = $shippingCharge;
+        $data['products'] = $products;
+        $data['categories'] = $categories;
+
+        return view('front.pages.view_cart', $data);
+    }
+
+    public function updateCart(Request $request)
+    {
+        $rowId = $request->rowId;
+        $qty = $request->qty;
+
+        $itemInfo = Cart::get($rowId);
+        $product = ProductVariant::find($itemInfo->id);
+        // check qty available
+
+        if ($product->track_qty == 'Yes') {
+            if ($qty <= $product->qty) {
+                Cart::update($rowId, $qty);
+                $message = 'Cart updated successfully';
+                $status = true;
+                session()->flash('success', $message);
+            } else {
+                $message = 'Requested quantity (' . $qty . ') not available. Only ' . $product->qty . ' items are available';
+                $status = false;
+                session()->flash('error', $message);
+            }
+        } else {
+            Cart::update($rowId, $qty);
+            $message = 'Cart updated successfully';
+            $status = true;
+            session()->flash('success', $message);
+        }
+
+        return response()->json([
+            'status' => $status,
+            'message' => $message,
+        ]);
+    }
+
+    public function deleteItem(Request $request)
+    {
+        $rowId = $request->rowId;
+
+        $itemInfo = Cart::get($rowId);
+
+        if ($itemInfo == null) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Item not found in cart',
+            ]);
+        }
+
+        Cart::remove($rowId);
+
+        // Destroy cart if empty
+        if (Cart::content()->isEmpty()) {
+            Cart::destroy();
+        }
+
+        // Render updated cart sidebar
+        $cartView = view('front.layouts.cart-sidebar', [
+            'cartContent' => Cart::content(),
+        ])->render();
+
+        $pop_uo_cartView = view('front.layouts.cart-pop-up', [
+            'cartContent' => Cart::content(),
+        ])->render();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Item removed successfully',
+            'cartView' => $cartView,
+            'pop_uo_cartView' => $pop_uo_cartView,
+            'cartCount' => Cart::count(),
+        ]);
+    }
+
+    public function deleteItemFromSideCart(Request $request)
+    {
+        $rowId = $request->rowId;
+
+        $itemInfo = Cart::get($rowId);
+
+        if ($itemInfo == null) {
+            $errorMessage = 'Item not found in cart';
+            session()->flash('error', $errorMessage);
+
+            return response()->json([
+                'status' => false,
+                'message' => $errorMessage,
+            ]);
+        }
+
+        Cart::remove($rowId);
+        $successMessage = 'Item removed Successfully';
+
+        session()->flash('success', $successMessage);
+
+        $cartView = view('front.layouts.card-sidebar', [
+            'cartContent' => Cart::content(),
+        ])->render();
+
+        // Clean up phantom/empty session items
+        if (Cart::content()->isEmpty()) {
+            Cart::destroy();
+        }
+
+        // Correct cart count
+        $cart_count = Cart::content()->isEmpty() ? 0 : Cart::content()->count();
+
+        return response()->json([
+            'status' => true,
+            'message' => $successMessage,
+            'cartView' => $cartView,
+            'cartCount' => $cart_count,
+        ]);
+    }
+
+    public function processCheckout(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required',
+            'phone' => 'required',
+            'address' => 'required',
+            'district' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Please fix the errors',
+                'errors' => $validator->errors(),
+            ]);
+        }
+
+        // ✅ STEP 1: Get or Create User
+        $user = Auth::user();
+
+        if (!$user) {
+            // Check by phone
+            $user = User::where('phone', $request->phone)->first();
+
+            if (!$user) {
+                // Generate a fallback email if not provided
+                $phone_number = $request->phone;
+                $email = !empty($request->email) ? $request->email : 'guest_' . $request->phone . '@example.com';
+
+                // $user = User::create([
+                //     'name' => $request->name,
+                //     'phone' => $email,
+                //     'email' => $email,
+                //     'role' => 1,
+                //     'password' => Hash::make('123456'),
+                // ]);
+
+                $user = new User();
+                $user->name = $request->name;
+                $user->email = $email;
+                $user->phone = $phone_number;
+                $user->password = Hash::make('123456');
+                $user->save();
+            }
+        }
+
+        // ✅ STEP 2: Save/Update Customer Address
+        CustomerAddress::updateOrCreate(
+            ['user_id' => $user->id],
+            [
+                'name' => $request->name,
+                'phone' => $request->phone,
+                'address' => $request->address,
+                // 'shipping' => $request->shipping_method,
+            ],
+        );
+
+        // ✅ STEP 3: Calculate amounts
+        $subTotal = (float) Cart::subtotal(2, '.', '');
+        $shipping = (float) $request->shipping_charge;
+        $discount = 0;
+        $couponCode = null;
+
+        if (!empty($request->coupon)) {
+            $coupon = DiscountCoupon::where('code', $request->coupon)->where('status', 1)->where('expires_at', '>=', now())->first();
+
+            if ($coupon && $subTotal >= $coupon->min_amount) {
+                $valid = true;
+
+                if ($coupon->max_uses > 0 && $coupon->orders()->count() >= $coupon->max_uses) {
+                    $valid = false;
+                }
+
+                if ($coupon->max_uses_user > 0 && $coupon->orders()->where('user_id', $user->id)->count() >= $coupon->max_uses_user) {
+                    $valid = false;
+                }
+
+                if ($valid) {
+                    $discount = $coupon->type === 'percent' ? ($subTotal * $coupon->discount_amount) / 100 : $coupon->discount_amount;
+
+                    if ($discount > $subTotal) {
+                        $discount = $subTotal;
+                    }
+
+                    $couponCode = $coupon->code;
+                }
+            }
+        }
+
+        $grandTotal = $subTotal + $shipping - $discount;
+
+        // ✅ STEP 4: Create Order
+        $order = new Order();
+        $order->user_id = $user->id;
+        $order->subtotal = $subTotal;
+        $order->shipping = $shipping;
+        $order->discount = $discount;
+        $order->coupon_code = $couponCode;
+        $order->grand_total = $grandTotal;
+        $order->name = $request->name;
+        $order->phone = $request->phone;
+        $order->address = $request->address;
+        $order->notes = $request->order_note;
+        $order->save(); // save first to get $order->id
+
+        // Now generate custom order_id like YYYYMMDD + id (e.g., 20251010023)
+        $order->order_id = date('Y') . str_pad($order->id, 4, '0', STR_PAD_LEFT);
+        $order->save();
+
+        // ✅ STEP 5: Store Order Items
+        foreach (Cart::content() as $item) {
+            $orderItem = new OrderItem();
+            $orderItem->product_id = $item->id;
+            $orderItem->order_id = $order->id;
+            $orderItem->name = $item->name;
+            $orderItem->qty = $item->qty;
+            $orderItem->price = $item->price;
+            $orderItem->total = $item->price * $item->qty;
+            $orderItem->save();
+
+            // Decrease stock
+            $product = ProductVariant::find($item->id);
+            if ($product) {
+                $product->decrement('qty', $item->qty);
+            }
+        }
+
+        // ✅ STEP 6: Clear Cart
+        Cart::destroy();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Order saved successfully',
+            'orderId' => $order->order_id,
+        ]);
+    }
+
+    public function thankyou($id)
+    {
+        $products = Product::latest('id')->where('status', 1)->where('qty', '>=', 1)->with('product_image')->get();
+        $categories = Category::latest('id')->get();
+        $cartContent = Cart::content();
+
+        $data['products'] = $products;
+        $data['id'] = $id;
+        $data['categories'] = $categories;
+        $data['cartContent'] = $cartContent;
+
+        return view('front.pages.order_success', $data);
+    }
+
+    public function applyCoupon(Request $request)
+    {
+        $couponCode = $request->coupon;
+        $subTotal = (float) $request->subtotal;
+
+        $coupon = DiscountCoupon::where('code', $couponCode)->where('status', 1)->where('expires_at', '>=', now())->first();
+
+        if (!$coupon) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Invalid or expired coupon code.',
+            ]);
+        }
+
+        $discount = 0;
+
+        // Check minimum amount
+        if ($subTotal < (float) $coupon->min_amount) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Subtotal does not meet the minimum amount required for this coupon.',
+            ]);
+        }
+
+        // Check maximum uses
+        if ($coupon->max_uses > 0 && $coupon->orders()->count() >= $coupon->max_uses) {
+            return response()->json([
+                'status' => false,
+                'message' => 'This coupon has reached its maximum number of uses.',
+            ]);
+        }
+
+        if ($coupon->type === 'fixed') {
+            $discount = $coupon->discount_amount;
+        } elseif ($coupon->type === 'percent') {
+            $discount = ($subTotal * $coupon->discount_amount) / 100;
+        }
+
+        // Ensure discount does not exceed subtotal
+        if ($discount > $subTotal) {
+            $discount = $subTotal;
+        }
+
+        return response()->json([
+            'status' => true,
+            'discount' => (float) $discount,
+            'coupon' => $coupon->code,
+            'message' => 'Coupon applied successfully.',
+        ]);
+    }
+
+    public function singleCart(Request $request, $id)
+    {
+        $cartContent = Cart::content();
+        $categories = Category::latest('id')->get();
+
+        $user = Auth::user();
+        $customerAddress = null; // default value
+
+        if ($user) {
+            $customerAddress = CustomerAddress::where('user_id', $user->id)->first();
+            // dd($customerAddress); // only for debugging
+        }
+
+        $shippingCharge = ShippingCharge::all();
+        $products = Product::latest('id')->where('status', 1)->where('qty', '>=', 1)->with('product_image')->get();
+
+        $selected_products = ProductVariant::where('id', $id)->get();
+
+        $selected_qty = $request->qty;
+
+        if ($request->qty == null) {
+            $selected_qty = 1;
+        }
+
+        $data['cartContent'] = $cartContent;
+        $data['customerAddress'] = $customerAddress;
+        $data['shippingCharge'] = $shippingCharge;
+        $data['products'] = $products;
+        $data['categories'] = $categories;
+        $data['selected_products'] = $selected_products;
+        $data['selected_qty'] = $selected_qty;
+
+        return view('front.pages.new_single_checkout', $data);
+    }
+
+    public function singleCheckout($slug, Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required',
+            'phone' => 'required',
+            'address' => 'required',
+            'district' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Please fix the errors',
+                'errors' => $validator->errors(),
+            ]);
+        }
+
+        // ✅ STEP 1: Get or Create User
+        $user = Auth::user();
+
+        if (!$user) {
+            // Check by phone
+            $user = User::where('phone', $request->phone)->first();
+
+            if (!$user) {
+                // Generate a fallback email if not provided
+                $phone_number = $request->phone;
+                $email = !empty($request->email) ? $request->email : 'guest_' . $request->phone . '_' . uniqid() . '@example.com';
+
+                $user = new User();
+                $user->name = $request->name;
+                $user->email = $email;
+                $user->phone = $phone_number;
+                $user->password = Hash::make('123456');
+                $user->save();
+            }
+        }
+
+        // ✅ STEP 2: Save/Update Customer Address
+        CustomerAddress::updateOrCreate(
+            ['user_id' => $user->id],
+            [
+                'name' => $request->name,
+                'phone' => $request->phone,
+                'address' => $request->address,
+                // 'shipping' => $request->shipping_method,
+            ],
+        );
+
+        $shipping_charge = 0;
+
+        if ($request->shipping_charge == 0 || $request->shipping_charge == null) {
+            $shipping_charge = 130;
+        } else {
+            $shipping_charge = $request->shipping_charge;
+        }
+
+        // ✅ STEP 3: Calculate amounts
+        $subTotal = (float) $request->subtotal;
+        $shipping = $shipping_charge;
+        $discount = 0;
+        $couponCode = null;
+
+        if (!empty($request->coupon)) {
+            $coupon = DiscountCoupon::where('code', $request->coupon)->where('status', 1)->where('expires_at', '>=', now())->first();
+
+            if ($coupon && $subTotal >= (float) $coupon->min_amount) {
+                $valid = true;
+
+                if ($coupon->max_uses > 0 && $coupon->orders()->count() >= $coupon->max_uses) {
+                    $valid = false;
+                }
+
+                if ($coupon->max_uses_user > 0 && $coupon->orders()->where('user_id', $user->id)->count() >= $coupon->max_uses_user) {
+                    $valid = false;
+                }
+
+                if ($valid) {
+                    $discount = $coupon->type === 'percent' ? ($subTotal * $coupon->discount_amount) / 100 : $coupon->discount_amount;
+
+                    if ($discount > $subTotal) {
+                        $discount = $subTotal;
+                    }
+
+                    $couponCode = $coupon->code;
+                }
+            }
+        }
+
+        $grandTotal = $subTotal + $shipping - $discount;
+
+        // ✅ STEP 4: Create Order
+        $order = new Order();
+        $order->user_id = $user->id;
+        $order->subtotal = $subTotal;
+        $order->shipping = $shipping;
+        $order->discount = $discount;
+        $order->coupon_code = $couponCode;
+        $order->grand_total = $grandTotal;
+        $order->name = $request->name;
+        $order->phone = $request->phone;
+        $order->address = $request->address;
+        $order->notes = $request->order_note;
+        $order->save(); // save first to get $order->id
+
+        // Now generate custom order_id like YYYYMMDD + id (e.g., 20251010023)
+        $order->order_id = date('Y') . str_pad($order->id, 4, '0', STR_PAD_LEFT);
+        $order->save();
+
+        // ✅ STEP 5: Store Order Items
+
+        $orderItem = new OrderItem();
+        $orderItem->product_id = $request->product_id;
+        $orderItem->order_id = $order->id;
+        $orderItem->name = $request->product_sku;
+        $orderItem->qty = $request->selected_qty;
+        $orderItem->price = $request->selling_price;
+        $orderItem->total = $request->subtotal;
+        $orderItem->save();
+
+        // Decrease stock
+        $product = ProductVariant::find($request->product_id);
+        if ($product) {
+            $product->decrement('qty', $request->selected_qty);
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Order saved successfully',
+            'orderId' => $order->order_id,
+        ]);
+    }
+}
