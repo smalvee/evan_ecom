@@ -105,34 +105,37 @@
     <!-- Category Section End -->
 
     <!-- Discount Section Start -->
-    <section>
-        <div class="container-fluid-lg">
-            <div class="row">
-                <div class="col-12">
-                    <div class="banner-contain hover-effect">
-                        <a href="{{ $advertise->url_01 }}" target="_blank" class="d-block">
-                            <img src="{{ asset('uploads/add/' . $advertise->image_01) }}" class="bg-img blur-up lazyload"
-                                alt="{{ $advertise->name_01 }}">
-                            <div class="banner-details p-center p-sm-4 p-3 text-white text-center">
-                                <div style="visibility: hidden;">
-                                    <h3 class="lh-base fw-bold text-white">
-                                        Get $3 Cashback! Min Order of $30
-                                    </h3>
-                                    <h6 class="coupon-code code-2">ASDFGH</h6>
+    @if (!empty($advertise) && $advertise->isSlotActive(1))
+        <section>
+            <div class="container-fluid-lg">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="banner-contain hover-effect">
+                            <a href="{{ $advertise->url_01 }}" target="_blank" class="d-block">
+                                <img src="{{ asset('uploads/add/' . $advertise->image_01) }}"
+                                    class="bg-img blur-up lazyload" alt="{{ $advertise->name_01 }}">
+                                <div class="banner-details p-center p-sm-4 p-3 text-white text-center">
+                                    <div style="visibility: hidden;">
+                                        <h3 class="lh-base fw-bold text-white">
+                                            Get $3 Cashback! Min Order of $30
+                                        </h3>
+                                        <h6 class="coupon-code code-2">ASDFGH</h6>
+                                    </div>
                                 </div>
-                            </div>
-                        </a>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
+    @endif
     <!-- Discount Section End -->
 
     <!-- Banner Section Start -->
     <section class="ratio_60">
         <div class="container-fluid-lg">
             <div class="row g-3">
+                @if (!empty($advertise) && $advertise->isSlotActive(2))
                 <div class="col-xxl-3 col-sm-6">
                     <a href="{{ $advertise->url_02 }}" target="_blank" class="banner-contain-2 hover-effect">
                         <img src="{{ asset('uploads/add/' . $advertise->image_02) }}" class="bg-img blur-up lazyload"
@@ -148,7 +151,9 @@
                         </div>
                     </a>
                 </div>
+                @endif
 
+                @if (!empty($advertise) && $advertise->isSlotActive(3))
                 <div class="col-xxl-3 col-sm-6">
                     <a href="{{ $advertise->url_03 }}" target="_blank" class="banner-contain-2 hover-effect">
                         <img src="{{ asset('uploads/add/' . $advertise->image_03) }}" class="bg-img blur-up lazyload"
@@ -164,7 +169,9 @@
                         </div>
                     </a>
                 </div>
+                @endif
 
+                @if (!empty($advertise) && $advertise->isSlotActive(4))
                 <div class="col-xxl-3 col-sm-6">
                     <a href="{{ $advertise->url_04 }}" target="_blank" class="banner-contain-2 hover-effect">
                         <img src="{{ asset('uploads/add/' . $advertise->image_04) }}" class="bg-img blur-up lazyload"
@@ -180,7 +187,9 @@
                         </div>
                     </a>
                 </div>
+                @endif
 
+                @if (!empty($advertise) && $advertise->isSlotActive(5))
                 <div class="col-xxl-3 col-sm-6">
                     <a href="{{ $advertise->url_05 }}" target="_blank" class="banner-contain-2 hover-effect">
                         <img src="{{ asset('uploads/add/' . $advertise->image_05) }}" class="bg-img blur-up lazyload"
@@ -196,6 +205,7 @@
                         </div>
                     </a>
                 </div>
+                @endif
             </div>
         </div>
     </section>
@@ -466,35 +476,37 @@
 
 
     <!-- Newsletter Section Start -->
-    <section class="newsletter-section-2 section-b-space">
-        <div class="container-fluid-lg">
-            <div class="row">
-                <div class="col-12">
-                    <div class="newsletter-box hover-effect">
-                        <a href="{{ $advertise->url_07 }}" target="_blank" class="image-link"></a>
+    @if (!empty($advertise) && $advertise->isSlotActive(7))
+        <section class="newsletter-section-2 section-b-space">
+            <div class="container-fluid-lg">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="newsletter-box hover-effect">
+                            <a href="{{ $advertise->url_07 }}" target="_blank" class="image-link"></a>
 
 
-                        <img src=" {{ asset('uploads/add/' . $advertise->image_07) }}" class="img-fluid bg-img"
-                            alt="{{ $advertise->name_07 }}">
+                            <img src=" {{ asset('uploads/add/' . $advertise->image_07) }}" class="img-fluid bg-img"
+                                alt="{{ $advertise->name_07 }}">
 
-                        <div class="row">
-                            <div class="col-xxl-8 col-xl-7">
-                                <div class="newsletter-detail p-center-left text-white">
-                                    <div style="visibility: hidden;">
-                                        <h2>Subscribe to the newsletter</h2>
-                                        <h4>Join our subscribers list to get the latest news, updates and special offers
-                                            delivered directly in your inbox.</h4>
-                                        <form class="row g-2">
-                                            <div class="col-sm-10 col-12">
-                                                <div class="newsletter-form">
-                                                    <input type="email" class="form-control" id="email"
-                                                        placeholder="Enter your email">
-                                                    <button type="submit"
-                                                        class="btn bg-white theme-color btn-md fw-500
-                                                        submit-button">Subscribe</button>
+                            <div class="row">
+                                <div class="col-xxl-8 col-xl-7">
+                                    <div class="newsletter-detail p-center-left text-white">
+                                        <div style="visibility: hidden;">
+                                            <h2>Subscribe to the newsletter</h2>
+                                            <h4>Join our subscribers list to get the latest news, updates and special offers
+                                                delivered directly in your inbox.</h4>
+                                            <form class="row g-2">
+                                                <div class="col-sm-10 col-12">
+                                                    <div class="newsletter-form">
+                                                        <input type="email" class="form-control" id="email"
+                                                            placeholder="Enter your email">
+                                                        <button type="submit"
+                                                            class="btn bg-white theme-color btn-md fw-500
+                                                            submit-button">Subscribe</button>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </form>
+                                            </form>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -502,8 +514,8 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
+    @endif
     <!-- Newsletter Section End -->
 
     <!-- Add to cart Modal Start -->

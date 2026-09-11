@@ -27,6 +27,7 @@
 
     <div class="row g-3">
         @foreach($placements as $key => $placement)
+        @php $active = $add_infos->isSlotActive($key); @endphp
         <div class="col-sm-6 col-xl-4 col-xxl-3">
             <div class="a-card h-100">
                 <div class="a-card-body">
@@ -48,8 +49,22 @@
                     <div class="a-cell-sub mb-3 text-truncate">
                         {{ $add_infos->{'url_0'.$key} ?: 'No target URL set' }}
                     </div>
-                    <button data-bs-toggle="modal" data-bs-target="#addModal_{{ $key }}"
-                        class="btn btn-theme btn-sm"><i class="ri-edit-line"></i> Change</button>
+                    <div class="d-flex justify-content-between align-items-center mt-3 pt-3"
+                        style="border-top: 1px solid var(--a-border);">
+                        <button data-bs-toggle="modal" data-bs-target="#addModal_{{ $key }}"
+                            class="btn btn-theme btn-sm"><i class="ri-edit-line"></i> Change</button>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="a-badge {{ $active ? 'a-badge-success' : 'a-badge-secondary' }}"
+                                id="status-badge-{{ $key }}">
+                                <span class="dot"></span>{{ $active ? 'Active' : 'Inactive' }}
+                            </span>
+                            <div class="form-check form-switch mb-0" title="Toggle active / inactive">
+                                <input class="form-check-input status-toggle" type="checkbox" role="switch"
+                                    id="status-toggle-{{ $key }}" data-slot="{{ $key }}"
+                                    {{ $active ? 'checked' : '' }}>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -260,5 +275,52 @@ function removeImage(slot, imageId) {
         }
     });
 }
+
+// Active / inactive toggle per advertisement slot
+document.querySelectorAll('.status-toggle').forEach(function(toggle) {
+    toggle.addEventListener('change', function() {
+        const checkbox = this;
+        const slot = this.dataset.slot;
+
+        $.ajax({
+            url: `{{ route('advertisements.toggleStatus', 'SLOT') }}`.replace('SLOT', slot),
+            type: 'POST',
+            data: {
+                _token: '{{ csrf_token() }}'
+            },
+            dataType: 'json',
+            success: function(response) {
+                if (response.status) {
+                    const badge = document.getElementById(`status-badge-${slot}`);
+                    badge.className = 'a-badge ' + (response.active ? 'a-badge-success' :
+                        'a-badge-secondary');
+                    badge.innerHTML = '<span class="dot"></span>' + (response.active ? 'Active' :
+                        'Inactive');
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: response.message,
+                        timer: 1200,
+                        showConfirmButton: false
+                    });
+                } else {
+                    checkbox.checked = !checkbox.checked;
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: response.message || 'Unable to update status.'
+                    });
+                }
+            },
+            error: function() {
+                checkbox.checked = !checkbox.checked;
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Something went wrong'
+                });
+            }
+        });
+    });
+});
 </script>
 @endsection

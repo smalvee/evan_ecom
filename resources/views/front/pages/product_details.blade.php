@@ -245,21 +245,23 @@
                         </div>
 
                         <!-- Banner Section -->
-                        <div class="ratio_156 pt-25">
-                            <div class="home-contain">
-                                <a href="{{ $advertise->url_06 }}" target="_blank" class="image-link"></a>
-                                <img src="{{ asset('uploads/add/' . $advertise->image_06) }}"
-                                    class="bg-img blur-up lazyload" alt="{{ $advertise->name_06 }}">
-                                <div class="home-detail p-top-left home-p-medium">
-                                    <div>
-                                        <h6 class="text-yellow home-banner"></h6>
-                                        <h3 class="text-uppercase fw-normal"><span class="theme-color fw-bold"></h3>
-                                        <h3 class="fw-light"></h3>
+                        @if (!empty($advertise) && $advertise->isSlotActive(6))
+                            <div class="ratio_156 pt-25">
+                                <div class="home-contain">
+                                    <a href="{{ $advertise->url_06 }}" target="_blank" class="image-link"></a>
+                                    <img src="{{ asset('uploads/add/' . $advertise->image_06) }}"
+                                        class="bg-img blur-up lazyload" alt="{{ $advertise->name_06 }}">
+                                    <div class="home-detail p-top-left home-p-medium">
+                                        <div>
+                                            <h6 class="text-yellow home-banner"></h6>
+                                            <h3 class="text-uppercase fw-normal"><span class="theme-color fw-bold"></h3>
+                                            <h3 class="fw-light"></h3>
 
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        @endif
                     </div>
                 </div>
             </div>

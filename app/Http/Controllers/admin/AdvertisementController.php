@@ -104,4 +104,41 @@ class AdvertisementController extends Controller
             'image' => asset('uploads/add/' . $image),
         ]);
     }
+
+    /**
+     * Toggle the active/inactive status of a single advertisement slot (1-7).
+     */
+    public function toggleStatus(Request $request, $slot)
+    {
+        $slot = (int) $slot;
+
+        if ($slot < 1 || $slot > 7) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Invalid advertisement slot.',
+            ]);
+        }
+
+        $advertise = Advertisement::first();
+
+        if (!$advertise) {
+            return response()->json([
+                'status' => false,
+                'message' => 'No advertisement record found. Please save an advertisement first.',
+            ]);
+        }
+
+        $statusKey = 'status_0' . $slot;
+        $active = !((bool) ($advertise->{$statusKey} ?? 1));
+
+        // Only the status flag is changed; all other advertisement data is untouched.
+        $advertise->{$statusKey} = $active ? 1 : 0;
+        $advertise->save();
+
+        return response()->json([
+            'status' => true,
+            'active' => $active,
+            'message' => $active ? 'Advertisement activated.' : 'Advertisement deactivated.',
+        ]);
+    }
 }

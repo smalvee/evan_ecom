@@ -241,6 +241,7 @@ Route::group(['prefix' => 'admin'], function () {
         // advertise
         Route::get('/advertise', [AdvertisementController::class, 'index'])->name('advertise.index');
         Route::post('/add-store/{slot}', [AdvertisementController::class, 'update'])->name('advertisements.update');
+        Route::post('/advertise/toggle/{slot}', [AdvertisementController::class, 'toggleStatus'])->name('advertisements.toggleStatus');
 
         // product Image
         Route::get('/product-list', [ImageController::class, 'get_product_list'])->name('get_product_list.index');
