@@ -22,6 +22,8 @@ php artisan tinker --execute="..." # quick checks
 ```
 No test suite is configured (only default stubs). Verification is done via ad-hoc scripts
 (create temp `_xxx.php`, boot Laravel, exercise code, then delete). Do NOT leave temp files.
+Tests run against a dedicated MySQL DB `evan_ecom_test` (set in `phpunit.xml`); run
+`php artisan test`. `RefreshDatabase` wipes/migrates that DB only — never point it at production.
 
 ## Key architecture
 
@@ -34,6 +36,28 @@ No test suite is configured (only default stubs). Verification is done via ad-ho
   `adjustVariantStock`.
 - `order_items.product_id` actually references **`product_variants.id`** (not `products`).
 - `order_items.price` and `order_items.cost_price` are **snapshots** at order time; never recompute.
+
+### Pre-order system
+- `product_variants.allow_pre_order` (bool, default false) = admin opt-in, **per variant**
+  (stock lives per variant). Migration `2026_09_12_000001_add_pre_order_support`.
+- `order_items.is_pre_order` (bool) + `order_items.pre_order_status`
+  (`pending`/`processing`/`completed`/`cancelled`) are historical: a pre-order stays a pre-order
+  even if the admin later disables the setting.
+- `App\Services\PreOrderService` is the single source of truth:
+  - `evaluate($variant,$qty)`: stock > 0 -> normal; stock <= 0 && allow_pre_order -> pre-order;
+    else reject. Untracked (`qty` null) = unlimited. Never trusts client `is_pre_order`/stock/price.
+  - `processOrder($order)`: admin "Process Pre Order". Transaction + `lockForUpdate` on the order,
+    re-checks stock, deducts **once**, sets `orders.stock_deducted`, moves order to `confirm` and
+    marks items `processing`. Idempotent (already-deducted orders are never deducted again).
+- Checkout (`CartController::processCheckout` / `singleCheckout`) re-derives eligibility and price
+  server-side, sets `is_pre_order`, and never deducts stock at creation.
+- Front product page (`front.pages.product_details`) has a 3-state UI (normal / Stock Out disabled /
+  Pre Order) driven by `applyVariantState()` from `variantMap` + `defaultVariantState`.
+- Admin module `/admin/pre-orders` (`PreOrderController`, `resources/views/admin/pre_orders/*`)
+  filters pending/available/processing/completed/cancelled; "Stock Available" is derived from
+  current stock. Dashboard shows "Pending Pre Orders"; order list/details show a PRE ORDER badge.
+- Notifications/emails are NOT implemented (no mail infrastructure). Hooks would sit around order
+  creation and `PreOrderService::processOrder`.
 
 ### Pricing vs. costing (important separation)
 - `product_variants.purchase_price` = current/latest inventory cost.
@@ -50,7 +74,8 @@ No test suite is configured (only default stubs). Verification is done via ad-ho
 - **Purchase edit** defaults to NOT changing current price; only recalculates when the
   `update_price` checkbox is submitted (see `PurchaseController::update`).
 - COGS in reports uses `COALESCE(order_items.cost_price, product_variants.purchase_price)`.
-- WAC `recalculateAverageCost` uses net-purchased qty (ignores sales) — documented assumption.
+- WAC `recalculateAverageCost` replays purchases, supplier returns and stock-deducted sales
+  chronologically (sales don't change the average but correctly weight later purchases).
 
 ### Product systems
 - Active system: `new_products` + `product_variants` (admin: `NewProductController`,
@@ -60,6 +85,21 @@ No test suite is configured (only default stubs). Verification is done via ad-ho
   system and was intentionally kept.
 - `pruducts-sub-category.index` + `ProductSubCategoryController` are still used by the new
   product create/edit forms (do not remove).
+- **Product add/edit form (redesigned):** `new_create.blade.php` / `new_edit.blade.php` use a
+  two-column layout (main + sticky sidebar) and shared partials
+  `admin/products/partials/form-styles.blade.php` + `form-scripts.blade.php` (the `ProductForm`
+  JS module). `product_type` is submitted by radios (values `0`/`1`). Variable variants are
+  built with a variation builder and submitted as `variant_id[]`, `variation_sku[]`,
+  `variation_values[]` (URL-encoded JSON `[{variation_id,value_id}]`), `allow_pre_order[]`.
+- **Variant sync (data safety):** `NewProductController::store/update` run in DB transactions.
+  Update syncs variants by **`variant_id`** (so SKUs can be renamed), creates new ones, and
+  reconciles removed ones — deleting only when safe. `variantDeleteBlockReason()` blocks deletion
+  of variants with `qty>0`, `order_items`, `purchase_items`, `purchase_return_items`, or
+  `product_images`. Single↔Variable conversion is blocked with a validation message when the
+  removed variants are protected; otherwise it reconciles safely. Duplicate/invalid variant SKUs
+  return JSON validation errors (never a 500).
+- **`ProductController::create` / `NewProductController::edit`** pass `$variationData` (and
+  `$variantsForJs` on edit) for the form JS. Pricing/stock are intentionally not on this form.
 
 ### Settings & global data
 - `settings` table (key/value) + `App\Models\Setting` with caching (`site_settings`).
@@ -81,6 +121,18 @@ No test suite is configured (only default stubs). Verification is done via ad-ho
   (the legacy `front.layouts.app` and all legacy views were deleted).
 - **Icons:** remixicon only (verify an icon exists in `public/new-admin-assets/css/remixicon.css`
   before using it).
+- **Summernote:** the admin uses Bootstrap 5, so the layout loads the **lite** build
+  (`admin-assets/plugins/summernote/summernote-lite.min.{css,js}`). The bs3/bs4/bs5 builds render
+  Bootstrap 3/4 dropdown markup (`data-toggle="dropdown"`) whose toolbar menus don't open under
+  Bootstrap 5.
+- **Rich text editor:** configured once in `admin/layouts/new_app.blade.php`
+  (`window.initRichEditors()`): fonts `Kalpurush, Poppins, Inter, Roboto, Arial, Georgia,
+  Times New Roman`, sizes `10–48`, headings, alignment, lists, link/picture/table/hr, undo/redo,
+  clear, codeview. Fonts are loaded from Google Fonts + `https://fonts.maateen.me/kalpurush/font.css`
+  (admin and storefront). Rich text is stored raw and rendered via
+  `App\Support\HtmlSanitizer::clean()` inside a `.rich-content` wrapper (storefront styles live in
+  `front/layouts/new_app.blade.php`). About-us/policy content is a singleton row updated by
+  `PageInfoController` (`aboutUsSingleton()`); the admin textareas are named `description`.
 - **Routes:** preserve existing route names/input names; admin routes are under the `admin.auth`
   middleware group in `routes/web.php`.
 - Blade views may not run DB queries if avoidable; prefer controllers/services + caching.
@@ -120,9 +172,12 @@ No test suite is configured (only default stubs). Verification is done via ad-ho
 - **Schema drift** — reconciled. The create migrations now include the live-only columns the
   code uses (`product_images.is_thumb`/`product_variant_id`, `orders.order_id`/`status`/
   `admin_note`/`payment_status`/`additional_discount`, `order_items.discount`,
-  `new_products.status`/`hot_products`, `product_variants.variation_sku`/`variation_values`).
-  The `product_variants` -> `new_products` FK is now created in the `new_products` migration
-  (its table is created later), so a fresh `migrate` succeeds. Verified against a scratch DB.
+  `new_products.status`/`hot_products`, `product_variants.variation_sku`/`variation_values`,
+  `users.phone`/`status`). The `product_variants` -> `new_products` FK is now created in the
+  `new_products` migration (its table is created later), so a fresh `migrate` succeeds. Verified
+  by migrating a scratch DB and by the feature test suite.
+- **Pre-order notifications** are not implemented (no mail/notification infrastructure exists).
+  Integration points: order creation (`CartController`) and `PreOrderService::processOrder`.
 - Legacy `front-assets/` was removed (unreferenced). `admin-assets/` was pruned from ~82 MB to
   ~8 MB: only `plugins/dropzone`, `plugins/summernote`, `css/datetimepicker.css`,
   `js/datetimepicker.js` and `img/default-150x150.png` are used; AdminLTE theme/plugin bundles

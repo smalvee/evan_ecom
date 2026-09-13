@@ -38,6 +38,10 @@ class ImageController extends Controller
     {
         $product_info = ProductVariant::where('id', $id)->first();
 
+        if (!$product_info) {
+            abort(404);
+        }
+
         return view('admin.product_image_manager.edit', compact('product_info'));
     }
 
@@ -49,7 +53,14 @@ class ImageController extends Controller
 
         $validator = Validator::make($request->all(), $rules);
 
-        if ($validator->passes()) {
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ]);
+        }
+
+        try {
             // Save Galary pics
             if (!empty($request->gallery_image_ids)) {
                 foreach ($request->gallery_image_ids as $temp_image_id) {
@@ -72,13 +83,8 @@ class ImageController extends Controller
 
                     $sourcePath = public_path('temp/' . $tempImageInfo->name);
 
-                    Image::read($sourcePath)
-                        ->scale(width: 1400)
-                        ->save(public_path('uploads/products/large/' . $imageName));
-
-                    Image::read($sourcePath)
-                        ->cover(300, 300)
-                        ->save(public_path('uploads/products/small/' . $imageName));
+                    $this->processImage($sourcePath, public_path('uploads/products/large/' . $imageName), 1400);
+                    $this->processImage($sourcePath, public_path('uploads/products/small/' . $imageName), null, [300, 300]);
                 }
             }
 
@@ -113,25 +119,49 @@ class ImageController extends Controller
 
                     $sourcePath = public_path('temp/' . $tempImageInfo->name);
 
-                    Image::read($sourcePath)
-                        ->scale(width: 1400)
-                        ->save(public_path('uploads/products/thumb/' . $imageName));
+                    $this->processImage($sourcePath, public_path('uploads/products/thumb/' . $imageName), 1400);
                 }
             }
+        } catch (\Throwable $e) {
+            report($e);
 
-            $request->session()->flash('success', 'Product Image Added successfully');
-
-            \Illuminate\Support\Facades\Cache::forget('front_search_products');
-
-            return response()->json([
-                'status' => true,
-                'message' => 'Product Image added successfully',
-            ]);
-        } else {
             return response()->json([
                 'status' => false,
-                'errors' => $validator->errors(),
+                'message' => 'Unable to save the image. Please try again.',
             ]);
+        }
+
+        $request->session()->flash('success', 'Product Image Added successfully');
+
+        \Illuminate\Support\Facades\Cache::forget('front_search_products');
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Product Image added successfully',
+        ]);
+    }
+
+    /**
+     * Resize + save an image. Falls back to a raw copy when no image driver
+     * (GD / Imagick) is available, so uploads still succeed.
+     */
+    protected function processImage(string $source, string $destination, ?int $width = null, ?array $cover = null): void
+    {
+        if (!File::exists($source)) {
+            throw new \RuntimeException('Source image not found: ' . $source);
+        }
+
+        File::ensureDirectoryExists(dirname($destination));
+
+        try {
+            if ($cover) {
+                Image::read($source)->cover($cover[0], $cover[1])->save($destination);
+            } else {
+                Image::read($source)->scale(width: $width)->save($destination);
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Image processing failed, using original file: ' . $e->getMessage());
+            File::copy($source, $destination);
         }
     }
 

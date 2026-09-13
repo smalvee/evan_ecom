@@ -1,523 +1,294 @@
 @extends('admin.layouts.new_app')
 
 @section('content')
-    <div class="container-fluid">
-        <div class="a-page-head">
-            <div class="a-page-head-text">
-                <ul class="a-breadcrumb">
-                    <li><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
-                    <li><a href="{{ route('orders.index') }}">Orders</a></li>
-                    <li class="is-active">{{ $order->order_id }}</li>
-                </ul>
-                <h4 class="a-page-title">Order: {{ $order->order_id }}</h4>
-                <p class="a-page-desc">Edit the order, its items and status, then save with one button.</p>
-            </div>
-            <div class="a-actions">
-                <button type="button" class="btn btn-outline-secondary"
-                    onclick="location.href='{{ route('orders.index') }}'">
-                    <i class="ri-arrow-left-line"></i> Back
-                </button>
-                <button type="button" class="btn btn-theme"
-                    onclick="location.href='{{ route('front.invoice', $order->order_id) }}'">
-                    <i class="ri-file-list-3-line"></i> Invoice
-                </button>
-            </div>
-        </div>
+    <style>
+        /* ---------- Order summary bar ---------- */
+        .order-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 16px;
+            align-items: center;
+        }
 
-        <form id="orderForm">
+        .order-summary-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            color: var(--a-muted);
+            font-weight: 600;
+        }
+
+        .order-summary-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--a-text);
+            line-height: 1.3;
+        }
+
+        .order-summary-sub {
+            font-size: 12px;
+            color: var(--a-muted);
+        }
+
+        .order-summary-total {
+            font-size: 22px;
+            color: var(--a-primary);
+        }
+
+        .order-summary-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        @media (max-width: 767.98px) {
+            .order-summary-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .order-summary-badges {
+                justify-content: flex-start;
+            }
+        }
+
+        /* ---------- Status timeline ---------- */
+        .order-timeline {
+            display: flex;
+            align-items: flex-start;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .order-timeline li {
+            position: relative;
+            flex: 1;
+            text-align: center;
+            font-size: 12px;
+            color: var(--a-secondary);
+        }
+
+        .order-timeline li::before {
+            content: '';
+            position: absolute;
+            top: 14px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--a-border);
+            z-index: 0;
+        }
+
+        .order-timeline li:first-child::before {
+            left: 50%;
+        }
+
+        .order-timeline li:last-child::before {
+            right: 50%;
+        }
+
+        .order-timeline .tl-dot {
+            position: relative;
+            z-index: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #fff;
+            border: 2px solid var(--a-border);
+            color: var(--a-secondary);
+            margin-bottom: 6px;
+        }
+
+        .order-timeline li.is-done .tl-dot {
+            border-color: var(--a-primary);
+            color: var(--a-primary);
+        }
+
+        .order-timeline li.is-done::before {
+            background: var(--a-primary);
+        }
+
+        .order-timeline li.is-active .tl-dot {
+            background: var(--a-primary);
+            border-color: var(--a-primary);
+            color: #fff;
+        }
+
+        .order-timeline li.is-active {
+            color: var(--a-primary);
+            font-weight: 700;
+        }
+
+        .tl-label {
+            display: block;
+        }
+
+        .order-cancelled-note {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            border-radius: var(--a-radius-sm);
+            background: #fef2f2;
+            color: #b91c1c;
+            font-size: 13px;
+        }
+
+        /* ---------- Order items ---------- */
+        .order-items-table th,
+        .order-items-table td {
+            vertical-align: middle;
+        }
+
+        .order-items-table .oi-name {
+            font-weight: 600;
+            color: var(--a-text);
+        }
+
+        .order-items-table .oi-meta {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            margin-top: 2px;
+            font-size: 12px;
+            color: var(--a-muted);
+        }
+
+        .order-items-table .qty-input,
+        .order-items-table .discount-input {
+            max-width: 110px;
+        }
+
+        .add-product-panel {
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 1px dashed var(--a-border);
+            border-radius: var(--a-radius-sm);
+            background: #fafbfc;
+        }
+
+        /* ---------- Financial summary ---------- */
+        .fin-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 14px;
+            color: var(--a-text);
+        }
+
+        .fin-row + .fin-row {
+            border-top: 1px dashed var(--a-border);
+        }
+
+        .fin-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+            padding-top: 12px;
+            border-top: 2px solid var(--a-border);
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--a-text);
+        }
+
+        .fin-total span:last-child {
+            color: var(--a-primary);
+        }
+
+        /* ---------- Notes ---------- */
+        .customer-note {
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-size: 14px;
+            color: var(--a-text);
+        }
+
+        /* ---------- Sticky save bar ---------- */
+        .order-savebar {
+            position: sticky;
+            bottom: 0;
+            z-index: 1020;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 16px;
+            padding: 12px 16px;
+            background: #fff;
+            border: 1px solid var(--a-border);
+            border-radius: var(--a-radius);
+            box-shadow: 0 -4px 16px rgba(15, 23, 42, .06);
+        }
+
+        .order-savebar-state {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--a-muted);
+        }
+
+        .savebar-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #cbd5e1;
+        }
+
+        .savebar-dot.is-dirty {
+            background: var(--a-warning);
+        }
+
+        @media (max-width: 575.98px) {
+            .order-savebar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .order-savebar .btn {
+                width: 100%;
+            }
+        }
+    </style>
+
+    <div class="container-fluid">
+        @include('admin.orders.partials.header')
+
+        @include('admin.orders.partials.summary')
+
+        <form id="orderForm" novalidate>
             @csrf
 
             <div class="row g-3">
-                <div class="col-xxl-9 col-xl-8 col-lg-7">
-                    {{-- Customer Information --}}
-                    <div class="a-card mb-3">
-                        <div class="a-card-head">
-                            <h5>Customer Information</h5>
-                        </div>
-                        <div class="a-card-body">
-                            <div class="row g-4">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label class="form-label a-required">Full Name</label>
-                                        <input type="text" class="form-control" value="{{ $order->name }}"
-                                            id="f_name" name="f_name" required>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label class="form-label a-required">Address</label>
-                                        <textarea id="address" name="address" class="form-control" rows="3">{{ $order->address }}</textarea>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label class="form-label">Phone</label>
-                                        <input type="text" class="form-control" value="{{ $order->phone }}" readonly>
-                                    </div>
-
-                                    <input type="hidden" value="{{ $order->user_id }}" name="cus_id" id="cus_id">
-                                </div>
-
-                                <div class="col-md-6">
-                                    <div class="a-card h-100">
-                                        <div class="a-card-head">
-                                            <h5>Invoice Details</h5>
-                                        </div>
-                                        <div class="a-card-body">
-                                            <ul class="list-unstyled mb-0">
-                                                <li class="mb-3 d-flex justify-content-between">
-                                                    <span class="text-muted">Invoice #</span>
-                                                    <strong>{{ $order->order_id }}</strong>
-                                                </li>
-                                                <li class="mb-3 d-flex justify-content-between">
-                                                    <span class="text-muted">Date</span>
-                                                    <strong>{{ $order->created_at->format('Y-m-d') }}</strong>
-                                                </li>
-                                                <li class="mb-3 d-flex justify-content-between">
-                                                    <span class="text-muted">Time</span>
-                                                    <strong>{{ $order->created_at->format('h:i A') }}</strong>
-                                                </li>
-                                                <li class="mb-3 d-flex justify-content-between">
-                                                    <span class="text-muted">Order ID</span>
-                                                    <strong>{{ $order->id }}</strong>
-                                                </li>
-                                                <li class="mb-3 d-flex justify-content-between">
-                                                    <span class="text-muted">Total</span>
-                                                    <strong>Tk {{ number_format($order->grand_total, 2) }}</strong>
-                                                </li>
-                                                <li class="d-flex justify-content-between align-items-center">
-                                                    <span class="text-muted">Status</span>
-                                                    @if ($order->status == 'pending')
-                                                        <span class="a-badge a-badge-danger"><span
-                                                                class="dot"></span>Pending</span>
-                                                    @elseif ($order->status == 'confirm')
-                                                        <span class="a-badge a-badge-info"><span
-                                                                class="dot"></span>Confirmed</span>
-                                                    @elseif ($order->status == 'shipped')
-                                                        <span class="a-badge a-badge-success"><span
-                                                                class="dot"></span>Delivered</span>
-                                                    @elseif ($order->status == 'cancell')
-                                                        <span class="a-badge a-badge-secondary"><span
-                                                                class="dot"></span>Cancelled</span>
-                                                    @endif
-                                                </li>
-                                                <li class="d-flex justify-content-between align-items-center mt-3">
-                                                    <span class="text-muted">Payment</span>
-                                                    <span class="d-flex align-items-center gap-2">
-                                                        <span
-                                                            class="a-badge {{ $order->payment_status ? 'a-badge-success' : 'a-badge-warning' }}"
-                                                            id="payment-badge">
-                                                            <span
-                                                                class="dot"></span>{{ $order->payment_status ? 'Paid' : 'Unpaid' }}
-                                                        </span>
-                                                        <button type="button"
-                                                            class="btn btn-sm btn-outline-secondary"
-                                                            onclick="togglePaymentStatus()">Toggle</button>
-                                                    </span>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Order Items --}}
-                    <div class="a-card">
-                        <div class="a-card-head">
-                            <h5>Order Items</h5>
-                        </div>
-
-                        <div class="a-card-body pb-0">
-                            <div class="a-form-section mb-0">
-                                <h6 class="a-section-title">Add Item</h6>
-                                <div class="row g-2 align-items-end">
-                                    <div class="col-md-6">
-                                        <label class="form-label">Product / Variant</label>
-                                        <select id="new_variant" class="form-select">
-                                            <option value="">Select a product…</option>
-                                            @foreach ($variants as $v)
-                                                <option value="{{ $v->id }}"
-                                                    data-price="{{ $v->selling_price }}"
-                                                    data-name="{{ $v->product->name ?? '' }}"
-                                                    data-sku="{{ $v->sku }}">
-                                                    {{ $v->sku }} — {{ $v->product->name ?? '' }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <label class="form-label">Qty</label>
-                                        <input type="number" id="new_item_qty" class="form-control" value="1"
-                                            min="1">
-                                    </div>
-                                    <div class="col-md-2">
-                                        <label class="form-label">Discount</label>
-                                        <input type="number" id="new_item_discount" class="form-control" value="0"
-                                            min="0">
-                                    </div>
-                                    <div class="col-md-2">
-                                        <button type="button" class="btn btn-outline-primary w-100" id="addItemBtn">
-                                            <i class="ri-add-line"></i> Add
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="table-responsive">
-                            <table class="table all-package theme-table">
-                                <thead>
-                                    <tr>
-                                        <th>Product</th>
-                                        <th>Price</th>
-                                        <th width="100">Qty</th>
-                                        <th width="120">Discount</th>
-                                        <th>Delivery</th>
-                                        <th>Total</th>
-                                        <th width="110">Action</th>
-                                    </tr>
-                                </thead>
-
-                                <tbody id="order-items">
-                                    @foreach ($orderedItems as $item)
-                                        @php
-                                            $variant_info = $item->variant;
-                                            $product_info = $variant_info?->product;
-                                        @endphp
-                                        <tr class="item-row existing-row" data-price="{{ $item->price }}">
-                                            <td>{{ $product_info->name ?? '—' }} ({{ $item->name }})</td>
-
-                                            <td>Tk <span class="price-text">{{ number_format($item->price, 2) }}</span>
-                                            </td>
-
-                                            <td>
-                                                <input type="number" class="form-control qty-input"
-                                                    name="item_qty[{{ $item->id }}]" value="{{ $item->qty }}"
-                                                    min="1">
-                                            </td>
-
-                                            <td>
-                                                <input type="number" class="form-control discount-input"
-                                                    name="item_discount[{{ $item->id }}]"
-                                                    value="{{ $item->discount ?? 0 }}" min="0">
-                                            </td>
-
-                                            <td>
-                                                @if ($item->free_delivery)
-                                                    <span class="a-badge a-badge-success"><span
-                                                            class="dot"></span>FREE</span>
-                                                @else
-                                                    <span class="a-badge a-badge-secondary"><span
-                                                            class="dot"></span>Standard</span>
-                                                @endif
-                                            </td>
-
-                                            <td>Tk <span
-                                                    class="row-total-text">{{ number_format($item->total, 2) }}</span>
-                                            </td>
-
-                                            <td>
-                                                <button type="button"
-                                                    class="btn btn-outline-danger btn-sm btn-cancel-item"
-                                                    data-item-id="{{ $item->id }}">
-                                                    <i class="ri-close-line"></i> Cancel
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-
-                                <tfoot>
-                                    <tr>
-                                        <th colspan="5" class="text-end">Subtotal:</th>
-                                        <td colspan="2">Tk <span id="subtotal-text">{{ $order->subtotal }}</span></td>
-                                    </tr>
-
-                                    <tr>
-                                        <th colspan="5" class="text-end">Shipping:</th>
-                                        <td colspan="2">Tk <span id="shipping-text">{{ $order->shipping }}</span></td>
-                                    </tr>
-
-                                    <tr>
-                                        <th colspan="5" class="text-end">Coupon Discount:</th>
-                                        <td colspan="2">Tk - <span id="coupon-text">{{ $order->discount }}</span></td>
-                                    </tr>
-
-                                    <tr>
-                                        <th colspan="5" class="text-end fw-bold">Grand Total:</th>
-                                        <td colspan="2"><strong>Tk <span
-                                                    id="grand-total-text">{{ $order->grand_total }}</span></strong></td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </div>
-
-                        <input type="hidden" id="shipping" value="{{ $order->shipping }}">
-                        <input type="hidden" id="coupon" value="{{ $order->discount }}">
-                    </div>
-                </div>
-
-                <div class="col-xxl-3 col-xl-4 col-lg-5">
-                    <div class="a-card mb-3">
-                        <div class="a-card-head">
-                            <h5>Order Status</h5>
-                        </div>
-                        <div class="a-card-body">
-                            <div class="mb-3">
-                                <label class="form-label">Status</label>
-                                <select name="status" id="status" class="form-select">
-                                    <option value="pending" {{ $order->status == 'pending' ? 'selected' : '' }}>Pending
-                                    </option>
-                                    <option value="shipped" {{ $order->status == 'shipped' ? 'selected' : '' }}>Shipped
-                                    </option>
-                                    <option value="confirm" {{ $order->status == 'confirm' ? 'selected' : '' }}>
-                                        Confirmed</option>
-                                    <option value="cancell" {{ $order->status == 'cancell' ? 'selected' : '' }}>
-                                        Cancelled</option>
-                                </select>
-                                <p class="text-muted small mb-0 mt-2">
-                                    Stock is reduced when set to <strong>Confirmed</strong> (or Shipped) and restored if a
-                                    confirmed order is set to <strong>Cancelled</strong>.
-                                </p>
-                            </div>
-                            <div class="mb-0">
-                                <label class="form-label">Order Note</label>
-                                <input type="text" name="admin_note" id="admin_note"
-                                    value="{{ $order->admin_note }}" class="form-control">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="a-card">
-                        <div class="a-card-head">
-                            <h5>Notes from Customer</h5>
-                        </div>
-                        <div class="a-card-body">
-                            {{ $order->notes }}
-                        </div>
-                    </div>
+                <div class="col-12">
+                    @include('admin.orders.partials.items')
                 </div>
             </div>
 
-            <div class="a-card mt-3">
-                <div class="a-card-body d-flex justify-content-end">
-                    <button type="submit" class="btn btn-theme btn-lg" id="updateOrderBtn">
-                        <i class="ri-save-3-line"></i> Update Order
-                    </button>
+            <div class="row g-3 mt-0">
+                <div class="col-lg-7">
+                    @include('admin.orders.partials.customer')
+                    @include('admin.orders.partials.notes')
+                </div>
+                <div class="col-lg-5">
+                    @include('admin.orders.partials.status')
+                    @include('admin.orders.partials.payment')
                 </div>
             </div>
+
+            @include('admin.orders.partials.savebar')
         </form>
     </div>
 @endsection
 
 @section('customJs')
-    <script>
-        const orderItems = document.getElementById('order-items');
-        const orderForm = document.getElementById('orderForm');
-
-        /* ---------- Totals ---------- */
-        function updateTotals() {
-            let subtotal = 0;
-
-            orderItems.querySelectorAll('.item-row').forEach(row => {
-                const price = parseFloat(row.dataset.price) || 0;
-                const qty = parseInt(row.querySelector('.qty-input').value) || 0;
-                const discount = parseFloat(row.querySelector('.discount-input').value) || 0;
-
-                let total = (price * qty) - discount;
-                if (total < 0) total = 0;
-
-                subtotal += total;
-                row.querySelector('.row-total-text').innerText = total.toFixed(2);
-            });
-
-            const shipping = parseFloat(document.getElementById('shipping').value) || 0;
-            const coupon = parseFloat(document.getElementById('coupon').value) || 0;
-
-            document.getElementById('subtotal-text').innerText = subtotal.toFixed(2);
-
-            let grand = subtotal + shipping - coupon;
-            if (grand < 0) grand = 0;
-            document.getElementById('grand-total-text').innerText = grand.toFixed(2);
-        }
-
-        orderItems.addEventListener('input', function(e) {
-            if (e.target.classList.contains('qty-input') || e.target.classList.contains('discount-input')) {
-                updateTotals();
-            }
-        });
-
-        /* ---------- Add item ---------- */
-        document.getElementById('addItemBtn').addEventListener('click', function() {
-            const sel = document.getElementById('new_variant');
-            const opt = sel.options[sel.selectedIndex];
-
-            if (!sel.value) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Select a product first'
-                });
-                return;
-            }
-
-            const qty = parseInt(document.getElementById('new_item_qty').value) || 1;
-            const discount = parseFloat(document.getElementById('new_item_discount').value) || 0;
-            const price = parseFloat(opt.dataset.price) || 0;
-            const name = opt.dataset.name || '';
-            const sku = opt.dataset.sku || '';
-            const total = Math.max(0, (price * qty) - discount);
-
-            const tr = document.createElement('tr');
-            tr.className = 'item-row new-row';
-            tr.dataset.price = price;
-            tr.innerHTML = `
-                <td>${name} (${sku})<input type="hidden" name="new_variant_id[]" value="${sel.value}"></td>
-                <td>Tk <span class="price-text">${price.toFixed(2)}</span></td>
-                <td><input type="number" class="form-control qty-input" name="new_qty[]" value="${qty}" min="1"></td>
-                <td><input type="number" class="form-control discount-input" name="new_discount[]" value="${discount}" min="0"></td>
-                <td><span class="a-badge a-badge-secondary"><span class="dot"></span>—</span></td>
-                <td>Tk <span class="row-total-text">${total.toFixed(2)}</span></td>
-                <td><button type="button" class="btn btn-outline-danger btn-sm btn-remove-new"><i class="ri-delete-bin-line"></i></button></td>
-            `;
-
-            orderItems.appendChild(tr);
-            updateTotals();
-
-            sel.value = '';
-            document.getElementById('new_item_qty').value = 1;
-            document.getElementById('new_item_discount').value = 0;
-        });
-
-        /* ---------- Cancel / remove item ---------- */
-        orderItems.addEventListener('click', function(e) {
-            const cancelBtn = e.target.closest('.btn-cancel-item');
-            if (cancelBtn) {
-                const row = cancelBtn.closest('tr');
-                const itemId = cancelBtn.dataset.itemId;
-
-                Swal.fire({
-                    title: 'Cancel this item?',
-                    text: 'The item will be removed from the order. If the order is confirmed, its stock is returned. Save with "Update Order" to apply.',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#dc2626',
-                    confirmButtonText: 'Yes, cancel item',
-                    cancelButtonText: 'Keep'
-                }).then(res => {
-                    if (!res.isConfirmed) return;
-
-                    row.remove();
-
-                    const input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = 'cancel_items[]';
-                    input.value = itemId;
-                    orderForm.appendChild(input);
-
-                    updateTotals();
-                });
-                return;
-            }
-
-            const removeBtn = e.target.closest('.btn-remove-new');
-            if (removeBtn) {
-                removeBtn.closest('tr').remove();
-                updateTotals();
-            }
-        });
-
-        /* ---------- Save everything ---------- */
-        orderForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            const btn = document.getElementById('updateOrderBtn');
-            const original = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = 'Updating…';
-
-            $.ajax({
-                url: '{{ route('orders.update_full', $order->id) }}',
-                type: 'POST',
-                data: $(this).serialize(),
-                dataType: 'json',
-                success: function(response) {
-                    if (response.status) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Updated!',
-                            text: response.message,
-                            timer: 1500,
-                            showConfirmButton: false
-                        });
-                        setTimeout(function() {
-                            window.location.href = "{{ route('orders.details', $order->id) }}";
-                        }, 1200);
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: response.message || 'Unable to update the order.'
-                        });
-                        btn.disabled = false;
-                        btn.innerHTML = original;
-                    }
-                },
-                error: function(xhr) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: xhr.responseJSON?.message || 'Something went wrong.'
-                    });
-                    btn.disabled = false;
-                    btn.innerHTML = original;
-                }
-            });
-        });
-
-        updateTotals();
-
-        function togglePaymentStatus() {
-            $.ajax({
-                url: '{{ route('orders.paymentStatus', $order->id) }}',
-                type: 'POST',
-                data: {
-                    _token: '{{ csrf_token() }}'
-                },
-                dataType: 'json',
-                success: function(response) {
-                    if (response.status) {
-                        const badge = document.getElementById('payment-badge');
-                        badge.className = 'a-badge ' + (response.payment_status ? 'a-badge-success' :
-                            'a-badge-warning');
-                        badge.innerHTML = '<span class="dot"></span>' + (response.payment_status ? 'Paid' :
-                            'Unpaid');
-                        Swal.fire({
-                            icon: 'success',
-                            title: response.message,
-                            timer: 1200,
-                            showConfirmButton: false
-                        });
-                    }
-                },
-                error: function() {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Something went wrong'
-                    });
-                }
-            });
-        }
-    </script>
-
-    @if (session('success'))
-        <script>
-            Swal.fire({
-                icon: 'success',
-                title: 'Success!',
-                text: '{{ session('success') }}',
-                timer: 1500,
-                showConfirmButton: false
-            });
-        </script>
-    @endif
+    @include('admin.orders.partials.scripts')
 @endsection

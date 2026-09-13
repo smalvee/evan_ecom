@@ -159,6 +159,21 @@
                     </div>
                 </div>
             </div>
+            <div class="col-xxl-3 col-sm-6">
+                <a href="{{ route('admin.pre_orders.index', ['status' => 'pending']) }}" class="text-decoration-none">
+                    <div class="a-card h-100">
+                        <div class="a-card-body d-flex align-items-center justify-content-between">
+                            <div>
+                                <h6 class="text-muted mb-1">Pending Pre Orders</h6>
+                                <h3 class="mb-0">{{ $pendingPreOrders }}</h3>
+                            </div>
+                            <div class="a-stat-icon" style="background: var(--a-warning-soft); color: var(--a-warning);">
+                                <i class="ri-calendar-check-line"></i>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
         </div>
 
         {{-- Sales by category + top customers --}}

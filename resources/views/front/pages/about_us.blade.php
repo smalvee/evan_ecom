@@ -36,7 +36,7 @@
                     <div class="fresh-contain p-center">
                         <div>    
                             <div class="delivery-list">
-                               {!! $about_us->who_we_are !!}                                
+                               <div class="rich-content">{!! \App\Support\HtmlSanitizer::clean($about_us->who_we_are) !!}</div>                                
                             </div>
                         </div>
                     </div>

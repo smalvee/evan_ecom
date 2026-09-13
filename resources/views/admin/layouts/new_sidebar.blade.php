@@ -115,6 +115,12 @@
                         </ul>
                     </li>
                     <li class="sidebar-list">
+                        <a class="sidebar-link sidebar-title link-nav" href="{{ route('admin.pre_orders.index') }}">
+                            <i class="ri-calendar-check-line"></i>
+                            <span>Pre Orders</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-list">
                         <a class="sidebar-link sidebar-title" href="javascript:void(0)">
                             <i class="ri-coupon-3-line"></i>
                             <span>Coupons</span>

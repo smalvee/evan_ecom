@@ -7,6 +7,17 @@
     
     use App\Models\NewProduct;
     use App\Models\ProductVariant;
+
+    $defaultVariantState = $defaultVariant
+        ? [
+            'id' => $defaultVariant->id,
+            'price' => $defaultVariant->selling_price,
+            'compare_price' => $defaultVariant->compare_price,
+            'sku' => $defaultVariant->sku,
+            'stock' => $defaultVariant->stock(),
+            'allow_pre_order' => (bool) $defaultVariant->allow_pre_order,
+        ]
+        : null;
     
     ?>
 
@@ -23,6 +34,26 @@
             border-radius: 5px;
             border: 1px;
             background-color: #d99f46;
+        }
+
+        /* Buy Now / Add To Cart: side-by-side with equal width. */
+        .pd-actions {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .pd-actions>.btn {
+            flex: 1 1 0;
+            width: auto;
+            min-width: 0;
+        }
+
+        @media (max-width: 400px) {
+            .pd-actions {
+                gap: 8px;
+            }
         }
     </style>
     <!-- Product Left Sidebar Start -->
@@ -148,7 +179,7 @@
 
 
                                 {{-- ================= QUANTITY + CART ================= --}}
-                                <div class="note-box product-package price-qty">
+                                <div class="note-box product-package price-qty flex-wrap">
                                     <div class="cart_qty qty-box product-qty">
                                         <div class="counter">
                                             <div class="qty-left-minus" data-type="minus" data-field="">
@@ -163,31 +194,31 @@
                                         </div>
                                     </div>
 
-                                    {{-- <button
-                                        onclick="location.href = '{{ route('front.sing.checkout', $defaultVariant->id) }}';"
-                                        class="btn btn-md bg-dark cart-button text-white w-50">Buy Now</button> --}}
+                                    <div id="preorder-notice" class="alert alert-warning w-100 mb-2"
+                                        style="display:none; font-size:14px;">
+                                        This item is currently out of stock but is available for pre-order.
+                                    </div>
+                                    <div id="stockout-notice" class="alert alert-danger w-100 mb-2"
+                                        style="display:none; font-size:14px;">
+                                        Stock Out
+                                    </div>
 
-                                    <button
-                                        onclick="
-                                            let qty = document.querySelector('.qty-input').value;
-                                            let variantId = document.getElementById('selected-variant').textContent;
+                                    <div class="pd-actions">
+                                        <button type="button" id="buy-now-btn" onclick="goToSingleCheckout()"
+                                            class="btn btn-md bg-dark text-white">
+                                            Buy Now
+                                        </button>
 
-                                            // Build URL dynamically using JS variable
-                                            let url = '/singel-product/' + variantId + '?qty=' + qty;
-                                            location.href = url;
-                                        "
-                                        class="btn btn-md bg-dark text-white w-50">
-                                        Buy Now
-                                    </button>
+                                        <button type="button" id="add-to-cart-btn"
+                                            onclick="addToCart(this, document.getElementById('selected-variant').textContent)"
+                                            class="btn btn-md bg-dark cart-button text-white">Add To Cart
+                                        </button>
 
-
-
-
-
-                                    <button
-                                        onclick="addToCart(this, document.getElementById('selected-variant').textContent)"
-                                        class="btn btn-md bg-dark cart-button text-white w-50">Add To Cart
-                                    </button>
+                                        <button type="button" id="pre-order-btn" onclick="goToSingleCheckout()"
+                                            class="btn btn-md bg-dark text-white" style="display:none;">
+                                            Pre Order
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -223,7 +254,7 @@
                                 <div class="tab-content custom-tab" id="myTabContent">
                                     <div class="tab-pane fade show active" id="description" role="tabpanel">
                                         <div class="product-description">
-                                            <div class="nav-desh">
+                                            <div class="nav-desh rich-content">
                                                 {!! \App\Support\HtmlSanitizer::clean($product_info->description) !!}
                                             </div>
                                         </div>
@@ -378,6 +409,61 @@
 @section('customJs')
     <script>
         let selectedVariantId = null;
+
+        // Send the customer to the existing single-product checkout. The server
+        // re-derives whether this is a pre-order from the variant itself.
+        function goToSingleCheckout() {
+            const qty = document.querySelector('.qty-input').value;
+            const variantId = document.getElementById('selected-variant').textContent;
+            location.href = '/singel-product/' + variantId + '?qty=' + qty;
+        }
+
+        // Apply the 3-state purchase UI for the selected variant.
+        // stock === null means the variant does not track stock (always available).
+        function applyVariantState(variant) {
+            if (!variant) return;
+
+            const buyBtn = document.getElementById('buy-now-btn');
+            const addBtn = document.getElementById('add-to-cart-btn');
+            const preBtn = document.getElementById('pre-order-btn');
+            const preNotice = document.getElementById('preorder-notice');
+            const outNotice = document.getElementById('stockout-notice');
+
+            if (!buyBtn || !addBtn || !preBtn) return;
+
+            const stock = (variant.stock === undefined) ? null : variant.stock;
+            const allowPreOrder = !!variant.allow_pre_order;
+
+            // State 1: normal in-stock purchase.
+            buyBtn.style.display = '';
+            addBtn.style.display = '';
+            buyBtn.disabled = false;
+            addBtn.disabled = false;
+            preBtn.style.display = 'none';
+            preNotice.style.display = 'none';
+            outNotice.style.display = 'none';
+
+            if (stock !== null && stock <= 0) {
+                if (allowPreOrder) {
+                    // State 3: pre-order only.
+                    buyBtn.style.display = 'none';
+                    addBtn.style.display = 'none';
+                    preBtn.style.display = '';
+                    preNotice.style.display = '';
+                } else {
+                    // State 2: stock out, purchases disabled.
+                    buyBtn.disabled = true;
+                    addBtn.disabled = true;
+                    outNotice.style.display = '';
+                }
+            }
+        }
+    </script>
+
+    <script>
+        // Initial state for the default variant (single products and first load).
+        const defaultVariantState = @json($defaultVariantState);
+        applyVariantState(defaultVariantState);
     </script>
 
     @if (!empty($groupedVariations))
@@ -470,6 +556,9 @@
                 document.querySelector('.price').innerHTML = priceHTML;
                 document.getElementById('sku-value').textContent = variant.sku;
                 document.getElementById('selected-variant').textContent = variant.id;
+
+                // Apply the 3-state purchase UI for this variant.
+                applyVariantState(variant);
 
                 // Update images
                 if (variant.images && variant.images.length) {

@@ -15,6 +15,8 @@ return new class extends Migration {
             $table->longText('who_we_are')->nullable();
             $table->longText('our_mission')->nullable();
             $table->longText('our_vision')->nullable();
+            $table->longText('refund_policy')->nullable();
+            $table->longText('return_policy')->nullable();
             $table->timestamps();
         });
     }

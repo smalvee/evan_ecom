@@ -62,7 +62,11 @@
                                 <tbody>
                                     @foreach ($orderedItems as $item)
                                         <tr>
-                                            <td>{{ $item->name ?? 'N/A' }}</td>
+                                            <td>{{ $item->name ?? 'N/A' }}
+                                                @if ($item->is_pre_order)
+                                                    <span class="badge bg-warning text-dark">Pre Order</span>
+                                                @endif
+                                            </td>
                                             <td>{{ $item->qty }}</td>
                                             <td>Tk: {{ number_format($item->price, 2) }}</td>
                                             <td>Tk: {{ number_format($item->price * $item->qty, 2) }}</td>

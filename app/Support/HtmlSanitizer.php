@@ -40,6 +40,21 @@ class HtmlSanitizer
             $html
         );
 
+        // Strip dangerous CSS from inline style attributes while keeping the
+        // legitimate formatting the editor produces (font-family, font-size,
+        // text-align, color, ...).
+        $html = preg_replace_callback(
+            '#\sstyle\s*=\s*("([^"]*)"|\'([^\']*)\')#is',
+            function ($matches) {
+                $quote = $matches[1][0];
+                $css = $quote === '"' ? ($matches[2] ?? '') : ($matches[3] ?? '');
+                $css = preg_replace('#(expression\s*\(|javascript\s*:|vbscript\s*:|behavior\s*:|@import)#i', '', $css);
+
+                return ' style=' . $quote . $css . $quote;
+            },
+            $html
+        );
+
         return $html;
     }
 }

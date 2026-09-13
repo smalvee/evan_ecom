@@ -78,6 +78,10 @@
                                                                          <br><span
                                                                              class="badge bg-success">Free Delivery</span>
                                                                      @endif
+                                                                     @if ($item->options->isPreOrder)
+                                                                         <br><span
+                                                                             class="badge bg-warning text-dark">Pre Order</span>
+                                                                     @endif
 
                                                                  </li>
 

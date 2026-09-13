@@ -39,6 +39,121 @@
 
      <!-- Template css -->
      <link id="color-link" rel="stylesheet" type="text/css" href=" {{ asset('new-front-assets/css/style.css') }}">
+
+     <!-- Rich content fonts (Bangla + English) -->
+     <link rel="preconnect" href="https://fonts.googleapis.com">
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+     <link rel="stylesheet"
+         href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap">
+     <link rel="stylesheet" href="https://fonts.maateen.me/kalpurush/font.css">
+
+     <style>
+         /* Rich content rendering (product descriptions, policy pages, etc.) */
+         .rich-content {
+             font-family: 'Poppins', 'Kalpurush', Arial, sans-serif;
+             color: #1b2430;
+             line-height: 1.75;
+             word-break: break-word;
+         }
+
+         .rich-content>*:first-child {
+             margin-top: 0;
+         }
+
+         .rich-content>*:last-child {
+             margin-bottom: 0;
+         }
+
+         .rich-content h1,
+         .rich-content h2,
+         .rich-content h3,
+         .rich-content h4,
+         .rich-content h5,
+         .rich-content h6 {
+             font-weight: 700;
+             line-height: 1.3;
+             margin: 1.2em 0 .5em;
+             color: #1b2430;
+         }
+
+         .rich-content h1 { font-size: 2em; }
+         .rich-content h2 { font-size: 1.6em; }
+         .rich-content h3 { font-size: 1.35em; }
+         .rich-content h4 { font-size: 1.15em; }
+         .rich-content h5 { font-size: 1em; }
+         .rich-content h6 { font-size: .9em; }
+
+         .rich-content p { margin: 0 0 .85em; }
+
+         .rich-content ul,
+         .rich-content ol {
+             margin: 0 0 .85em 1.4em;
+             padding-left: 1.1em;
+         }
+
+         .rich-content ul { list-style: disc; }
+         .rich-content ol { list-style: decimal; }
+         .rich-content li { margin-bottom: .25em; }
+
+         .rich-content a {
+             color: #0da487;
+             text-decoration: underline;
+         }
+
+         .rich-content img {
+             max-width: 100%;
+             height: auto;
+         }
+
+         .rich-content blockquote {
+             margin: 1em 0;
+             padding: .5em 1em;
+             border-left: 4px solid #0da487;
+             background: #f6faf9;
+             color: #475569;
+         }
+
+         .rich-content pre {
+             padding: 12px;
+             background: #f1f5f9;
+             border-radius: 8px;
+             overflow-x: auto;
+         }
+
+         .rich-content code {
+             background: #f1f5f9;
+             padding: 1px 5px;
+             border-radius: 4px;
+         }
+
+         .rich-content table {
+             width: 100%;
+             border-collapse: collapse;
+             margin: 1em 0;
+         }
+
+         .rich-content table th,
+         .rich-content table td {
+             border: 1px solid #e6eaf0;
+             padding: 8px 10px;
+         }
+
+         .rich-content table th {
+             background: #f1f5f9;
+         }
+
+         .rich-content hr {
+             border: 0;
+             border-top: 1px solid #e6eaf0;
+             margin: 1.2em 0;
+         }
+
+         @media (max-width: 767.98px) {
+             .rich-content {
+                 overflow-x: auto;
+             }
+         }
+     </style>
      <meta name="csrf-token" content="{{ csrf_token() }}">
   
   

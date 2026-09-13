@@ -47,12 +47,27 @@ class ProductController extends Controller
         $units = Unit::all();
         $categories = Category::orderBy('name', 'ASC')->get();
         $brands = Brand::orderBy('name', 'ASC')->get();
+
+        $variationData = $variations->map(function ($variation) {
+            $values = VariationValues::where('variation_id', $variation->id)->orderBy('value')->get();
+
+            return [
+                'id' => $variation->id,
+                'name' => $variation->variations,
+                'values' => $values->map(fn ($value) => [
+                    'id' => $value->id,
+                    'value' => $value->value,
+                ])->values()->all(),
+            ];
+        })->values()->all();
+
         $data = [];
         $data['categories'] = $categories;
         $data['brands'] = $brands;
         $data['variations'] = $variations;
         $data['variation_value'] = $variation_value;
         $data['units'] = $units;
+        $data['variationData'] = $variationData;
 
         return view('admin.products.new_create', $data);
     }

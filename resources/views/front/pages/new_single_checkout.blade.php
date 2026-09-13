@@ -19,6 +19,15 @@
             <div class="card-body p-4">
                 <p class="mb-4 text-muted">অর্ডার করতে আপনার তথ্য দিন</p>
 
+                @if (!empty($preOrderDecision) && $preOrderDecision['is_pre_order'])
+                    <div class="alert alert-warning">
+                        <strong>Pre Order:</strong> This item is currently out of stock but is available for
+                        pre-order. Your order will be placed as a pre-order and processed once stock arrives.
+                    </div>
+                @elseif (!empty($preOrderDecision) && !$preOrderDecision['ok'])
+                    <div class="alert alert-danger">{{ $preOrderDecision['message'] }}</div>
+                @endif
+
                 <!-- Order Form -->
                 <form action="" method="post" name="order_form" id="order_form">
                     <div class="row g-3">
@@ -173,7 +182,8 @@
                     </p>
 
                     <button type="submit" class="btn w-100 mt-2"
-                        style="background:#FC8934; color:#fff; font-weight:bold;">
+                        style="background:#FC8934; color:#fff; font-weight:bold;"
+                        {{ (!empty($preOrderDecision) && !$preOrderDecision['ok']) ? 'disabled' : '' }}>
                         অর্ডার কনফার্ম করুন
                     </button>
                 </form>

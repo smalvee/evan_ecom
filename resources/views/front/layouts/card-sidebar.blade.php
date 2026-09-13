@@ -37,6 +37,9 @@
                           <h6><span>{{ $item->qty }} x</span>
                               {{ $get_product_id->selling_price }} Tk
                           </h6>
+                          @if ($item->options->isPreOrder)
+                              <span class="badge bg-warning text-dark" style="font-size:10px;">Pre Order</span>
+                          @endif
                           <button class="close-button close_button" data-rowid="{{ $item->rowId }}">
                               <i class="fa-solid fa-xmark"></i>
                           </button>

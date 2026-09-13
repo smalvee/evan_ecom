@@ -86,7 +86,13 @@
                                         <tbody>
                                             @foreach ($orders as $order)
                                                 <tr style="border-bottom:1px solid #f0f0f0;">
-                                                    <td style="padding:10px;">#{{ $order->id }}</td>
+                                                    <td style="padding:10px;">#{{ $order->id }}
+                                                        @if ($order->items->contains(fn($i) => $i->is_pre_order))
+                                                            <br><span
+                                                                style="background:#f59e0b;color:#fff;padding:2px 6px;border-radius:4px;font-size:11px;">Pre
+                                                                Order</span>
+                                                        @endif
+                                                    </td>
                                                     <td style="padding:10px;">{{ $order->created_at->format('d M Y') }}</td>
                                                     <td style="padding:10px;">
                                                         @if ($order->status == 'pending')

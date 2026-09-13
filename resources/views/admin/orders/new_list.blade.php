@@ -72,6 +72,13 @@
                                                 Delivery</span>
                                         </div>
                                     @endif
+                                    @if ($order->items->contains(fn($i) => $i->is_pre_order))
+                                        <div>
+                                            <span
+                                                style="font-size:10px;padding:2px 6px;background:#f59e0b;color:#fff;border-radius:4px;">Pre
+                                                Order</span>
+                                        </div>
+                                    @endif
                                 </td>
                                 <td>
                                     <div class="a-cell-main"

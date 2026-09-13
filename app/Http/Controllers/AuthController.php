@@ -25,7 +25,7 @@ class AuthController extends Controller
 
         $user = Auth::user();
 
-        $orders = Order::select('orders.*')->where('user_id', $user->id)->get();
+        $orders = Order::select('orders.*')->with('items')->where('user_id', $user->id)->get();
 
         // dd($orders);
 

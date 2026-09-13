@@ -94,6 +94,8 @@ class FrontController extends Controller
                 'price' => $variant->selling_price,
                 'compare_price' => $variant->compare_price,
                 'sku' => $variant->sku ?? 'N/A',
+                'stock' => $variant->stock(),
+                'allow_pre_order' => (bool) $variant->allow_pre_order,
                 'images' => $images,
             ];
         }

@@ -116,92 +116,127 @@ class PageInfoController extends Controller
         return view('admin.page_info.new_return', compact('about_us'));
     }
 
+    /**
+     * The About Us content is a single (singleton) record. Always update the
+     * first existing row — the one the storefront reads via firstOrNew() — or
+     * create id=1. (updateOrCreate(['id'=>1]) does not work because `id` is not
+     * mass-assignable, which previously created duplicate rows.)
+     */
+    protected function aboutUsSingleton(): AboutUs
+    {
+        $about = AboutUs::orderBy('id')->first();
+
+        if (!$about) {
+            $about = new AboutUs();
+            $about->id = 1;
+        }
+
+        return $about;
+    }
+
     //store or update about us page content
     public function store_who_we_are(Request $request)
     {
-        $data = AboutUs::updateOrCreate(
-            ['id' => 1], // condition: look for record with id = 1
-            ['who_we_are' => $request->who_we_are], // update or insert this value
-        );
+        $validator = Validator::make($request->all(), [
+            'description' => 'required|string',
+        ]);
 
-        if ($data) {
-            $request->session()->flash('success', 'Who We Are Updated');
-
+        if ($validator->fails()) {
             return response()->json([
-                'status' => true,
-                'message' => 'Who We Are Updated',
+                'status' => false,
+                'errors' => $validator->errors(),
             ]);
         }
+
+        $about = $this->aboutUsSingleton();
+        $about->who_we_are = $request->input('description', $request->input('who_we_are'));
+        $about->save();
+
+        $request->session()->flash('success', 'Who We Are Updated');
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Who We Are Updated',
+        ]);
     }
 
-    public function store_our_mission(Request $request) {
+    public function store_our_mission(Request $request)
+    {
+        $about = $this->aboutUsSingleton();
+        $about->our_mission = $request->input('description', $request->input('our_mission'));
+        $about->save();
 
-          $data = AboutUs::updateOrCreate(
-            ['id' => 1], // condition: look for record with id = 1
-            ['our_mission' => $request->our_mission], // update or insert this value
-        );
+        $request->session()->flash('success', 'Our Mission Updated');
 
-        if ($data) {
-            $request->session()->flash('success', 'Our Mission Updated');
-
-            return response()->json([
-                'status' => true,
-                'message' => 'Our Mission Updated',
-            ]);
-        }
+        return response()->json([
+            'status' => true,
+            'message' => 'Our Mission Updated',
+        ]);
     }
 
-    public function store_our_vission(Request $request) {
+    public function store_our_vission(Request $request)
+    {
+        $about = $this->aboutUsSingleton();
+        $about->our_vision = $request->input('description', $request->input('our_vission'));
+        $about->save();
 
-         $data = AboutUs::updateOrCreate(
-            ['id' => 1], // condition: look for record with id = 1
-            ['our_vision' => $request->our_vission], // update or insert this value
-        );
+        $request->session()->flash('success', 'Our Vision Updated');
 
-        if ($data) {
-            $request->session()->flash('success', 'Our Vission Updated');
-
-            return response()->json([
-                'status' => true,
-                'message' => 'Our Vission Updated',
-            ]);
-        }
+        return response()->json([
+            'status' => true,
+            'message' => 'Our Vision Updated',
+        ]);
     }
 
-      public function store_refund_policy(Request $request) {
+    public function store_refund_policy(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'description' => 'required|string',
+        ]);
 
-         $data = AboutUs::updateOrCreate(
-            ['id' => 1], // condition: look for record with id = 1
-            ['refund_policy' => $request->refund_policy], // update or insert this value
-        );
-
-        if ($data) {
-            $request->session()->flash('success', 'Refund Policy Updated');
-
+        if ($validator->fails()) {
             return response()->json([
-                'status' => true,
-                'message' => 'Refund Policy Updated',
-                'data' => $data,
+                'status' => false,
+                'errors' => $validator->errors(),
             ]);
         }
+
+        $about = $this->aboutUsSingleton();
+        $about->refund_policy = $request->input('description', $request->input('refund_policy'));
+        $about->save();
+
+        $request->session()->flash('success', 'Refund Policy Updated');
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Refund Policy Updated',
+            'data' => $about,
+        ]);
     }
 
+    public function store_return_policy(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'description' => 'required|string',
+        ]);
 
-          public function store_return_policy(Request $request) {
-
-         $data = AboutUs::updateOrCreate(
-            ['id' => 1], // condition: look for record with id = 1
-            ['return_policy' => $request->return_policy], // update or insert this value
-        );
-
-        if ($data) {
-            $request->session()->flash('success', 'Refund Policy Updated');
-
+        if ($validator->fails()) {
             return response()->json([
-                'status' => true,
-                'message' => 'Refund Policy Updated',
-                'data' => $data,
+                'status' => false,
+                'errors' => $validator->errors(),
             ]);
         }
+
+        $about = $this->aboutUsSingleton();
+        $about->return_policy = $request->input('description', $request->input('return_policy'));
+        $about->save();
+
+        $request->session()->flash('success', 'Return Policy Updated');
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Return Policy Updated',
+            'data' => $about,
+        ]);
     }
 }

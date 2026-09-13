@@ -116,6 +116,13 @@ class HomeController extends Controller
             ->orderByRaw('CAST(qty AS SIGNED) ASC')
             ->with('product')->take(8)->get();
 
+        // Pre-orders awaiting stock/processing.
+        $pendingPreOrders = OrderItem::where('is_pre_order', true)
+            ->where(function ($q) {
+                $q->whereNull('pre_order_status')->orWhere('pre_order_status', 'pending');
+            })
+            ->count();
+
         $data = compact(
             'range', 'from', 'to',
             'totalRevenue', 'totalOrders', 'totalCustomers', 'totalProducts',
@@ -125,7 +132,7 @@ class HomeController extends Controller
             'topByUnits', 'topByRevenue', 'categorySales', 'topCustomers',
             'recentOrders', 'recentCustomers',
             'totalVariants', 'inStockVariants', 'lowStockVariants', 'outOfStockVariants',
-            'lowStockProducts'
+            'lowStockProducts', 'pendingPreOrders'
         );
 
         return view('admin.new_dashboard', $data);

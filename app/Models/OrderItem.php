@@ -9,14 +9,32 @@ class OrderItem extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['order_id', 'product_id', 'name', 'qty', 'price', 'cost_price', 'discount', 'total', 'free_delivery'];
+    protected $fillable = ['order_id', 'product_id', 'name', 'qty', 'price', 'cost_price', 'discount', 'total', 'free_delivery', 'is_pre_order', 'pre_order_status'];
 
     protected $casts = [
         'free_delivery' => 'boolean',
+        'is_pre_order' => 'boolean',
         'price' => 'float',
         'cost_price' => 'float',
         'total' => 'float',
     ];
+
+    /**
+     * Human label for the pre-order workflow state.
+     */
+    public function preOrderStatusLabel(): ?string
+    {
+        if (!$this->is_pre_order) {
+            return null;
+        }
+
+        return match ($this->pre_order_status) {
+            'processing' => 'Processing',
+            'completed' => 'Completed',
+            'cancelled' => 'Cancelled',
+            default => 'Pending',
+        };
+    }
 
     /**
      * The product variant this order item refers to (order_items.product_id => product_variants.id).
@@ -24,5 +42,10 @@ class OrderItem extends Model
     public function variant()
     {
         return $this->belongsTo(ProductVariant::class, 'product_id');
+    }
+
+    public function order()
+    {
+        return $this->belongsTo(Order::class, 'order_id');
     }
 }

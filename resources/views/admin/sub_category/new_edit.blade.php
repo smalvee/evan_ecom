@@ -27,7 +27,7 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label a-required">Category</label>
-                                <select id="category" class="form-select" name="category">
+                                <select id="category" class="form-select js-select2" name="category">
                                     @if ($categories->isNotEmpty())
                                         <option value="">Select Category</option>
                                         @foreach ($categories as $category)

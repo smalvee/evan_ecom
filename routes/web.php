@@ -10,6 +10,7 @@ use App\Http\Controllers\admin\ImageController;
 use App\Http\Controllers\admin\NewProductController;
 use App\Http\Controllers\admin\OrderController;
 use App\Http\Controllers\admin\PageInfoController;
+use App\Http\Controllers\admin\PreOrderController;
 use App\Http\Controllers\admin\ProductController;
 use App\Http\Controllers\admin\ProductPricingController;
 use App\Http\Controllers\admin\ProductSubCategoryController;
@@ -182,6 +183,11 @@ Route::group(['prefix' => 'admin'], function () {
         Route::post('/orders-update/{id}', [OrderController::class, 'order_update'])->name('orders.order_update');
         Route::post('/orders-full-update/{id}', [OrderController::class, 'updateOrder'])->name('orders.update_full');
         Route::post('/orders/{id}/payment-status', [OrderController::class, 'togglePaymentStatus'])->name('orders.paymentStatus');
+
+        // pre-orders
+        Route::get('/pre-orders', [PreOrderController::class, 'index'])->name('admin.pre_orders.index');
+        Route::get('/pre-orders/{id}', [PreOrderController::class, 'details'])->name('admin.pre_orders.details');
+        Route::post('/pre-orders/{id}/process', [PreOrderController::class, 'process'])->name('admin.pre_orders.process');
 
         // users
         Route::get('/users', [UserController::class, 'index'])->name('users.index');

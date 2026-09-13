@@ -11,6 +11,7 @@ use App\Models\ProductImage;
 use App\Models\ProductVariant;
 use App\Models\ShippingCharge;
 use App\Models\User;
+use App\Services\PreOrderService;
 use Gloudemans\Shoppingcart\Facades\Cart;
 use GuzzleHttp\Psr7\Message;
 use Illuminate\Http\Request;
@@ -23,13 +24,20 @@ use Hash;
 
 class CartController extends Controller
 {
+    protected PreOrderService $preOrders;
+
+    public function __construct(PreOrderService $preOrders)
+    {
+        $this->preOrders = $preOrders;
+    }
+
     public function addToCart(Request $request)
     {
         $request->validate([
             'id' => 'required',
             'qty' => 'required|integer|min:1',
         ]);
-        $product = DB::table('product_variants as pv')->leftJoin('product_images as pi', 'pi.product_id', '=', 'pv.id')->leftJoin('new_products as np', 'np.id', '=', 'pv.product_id')->select('pv.id', 'pv.sku', 'pv.selling_price', 'pv.qty', 'pi.image', 'np.free_delivery')->where('pv.id', $request->id)->orderBy('pi.sort_order', 'asc')->first();
+        $product = DB::table('product_variants as pv')->leftJoin('product_images as pi', 'pi.product_id', '=', 'pv.id')->leftJoin('new_products as np', 'np.id', '=', 'pv.product_id')->select('pv.id', 'pv.sku', 'pv.selling_price', 'pv.qty', 'pv.allow_pre_order', 'pi.image', 'np.free_delivery')->where('pv.id', $request->id)->orderBy('pi.sort_order', 'asc')->first();
 
         if (!$product) {
             return response()->json([
@@ -38,13 +46,15 @@ class CartController extends Controller
             ]);
         }
 
-        // Stock check (skip when the variant's qty is not tracked / null).
-        $availableQty = ($product->qty === null || $product->qty === '') ? null : (int) $product->qty;
+        $qty = max(1, (int) $request->qty);
+        $variant = ProductVariant::find($product->id);
+        $decision = $this->preOrders->evaluate($variant, $qty);
 
-        if ($availableQty !== null && $request->qty > $availableQty) {
+        // Stock / pre-order eligibility is decided server-side, never by the client.
+        if (!$decision['ok']) {
             return response()->json([
                 'status' => false,
-                'message' => 'Only ' . $availableQty . ' items in stock',
+                'message' => $decision['message'],
             ]);
         }
 
@@ -65,11 +75,12 @@ class CartController extends Controller
         Cart::add(
             $product->id,
             $product->sku, // Using sku as title
-            $request->qty,
+            $qty,
             $product->selling_price,
             [
                 'productImage' => $product->image,
                 'freeDelivery' => (int) ($product->free_delivery ?? 0),
+                'isPreOrder' => $decision['is_pre_order'] ? 1 : 0,
             ],
         );
 
@@ -95,10 +106,10 @@ class CartController extends Controller
     public function updateCart(Request $request)
     {
         $rowId = $request->rowId;
-        $qty = $request->qty;
+        $qty = max(1, (int) $request->qty);
 
         $itemInfo = Cart::get($rowId);
-        $product = ProductVariant::find($itemInfo->id);
+        $product = $itemInfo ? ProductVariant::find($itemInfo->id) : null;
 
         if (!$product) {
             return response()->json([
@@ -107,14 +118,19 @@ class CartController extends Controller
             ]);
         }
 
-        $availableQty = $product->qty !== null ? (int) $product->qty : null;
+        $decision = $this->preOrders->evaluate($product, $qty);
 
-        if ($availableQty !== null && $qty > $availableQty) {
-            $message = 'Requested quantity (' . $qty . ') not available. Only ' . $availableQty . ' items are available';
+        if (!$decision['ok']) {
+            $message = $decision['message'];
             $status = false;
             session()->flash('error', $message);
         } else {
-            Cart::update($rowId, $qty);
+            Cart::update($rowId, [
+                'qty' => $qty,
+                'options' => array_merge($itemInfo->options->toArray(), [
+                    'isPreOrder' => $decision['is_pre_order'] ? 1 : 0,
+                ]),
+            ]);
             $message = 'Cart updated successfully';
             $status = true;
             session()->flash('success', $message);
@@ -222,21 +238,51 @@ class CartController extends Controller
             ]);
         }
 
-        // Validate stock availability for every cart line before placing the order.
-        foreach (Cart::content() as $cartItem) {
-            $stockVariant = ProductVariant::find($cartItem->id);
+        // Validate every cart line and snapshot server-side prices + pre-order
+        // eligibility. A pre-order line is allowed even at 0 stock, but only when
+        // the admin enabled pre-order for that variant. Client values are ignored.
+        $lineItems = [];
+        $subTotal = 0.0;
 
-            if (
-                $stockVariant
-                && $stockVariant->qty !== null
-                && $stockVariant->qty !== ''
-                && (int) $stockVariant->qty < (int) $cartItem->qty
-            ) {
+        foreach (Cart::content() as $cartItem) {
+            $variant = ProductVariant::find($cartItem->id);
+
+            if (!$variant) {
                 return response()->json([
                     'status' => false,
-                    'message' => 'Insufficient stock for ' . ($stockVariant->sku ?? 'item') . '.',
+                    'message' => 'A product in your cart is no longer available.',
                 ]);
             }
+
+            $qty = max(1, (int) $cartItem->qty);
+            $decision = $this->preOrders->evaluate($variant, $qty);
+
+            if (!$decision['ok']) {
+                return response()->json([
+                    'status' => false,
+                    'message' => $decision['message'] . ' (' . ($variant->sku ?? 'item') . ')',
+                ]);
+            }
+
+            $unitPrice = (float) $variant->selling_price;
+            $lineTotal = $unitPrice * $qty;
+            $subTotal += $lineTotal;
+
+            $lineItems[] = [
+                'variant' => $variant,
+                'qty' => $qty,
+                'price' => $unitPrice,
+                'total' => $lineTotal,
+                'is_pre_order' => $decision['is_pre_order'],
+                'free_delivery' => (int) ($variant->product->free_delivery ?? 0),
+            ];
+        }
+
+        if (empty($lineItems)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Your cart is empty.',
+            ]);
         }
 
         // ✅ STEP 1: Get or Create User
@@ -282,7 +328,6 @@ class CartController extends Controller
         );
 
         // ✅ STEP 3: Calculate amounts
-        $subTotal = (float) Cart::subtotal(2, '.', '');
         $shipping = ShippingCharge::rateForDistrict($request->district);
 
         if (Order::isFreeDeliveryCart(Cart::content())) {
@@ -348,18 +393,22 @@ class CartController extends Controller
             $order->save();
 
             // ✅ STEP 5: Store Order Items
-            foreach (Cart::content() as $item) {
+            foreach ($lineItems as $line) {
+                $variant = $line['variant'];
+
                 $orderItem = new OrderItem();
-                $orderItem->product_id = $item->id;
+                $orderItem->product_id = $variant->id;
                 $orderItem->order_id = $order->id;
-                $orderItem->name = $item->name;
-                $orderItem->qty = $item->qty;
-                $orderItem->price = $item->price;
+                $orderItem->name = $variant->sku;
+                $orderItem->qty = $line['qty'];
+                $orderItem->price = $line['price'];
                 // Inventory cost snapshot at order time (for accurate historical COGS).
-                $variant = ProductVariant::find($item->id);
-                $orderItem->cost_price = $variant ? ($variant->average_cost ?? $variant->purchase_price ?? 0) : 0;
-                $orderItem->total = $item->price * $item->qty;
-                $orderItem->free_delivery = (int) ($item->options->freeDelivery ?? 0);
+                $orderItem->cost_price = $variant->average_cost ?? $variant->purchase_price ?? 0;
+                $orderItem->total = $line['total'];
+                $orderItem->free_delivery = $line['free_delivery'];
+                // Pre-order state is decided server-side and kept as history.
+                $orderItem->is_pre_order = $line['is_pre_order'];
+                $orderItem->pre_order_status = $line['is_pre_order'] ? 'pending' : null;
                 $orderItem->save();
             }
 
@@ -480,6 +529,11 @@ class CartController extends Controller
             $selected_qty = 1;
         }
 
+        $selectedVariant = $selected_products->first();
+        $preOrderDecision = $selectedVariant
+            ? $this->preOrders->evaluate($selectedVariant, (int) $selected_qty)
+            : null;
+
         $data['cartContent'] = $cartContent;
         $data['customerAddress'] = $customerAddress;
         $data['shippingCharge'] = $shippingCharge;
@@ -487,6 +541,7 @@ class CartController extends Controller
         $data['selected_products'] = $selected_products;
         $data['selected_qty'] = $selected_qty;
         $data['selectedFreeDelivery'] = $selectedFreeDelivery;
+        $data['preOrderDecision'] = $preOrderDecision;
         $data['districtAmounts'] = ShippingCharge::ratesByDistrict();
 
         return view('front.pages.new_single_checkout', $data);
@@ -559,12 +614,17 @@ class CartController extends Controller
         $unitPrice = (float) $variant->selling_price;
         $subTotal = $unitPrice * $quantity;
 
-        if ($variant->qty !== null && $variant->qty !== '' && (int) $variant->qty < $quantity) {
+        // Server-side eligibility: normal purchase, pre-order, or rejected.
+        $decision = $this->preOrders->evaluate($variant, $quantity);
+
+        if (!$decision['ok']) {
             return response()->json([
                 'status' => false,
-                'message' => 'Only ' . (int) $variant->qty . ' items in stock.',
+                'message' => $decision['message'],
             ]);
         }
+
+        $isPreOrder = $decision['is_pre_order'];
 
         $freeDelivery = (bool) ($variant->product->free_delivery ?? false);
         $shipping = $freeDelivery ? 0 : ShippingCharge::rateForDistrict($request->district);
@@ -638,6 +698,9 @@ class CartController extends Controller
             $orderItem->cost_price = $variant->average_cost ?? $variant->purchase_price ?? 0;
             $orderItem->total = $subTotal;
             $orderItem->free_delivery = $freeDelivery;
+            // Pre-order state is decided server-side and kept as history.
+            $orderItem->is_pre_order = $isPreOrder;
+            $orderItem->pre_order_status = $isPreOrder ? 'pending' : null;
             $orderItem->save();
 
             DB::commit();

@@ -31,7 +31,7 @@
                 <div class="fresh-contain p-center">
                     <div>
                         <div class="delivery-list">
-                            {!! \App\Support\HtmlSanitizer::clean($about_us->refund_policy) !!}
+                            <div class="rich-content">{!! \App\Support\HtmlSanitizer::clean($about_us->refund_policy) !!}</div>
                         </div>
                     </div>
                 </div>

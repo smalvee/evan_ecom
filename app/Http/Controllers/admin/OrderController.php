@@ -9,6 +9,7 @@ use App\Models\OrderItem;
 use App\Models\ProductVariant;
 use App\Models\ShippingCharge;
 use App\Models\User;
+use App\Services\PreOrderService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -16,6 +17,13 @@ use Illuminate\Support\Facades\Validator;
 
 class OrderController extends Controller
 {
+    protected PreOrderService $preOrders;
+
+    public function __construct(PreOrderService $preOrders)
+    {
+        $this->preOrders = $preOrders;
+    }
+
     public function index(Request $request)
     {
         $query = Order::latest('orders.created_at')->select('orders.*', 'users.name', 'users.email');
@@ -227,6 +235,13 @@ class OrderController extends Controller
             }
             $order->stock_deducted = false;
         }
+
+        // Keep the pre-order workflow state in sync with the order lifecycle.
+        if (in_array($newStatus, ['confirm', 'shipped'], true)) {
+            $this->preOrders->markPreOrderStatus($order, $newStatus === 'shipped' ? 'completed' : 'processing');
+        } elseif ($newStatus === 'cancell') {
+            $this->preOrders->markPreOrderStatus($order, 'cancelled');
+        }
     }
 
     public function create_order(Request $request)
@@ -283,19 +298,28 @@ class OrderController extends Controller
         // Compute totals server-side from the submitted items (never trust the client).
         $subtotal = 0;
         $itemDiscountTotal = 0;
+        $hasItems = false;
+        $allFreeDelivery = true;
 
         foreach ($request->products as $item) {
-            $product = ProductVariant::find($item['id']);
+            $product = ProductVariant::with('product')->find($item['id']);
             if (!$product) {
                 continue;
             }
+
+            $hasItems = true;
+            if (!($product->product->free_delivery ?? false)) {
+                $allFreeDelivery = false;
+            }
+
             $qty = max(1, (int) $item['qty']);
             $discount = max(0, (float) $item['discount']);
             $subtotal += max(0, ((float) $product->selling_price * $qty) - $discount);
             $itemDiscountTotal += $discount;
         }
 
-        $shipping = max(0, (float) $request->shipping_amount);
+        // Free delivery: when every item is a free-delivery product, no delivery charge.
+        $shipping = ($hasItems && $allFreeDelivery) ? 0 : max(0, (float) $request->shipping_amount);
         $grandTotal = $subtotal + $shipping;
 
         // ✅ STEP 4: Create Order
