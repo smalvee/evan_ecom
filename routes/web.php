@@ -102,6 +102,7 @@ Route::group(['prefix' => 'account'], function () {
     });
     Route::group(['middleware' => 'auth'], function () {
         Route::get('/user-dashboard', [AuthController::class, 'dashboard'])->name('account.userDashboard');
+        Route::get('/orders', [AuthController::class, 'orders'])->name('account.orders');
         Route::get('/user-logout', [AuthController::class, 'logout'])->name('account.logout');
         Route::get('/order-details/{order_id}', [AuthController::class, 'orderDetails'])->name('account.orderDetails');
         Route::get('/user-profile', [UserProfile::class, 'index'])->name('account.profile');

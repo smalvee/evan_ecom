@@ -2,34 +2,22 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\ProvidesStorefrontData;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
-use App\Models\Category;
-use App\Models\Order;
-use App\Models\OrderItem;
 use Hash;
-use Illuminate\Testing\Fluent\Concerns\Has;
-use Gloudemans\Shoppingcart\Facades\Cart;
 
 class UserProfile extends Controller
 {
+    use ProvidesStorefrontData;
+
     public function index()
     {
-        $user = Auth::user();
-        $cartContent = Cart::content();
-        $categories = Category::latest('id')->get();
-
-        $orders = Order::select('orders.*')->where('user_id', $user->id)->get();
-
-        // dd($orders);
-
-        $data['orders'] = $orders;
-        $data['user'] = $user;
-        $data['categories'] = $categories;
-        $data['cartContent'] = $cartContent;
-        return view('front.account.new_profile', $data);
+        return view('front.account.new_profile', $this->storefrontData([
+            'user' => Auth::user(),
+        ]));
     }
 
     public function update(Request $request)

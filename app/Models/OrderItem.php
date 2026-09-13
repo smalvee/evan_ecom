@@ -44,6 +44,18 @@ class OrderItem extends Model
         return $this->belongsTo(ProductVariant::class, 'product_id');
     }
 
+    /**
+     * Preferred image for the ordered variant. In the new product system
+     * `product_images.product_id` holds the variant id, so it lines up with
+     * `order_items.product_id`. Thumbnails are preferred, then gallery order.
+     */
+    public function image()
+    {
+        return $this->hasOne(ProductImage::class, 'product_id', 'product_id')
+            ->orderByDesc('is_thumb')
+            ->orderBy('sort_order');
+    }
+
     public function order()
     {
         return $this->belongsTo(Order::class, 'order_id');

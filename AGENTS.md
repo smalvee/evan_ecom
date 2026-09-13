@@ -101,6 +101,28 @@ Tests run against a dedicated MySQL DB `evan_ecom_test` (set in `phpunit.xml`); 
 - **`ProductController::create` / `NewProductController::edit`** pass `$variationData` (and
   `$variantsForJs` on edit) for the form JS. Pricing/stock are intentionally not on this form.
 
+### Customer account area (storefront)
+- Routes (auth `web` guard): `account.userDashboard`, `account.orders` (new, paginated history),
+  `account.orderDetails/{order_id}`, `account.profile` (+ `profileUpdate`/`updatePassword`),
+  `account.logout` (GET — left unchanged).
+- Shared layout `resources/views/front/account/layout.blade.php` (extends `front.layouts.new_app`)
+  exposes `@yield('account-content')` and `@yield('account-js')`; child pages extend the account
+  layout and set `@section('account-heading')` / `account-subheading` / `account-title`.
+- Reusable components: `resources/views/components/account/{sidebar,stat-card,order-status,
+  order-item}.blade.php`. Sidebar active state is route-based (`request()->routeIs(...)`).
+- Styles: `public/new-front-assets/css/customer-account.css`, pushed via `@push('styles')`. The
+  storefront layout now has `@stack('styles')` / `@stack('scripts')` (added for this).
+- `App\Support\OrderStatus` is the single customer-facing status map
+  (`pending/confirm/shipped/cancell` -> Pending/Confirmed/Shipped/Cancelled); never render raw
+  status strings (unknown values render as "Unknown").
+- `AuthController::dashboard` uses one conditional-aggregate query for stats + 5 recent orders;
+  `orders()` paginates 10 with a whitelisted `status` filter; `orderDetails()` scopes by
+  `user_id` + `firstOrFail` (other customers' orders 404, same as missing). `OrderItem::image()`
+  resolves the variant thumbnail (`product_images.product_id` == variant id); order details eager
+  loads `items.image` + `items.variant.product`.
+- `App\Http\Controllers\Concerns\ProvidesStorefrontData` trait supplies the `$categories` /
+  `$cartContent` the storefront layout requires (used by `AuthController`, `UserProfile`).
+
 ### Settings & global data
 - `settings` table (key/value) + `App\Models\Setting` with caching (`site_settings`).
 - View composer in `AppServiceProvider` shares `$settings` / `$socialLinks` with all views.

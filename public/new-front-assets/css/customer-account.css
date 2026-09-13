@@ -1,0 +1,947 @@
+/* ==========================================================================
+   Customer Account Center
+   Scoped styles for the storefront account area. Uses the active storefront
+   theme accent (--theme-color, orange) and neutral light cards.
+   ========================================================================== */
+
+:root {
+    --ac-accent: var(--theme-color, #d99f46);
+    --ac-accent-dark: #c8892f;
+    --ac-accent-soft: rgba(var(--theme-color-rgb, 217, 159, 70), .12);
+    --ac-text: #1b2430;
+    --ac-muted: #6b7280;
+    --ac-border: #eceef2;
+    --ac-bg: #f6f7f9;
+    --ac-radius: 12px;
+    --ac-shadow: 0 1px 2px rgba(16, 24, 40, .04), 0 1px 3px rgba(16, 24, 40, .06);
+}
+
+/* --------------------------------------------------------------------------
+   Page chrome
+   -------------------------------------------------------------------------- */
+.account-hero {
+    background: #fff;
+    border-bottom: 1px solid var(--ac-border);
+    padding: 22px 0;
+}
+
+.account-hero h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--ac-text);
+    margin: 6px 0 0;
+    line-height: 1.2;
+}
+
+.account-hero p {
+    margin: 4px 0 0;
+    color: var(--ac-muted);
+    font-size: .95rem;
+}
+
+.account-breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    font-size: .82rem;
+    color: var(--ac-muted);
+}
+
+.account-breadcrumb a {
+    color: var(--ac-muted);
+    text-decoration: none;
+}
+
+.account-breadcrumb a:hover {
+    color: var(--ac-accent);
+}
+
+.account-breadcrumb span[aria-current] {
+    color: var(--ac-text);
+    font-weight: 600;
+}
+
+.account-section {
+    background: var(--ac-bg);
+    padding: 28px 0 56px;
+    min-height: 60vh;
+}
+
+/* --------------------------------------------------------------------------
+   Layout
+   -------------------------------------------------------------------------- */
+.account-layout {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+}
+
+.account-sidebar {
+    flex: 0 0 272px;
+    width: 272px;
+    position: sticky;
+    top: 16px;
+}
+
+.account-content {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Sidebar / navigation
+   -------------------------------------------------------------------------- */
+.account-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #fff;
+    border: 1px solid var(--ac-border);
+    border-radius: var(--ac-radius);
+    padding: 16px;
+    box-shadow: var(--ac-shadow);
+}
+
+.account-avatar {
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--ac-accent);
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+}
+
+.account-user-meta {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.25;
+    min-width: 0;
+}
+
+.account-user-hello {
+    font-size: .78rem;
+    color: var(--ac-muted);
+}
+
+.account-user-meta strong {
+    color: var(--ac-text);
+    font-size: .95rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.account-nav {
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border: 1px solid var(--ac-border);
+    border-radius: var(--ac-radius);
+    box-shadow: var(--ac-shadow);
+    margin-top: 16px;
+    padding: 8px;
+    gap: 2px;
+}
+
+.account-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 12px;
+    border-radius: 9px;
+    color: var(--ac-text);
+    font-size: .92rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background-color .15s ease, color .15s ease;
+    white-space: nowrap;
+}
+
+.account-nav-link svg,
+.account-nav-link i {
+    width: 18px;
+    height: 18px;
+    color: var(--ac-muted);
+    flex: 0 0 18px;
+}
+
+.account-nav-link:hover,
+.account-nav-link:focus-visible {
+    background: #f4f5f7;
+    color: var(--ac-text);
+}
+
+.account-nav-link:hover svg,
+.account-nav-link:hover i {
+    color: var(--ac-accent);
+}
+
+.account-nav-link.active {
+    background: var(--ac-accent-soft);
+    color: var(--ac-accent-dark);
+    font-weight: 600;
+}
+
+.account-nav-link.active svg,
+.account-nav-link.active i {
+    color: var(--ac-accent);
+}
+
+.account-nav-link:focus-visible,
+.account-btn:focus-visible,
+.account-stat-link:focus-visible {
+    outline: 2px solid var(--ac-accent);
+    outline-offset: 2px;
+}
+
+.account-nav-logout {
+    color: #b42318;
+    margin-top: 4px;
+    border-top: 1px solid var(--ac-border);
+    border-radius: 0 0 9px 9px;
+    padding-top: 13px;
+}
+
+.account-nav-logout svg,
+.account-nav-logout i {
+    color: #b42318;
+}
+
+.account-nav-logout:hover {
+    background: #fef3f2;
+    color: #b42318;
+}
+
+/* --------------------------------------------------------------------------
+   Cards
+   -------------------------------------------------------------------------- */
+.account-card {
+    background: #fff;
+    border: 1px solid var(--ac-border);
+    border-radius: var(--ac-radius);
+    box-shadow: var(--ac-shadow);
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.account-card:last-child {
+    margin-bottom: 0;
+}
+
+.account-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 15px 18px;
+    border-bottom: 1px solid var(--ac-border);
+}
+
+.account-card-head h2,
+.account-card-head h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ac-text);
+    margin: 0;
+}
+
+.account-card-body {
+    padding: 18px;
+}
+
+/* --------------------------------------------------------------------------
+   Buttons / links
+   -------------------------------------------------------------------------- */
+.account-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 9px 16px;
+    border-radius: 9px;
+    font-size: .88rem;
+    font-weight: 600;
+    line-height: 1.2;
+    border: 1px solid transparent;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color .15s ease, color .15s ease, border-color .15s ease;
+}
+
+.account-btn-primary {
+    background: var(--ac-accent);
+    color: #fff;
+}
+
+.account-btn-primary:hover {
+    background: var(--ac-accent-dark);
+    color: #fff;
+}
+
+.account-btn-outline {
+    background: #fff;
+    border-color: var(--ac-border);
+    color: var(--ac-text);
+}
+
+.account-btn-outline:hover {
+    border-color: var(--ac-accent);
+    color: var(--ac-accent-dark);
+}
+
+.account-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--ac-accent-dark);
+    font-size: .85rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.account-link:hover {
+    color: var(--ac-accent);
+}
+
+.account-link svg,
+.account-link i {
+    width: 15px;
+    height: 15px;
+}
+
+/* --------------------------------------------------------------------------
+   Stat cards
+   -------------------------------------------------------------------------- */
+.account-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.account-stat-card {
+    background: #fff;
+    border: 1px solid var(--ac-border);
+    border-radius: var(--ac-radius);
+    box-shadow: var(--ac-shadow);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.account-stat-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--ac-muted);
+    font-size: .8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+}
+
+.account-stat-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    background: var(--ac-accent-soft);
+    color: var(--ac-accent-dark);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.account-stat-icon svg,
+.account-stat-icon i {
+    width: 16px;
+    height: 16px;
+}
+
+.account-stat-value {
+    font-size: 1.65rem;
+    font-weight: 700;
+    color: var(--ac-text);
+    line-height: 1;
+}
+
+.account-stat-link {
+    font-size: .82rem;
+    font-weight: 600;
+    color: var(--ac-accent-dark);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.account-stat-link svg,
+.account-stat-link i {
+    width: 14px;
+    height: 14px;
+}
+
+.account-stat-link:hover {
+    color: var(--ac-accent);
+}
+
+.account-stat-card--warning .account-stat-icon { background: #fff4e0; color: #b26a00; }
+.account-stat-card--info .account-stat-icon { background: #e8f1ff; color: #1a56db; }
+.account-stat-card--success .account-stat-icon { background: #e7f6ee; color: #0f7b43; }
+
+/* --------------------------------------------------------------------------
+   Personal information list
+   -------------------------------------------------------------------------- */
+.account-info {
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 24px;
+}
+
+.account-info-row {
+    min-width: 0;
+}
+
+.account-info-row dt {
+    font-size: .78rem;
+    font-weight: 600;
+    color: var(--ac-muted);
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    margin-bottom: 3px;
+}
+
+.account-info-row dd {
+    margin: 0;
+    font-size: .95rem;
+    color: var(--ac-text);
+    word-break: break-word;
+}
+
+/* --------------------------------------------------------------------------
+   Status badges
+   -------------------------------------------------------------------------- */
+.order-status {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: .74rem;
+    font-weight: 700;
+    line-height: 1.6;
+    white-space: nowrap;
+}
+
+.order-status--pending { background: #fff4e0; color: #b26a00; }
+.order-status--confirmed { background: #e8f1ff; color: #1a56db; }
+.order-status--shipped { background: #e7f6ee; color: #0f7b43; }
+.order-status--cancelled { background: #fdeaea; color: #b42318; }
+.order-status--unknown { background: #eef0f3; color: #475467; }
+.order-status--preorder { background: #fff1e6; color: #c2410c; }
+
+/* --------------------------------------------------------------------------
+   Order rows (dashboard recent orders)
+   -------------------------------------------------------------------------- */
+.order-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.order-row {
+    display: grid;
+    grid-template-columns: 110px 1fr 130px 120px 88px;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 4px;
+    border-bottom: 1px solid var(--ac-border);
+}
+
+.order-row:last-child {
+    border-bottom: 0;
+}
+
+.order-row .order-ref {
+    font-weight: 700;
+    color: var(--ac-text);
+    font-size: .9rem;
+}
+
+.order-row .order-date,
+.order-row .order-total {
+    color: var(--ac-muted);
+    font-size: .88rem;
+}
+
+.order-row .order-total {
+    color: var(--ac-text);
+    font-weight: 600;
+    text-align: right;
+}
+
+.order-row .order-action {
+    text-align: right;
+}
+
+/* --------------------------------------------------------------------------
+   Order history (desktop table)
+   -------------------------------------------------------------------------- */
+.account-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.account-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 640px;
+}
+
+.account-table thead th {
+    text-align: left;
+    font-size: .76rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--ac-muted);
+    padding: 10px 14px;
+    background: #fafbfc;
+    border-bottom: 1px solid var(--ac-border);
+    white-space: nowrap;
+}
+
+.account-table tbody td {
+    padding: 13px 14px;
+    border-bottom: 1px solid var(--ac-border);
+    font-size: .9rem;
+    color: var(--ac-text);
+    vertical-align: middle;
+}
+
+.account-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.account-table tbody tr:hover {
+    background: #fcfcfd;
+}
+
+.account-table .col-total {
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* Mobile order cards */
+.order-card {
+    border: 1px solid var(--ac-border);
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 12px;
+    background: #fff;
+}
+
+.order-card:last-child {
+    margin-bottom: 0;
+}
+
+.order-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.order-card-head .order-ref {
+    font-weight: 700;
+    color: var(--ac-text);
+}
+
+.order-card-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 12px;
+    margin-bottom: 12px;
+}
+
+.order-card-grid .label {
+    display: block;
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    color: var(--ac-muted);
+    font-weight: 600;
+}
+
+.order-card-grid .value {
+    font-size: .9rem;
+    color: var(--ac-text);
+}
+
+/* --------------------------------------------------------------------------
+   Order items (product rows)
+   -------------------------------------------------------------------------- */
+.order-items {
+    display: flex;
+    flex-direction: column;
+}
+
+.order-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--ac-border);
+}
+
+.order-item:last-child {
+    border-bottom: 0;
+}
+
+.order-item-img {
+    flex: 0 0 62px;
+    width: 62px;
+    height: 62px;
+    border-radius: 9px;
+    object-fit: cover;
+    border: 1px solid var(--ac-border);
+    background: #f4f5f7;
+}
+
+.order-item-body {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.order-item-name {
+    font-weight: 600;
+    color: var(--ac-text);
+    font-size: .95rem;
+    margin-bottom: 3px;
+    word-break: break-word;
+}
+
+.order-item-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    color: var(--ac-muted);
+    font-size: .8rem;
+}
+
+.order-item-qty {
+    color: var(--ac-muted);
+    font-size: .85rem;
+    margin-top: 4px;
+}
+
+.order-item-total {
+    flex: 0 0 auto;
+    font-weight: 700;
+    color: var(--ac-text);
+    font-size: .95rem;
+    white-space: nowrap;
+}
+
+/* --------------------------------------------------------------------------
+   Order summary
+   -------------------------------------------------------------------------- */
+.account-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+.account-summary-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: .9rem;
+    color: var(--ac-muted);
+}
+
+.account-summary-row .value {
+    color: var(--ac-text);
+    font-weight: 600;
+}
+
+.account-summary-row.is-discount .value {
+    color: #0f7b43;
+}
+
+.account-summary-row.is-total {
+    border-top: 1px solid var(--ac-border);
+    padding-top: 11px;
+    margin-top: 3px;
+    font-size: 1rem;
+    color: var(--ac-text);
+}
+
+.account-summary-row.is-total .value {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--ac-accent-dark);
+}
+
+/* Shipping info */
+.account-shipping dl {
+    margin: 0;
+    display: grid;
+    gap: 10px;
+}
+
+.account-shipping dt {
+    font-size: .76rem;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    color: var(--ac-muted);
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.account-shipping dd {
+    margin: 0;
+    color: var(--ac-text);
+    font-size: .92rem;
+    word-break: break-word;
+}
+
+/* --------------------------------------------------------------------------
+   Empty states
+   -------------------------------------------------------------------------- */
+.account-empty {
+    text-align: center;
+    padding: 34px 16px;
+}
+
+.account-empty-icon {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 12px;
+    border-radius: 50%;
+    background: var(--ac-accent-soft);
+    color: var(--ac-accent-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.account-empty-icon svg,
+.account-empty-icon i {
+    width: 26px;
+    height: 26px;
+}
+
+.account-empty h3 {
+    font-size: 1.02rem;
+    font-weight: 700;
+    color: var(--ac-text);
+    margin: 0 0 4px;
+}
+
+.account-empty p {
+    color: var(--ac-muted);
+    font-size: .9rem;
+    margin: 0 0 16px;
+}
+
+/* --------------------------------------------------------------------------
+   Filters
+   -------------------------------------------------------------------------- */
+.account-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.account-filter {
+    display: inline-flex;
+    align-items: center;
+    padding: 7px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--ac-border);
+    background: #fff;
+    color: var(--ac-muted);
+    font-size: .84rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all .15s ease;
+}
+
+.account-filter:hover {
+    border-color: var(--ac-accent);
+    color: var(--ac-accent-dark);
+}
+
+.account-filter.active {
+    background: var(--ac-accent);
+    border-color: var(--ac-accent);
+    color: #fff;
+}
+
+/* --------------------------------------------------------------------------
+   Forms
+   -------------------------------------------------------------------------- */
+.account-form .form-label {
+    font-size: .85rem;
+    font-weight: 600;
+    color: var(--ac-text);
+    margin-bottom: 5px;
+}
+
+.account-form .form-control {
+    border: 1px solid #dfe3e8;
+    border-radius: 9px;
+    padding: 9px 12px;
+    font-size: .92rem;
+    color: var(--ac-text);
+    box-shadow: none;
+}
+
+.account-form .form-control:focus {
+    border-color: var(--ac-accent);
+    box-shadow: 0 0 0 3px var(--ac-accent-soft);
+}
+
+.account-form .invalid-feedback,
+.account-form .text-danger {
+    font-size: .8rem;
+}
+
+/* Pagination (Bootstrap 5) */
+.account-content .pagination {
+    margin: 20px 0 0;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.account-content .page-link {
+    color: var(--ac-text);
+    border-color: var(--ac-border);
+    border-radius: 8px !important;
+    font-size: .88rem;
+    padding: 7px 12px;
+}
+
+.account-content .page-item.active .page-link {
+    background: var(--ac-accent);
+    border-color: var(--ac-accent);
+    color: #fff;
+}
+
+.account-content .page-link:focus {
+    box-shadow: 0 0 0 3px var(--ac-accent-soft);
+}
+
+/* --------------------------------------------------------------------------
+   Responsive
+   -------------------------------------------------------------------------- */
+@media (max-width: 1199.98px) {
+    .account-stat-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 991.98px) {
+    .account-layout {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .account-sidebar {
+        position: static;
+        width: 100%;
+        flex: 1 1 auto;
+    }
+
+    .account-nav {
+        flex-direction: row;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+        padding: 6px;
+    }
+
+    .account-nav-link {
+        flex: 0 0 auto;
+    }
+
+    .account-nav-logout {
+        border-top: 0;
+        border-left: 1px solid var(--ac-border);
+        border-radius: 9px;
+        margin-top: 0;
+        margin-left: 4px;
+        padding-top: 11px;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .account-section {
+        padding: 20px 0 40px;
+    }
+
+    .account-hero {
+        padding: 16px 0;
+    }
+
+    .account-hero h1 {
+        font-size: 1.25rem;
+    }
+
+    .account-info {
+        grid-template-columns: 1fr;
+    }
+
+    .order-row {
+        grid-template-columns: 1fr auto;
+        gap: 6px 12px;
+        padding: 14px 4px;
+    }
+
+    .order-row .order-date {
+        grid-column: 1 / -1;
+        font-size: .82rem;
+    }
+
+    .order-row .order-status {
+        justify-self: start;
+    }
+
+    .order-row .order-total {
+        text-align: right;
+    }
+
+    .order-row .order-action {
+        grid-column: 1 / -1;
+        text-align: left;
+    }
+}
+
+@media (max-width: 419.98px) {
+    .account-stat-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .order-item {
+        align-items: flex-start;
+    }
+
+    .order-item-total {
+        font-size: .88rem;
+    }
+
+    .account-card-head {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}

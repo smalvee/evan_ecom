@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\ProvidesStorefrontData;
 use App\Models\Category;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\User;
+use App\Support\OrderStatus;
 use Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -17,44 +19,76 @@ use Gloudemans\Shoppingcart\Facades\Cart;
 
 class AuthController extends Controller
 {
+    use ProvidesStorefrontData;
+
     public function dashboard()
     {
-        $cartContent = Cart::content();
-        $categories = Category::latest('id')->get();
-
-
         $user = Auth::user();
 
-        $orders = Order::select('orders.*')->with('items')->where('user_id', $user->id)->get();
+        // One aggregate query for every counter the dashboard needs.
+        $stats = Order::where('user_id', $user->id)
+            ->selectRaw('COUNT(*) as total')
+            ->selectRaw("SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending")
+            ->selectRaw("SUM(CASE WHEN status = 'confirm' THEN 1 ELSE 0 END) as confirmed")
+            ->selectRaw("SUM(CASE WHEN status = 'shipped' THEN 1 ELSE 0 END) as shipped")
+            ->selectRaw("SUM(CASE WHEN status = 'cancell' THEN 1 ELSE 0 END) as cancelled")
+            ->first();
 
-        // dd($orders);
+        $recentOrders = Order::where('user_id', $user->id)
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->limit(5)
+            ->get();
 
-        $data['orders'] = $orders;
-        $data['user'] = $user;
-        $data['categories'] = $categories;
-        $data['cartContent'] = $cartContent;
+        return view('front.account.new_dashboard', $this->storefrontData([
+            'user' => $user,
+            'stats' => [
+                'total' => (int) ($stats->total ?? 0),
+                'pending' => (int) ($stats->pending ?? 0),
+                'confirmed' => (int) ($stats->confirmed ?? 0),
+                'shipped' => (int) ($stats->shipped ?? 0),
+                'cancelled' => (int) ($stats->cancelled ?? 0),
+            ],
+            'recentOrders' => $recentOrders,
+        ]));
+    }
 
-        return view('front.account.new_dashboard', $data);
+    /**
+     * Paginated order history for the authenticated customer.
+     */
+    public function orders(Request $request)
+    {
+        $allowed = array_keys(OrderStatus::options());
+        $status = $request->query('status');
+        $status = in_array($status, $allowed, true) ? $status : null;
+
+        $orders = Order::where('user_id', Auth::id())
+            ->when($status, fn ($query) => $query->where('status', $status))
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('front.account.new_orders', $this->storefrontData([
+            'orders' => $orders,
+            'activeStatus' => $status,
+        ]));
     }
 
     public function orderDetails($orderId)
     {
-        $categories = Category::latest('id')->get();
-        $cartContent = Cart::content();
+        // Ownership is enforced in the query, so another customer's order is
+        // indistinguishable from a missing one (both 404).
+        $order = Order::with(['items.image', 'items.variant.product'])
+            ->where('id', $orderId)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
 
-
-
-        $order = Order::where('id', $orderId)->first();
-        $orderedItems = OrderItem::where('order_id', $order->id)->get();
-        $user = Auth::user();
-
-        $data = [];
-        $data['order'] = $order;
-        $data['user'] = $user;
-        $data['orderedItems'] = $orderedItems;
-        $data['categories'] = $categories;
-        $data['cartContent'] = $cartContent;
-        return view('front.account.new_order_details', $data);
+        return view('front.account.new_order_details', $this->storefrontData([
+            'order' => $order,
+            'orderedItems' => $order->items,
+            'user' => Auth::user(),
+        ]));
     }
 
     public function login()

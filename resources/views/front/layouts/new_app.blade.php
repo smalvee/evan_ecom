@@ -235,6 +235,8 @@ src="https://www.facebook.com/tr?id=2261244381019011&ev=PageView&noscript=1"
 /></noscript>
 <!-- End Meta Pixel Code -->
 
+     @stack('styles')
+
 
  </head>
 
@@ -365,21 +367,37 @@ src="https://www.facebook.com/tr?id=2261244381019011&ev=PageView&noscript=1"
                                                  <i data-feather="user"></i>
                                              </div>
                                              <div class="delivery-detail">
-                                                 <h6>Hello,</h6>
-                                                 <h5>My Account</h5>
+                                                 @auth
+                                                     <h6>Hello,</h6>
+                                                     <h5 title="{{ auth()->user()->name }}">{{ auth()->user()->name }}</h5>
+                                                 @else
+                                                     <h6>Hello,</h6>
+                                                     <h5>My Account</h5>
+                                                 @endauth
                                              </div>
                                          </div>
 
                                          <div class="onhover-div onhover-div-login">
                                              <ul class="user-box-name">
-                                                 <li class="product-box-contain">
-                                                     <i></i>
-                                                     <a href="{{ route('account.userLogin') }}">Log In</a>
-                                                 </li>
+                                                 @auth
+                                                     <li class="product-box-contain">
+                                                         <i></i>
+                                                         <a href="{{ route('account.userDashboard') }}">Dashboard</a>
+                                                     </li>
 
-                                                 <li class="product-box-contain">
-                                                     <a href="{{ route('account.register') }}">Register</a>
-                                                 </li>
+                                                     <li class="product-box-contain">
+                                                         <a href="{{ route('account.logout') }}">Logout</a>
+                                                     </li>
+                                                 @else
+                                                     <li class="product-box-contain">
+                                                         <i></i>
+                                                         <a href="{{ route('account.userLogin') }}">Log In</a>
+                                                     </li>
+
+                                                     <li class="product-box-contain">
+                                                         <a href="{{ route('account.register') }}">Register</a>
+                                                     </li>
+                                                 @endauth
                                                  {{-- 
                                                 <li class="product-box-contain">
                                                     <a href="forgot.html">Forgot Password</a>
@@ -998,6 +1016,8 @@ src="https://www.facebook.com/tr?id=2261244381019011&ev=PageView&noscript=1"
              }
          });
      </script>
+
+     @stack('scripts')
 
      @yield('customJs')
  </body>
