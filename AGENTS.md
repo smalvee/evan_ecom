@@ -117,6 +117,16 @@ Tests run against a dedicated MySQL DB `evan_ecom_test` (set in `phpunit.xml`); 
   `.a-badge`/`.a-badge-*`, `.a-actions-cell`/`.a-action-btn`, `.a-stat-card`, `.a-empty`,
   `.a-toolbar`, `.btn-theme`, `.form-control`, `.form-label`, `.theme-table`.
 - **Admin layout:** `resources/views/admin/layouts/new_app.blade.php` (+ `new_sidebar`, `new_page_header`).
+- **Sidebar active state:** `new_sidebar.blade.php` computes active/open classes server-side from
+  `request()->routeIs(...)` (route-based, so it survives refresh/Back/Forward/direct URL/new tab).
+  The theme's `sidebar-menu.js` strips `.active` and its own path match compares against the
+  absolute href, so the sidebar Blade captures the active link into `window.__sidebarActiveHref`
+  before the theme runs, and `window.syncActiveSidebar()` (in the layout) re-applies it and opens
+  the parent. Active/open styling lives at the end of `public/new-admin-assets/css/admin.css`.
+  `syncActiveSidebar()` then calls `window.scrollActiveSidebarIntoView()` which uses
+  `scrollIntoView({behavior:'smooth', block:'nearest'})` only when the active item is offscreen
+  (Simplebar scrolls `#simple-bar` via `.simplebar-content-wrapper`). Admin text selection uses
+  `.page-wrapper ::selection` (+ a sidebar variant) in `admin.css`.
 - **Storefront:** single layout `resources/views/front/layouts/new_app.blade.php`
   (the legacy `front.layouts.app` and all legacy views were deleted).
 - **Icons:** remixicon only (verify an icon exists in `public/new-admin-assets/css/remixicon.css`

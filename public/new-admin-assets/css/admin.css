@@ -828,3 +828,125 @@ table.table.theme-table {
     .a-toolbar .form-control, .a-toolbar .form-select { width: 100% !important; }
     .title-header.option-title { flex-direction: column; align-items: flex-start; }
 }
+
+/* ==========================================================================
+   SELECTED / ACTIVE STATES
+   ========================================================================== */
+
+/* ---- Sidebar: transitions ---- */
+.sidebar-wrapper .sidebar-main .sidebar-links li a.sidebar-link,
+.sidebar-wrapper .sidebar-main .sidebar-links .sidebar-submenu li a {
+    transition: background-color .15s ease, color .15s ease, box-shadow .15s ease;
+}
+
+/* ---- Sidebar: hover (subtle) ---- */
+.sidebar-wrapper .sidebar-main .sidebar-links li a.sidebar-link:hover {
+    background: rgba(255, 255, 255, .05);
+}
+
+.sidebar-wrapper .sidebar-main .sidebar-links .sidebar-submenu li a:hover {
+    background: rgba(255, 255, 255, .05);
+    color: #ffffff !important;
+}
+
+/* ---- Sidebar: open parent (subtle, distinct from the active leaf) ---- */
+.sidebar-wrapper .sidebar-main .sidebar-links li.sidebar-list.open > a.sidebar-link,
+.sidebar-wrapper .sidebar-main .sidebar-links li > a.sidebar-link.has-submenu.active {
+    background: rgba(255, 255, 255, .045);
+    color: #ffffff;
+    box-shadow: none;
+}
+
+.sidebar-wrapper .sidebar-main .sidebar-links li.sidebar-list.open > a.sidebar-link i,
+.sidebar-wrapper .sidebar-main .sidebar-links li > a.sidebar-link.has-submenu.active i {
+    color: #2fd6b7;
+}
+
+/* ---- Sidebar: active leaf link (strong) ---- */
+.sidebar-wrapper .sidebar-main .sidebar-links li > a.sidebar-link.active:not(.has-submenu) {
+    background: rgba(13, 164, 135, .18);
+    color: #ffffff;
+    box-shadow: inset 3px 0 0 0 var(--a-primary, #0da487);
+}
+
+.sidebar-wrapper .sidebar-main .sidebar-links li > a.sidebar-link.active:not(.has-submenu) span {
+    color: #ffffff !important;
+}
+
+.sidebar-wrapper .sidebar-main .sidebar-links li > a.sidebar-link.active:not(.has-submenu) i {
+    color: #2fd6b7;
+}
+
+/* ---- Sidebar: active submenu link (strong) ---- */
+.sidebar-wrapper .sidebar-main .sidebar-links .sidebar-submenu li a.active {
+    background: rgba(13, 164, 135, .16);
+    color: #2fd6b7 !important;
+    font-weight: 600;
+    box-shadow: inset 3px 0 0 0 var(--a-primary, #0da487);
+}
+
+/* ---- Sidebar: chevron ---- */
+.sidebar-wrapper .sidebar-main .sidebar-links li a.sidebar-link .according-menu i {
+    transition: color .15s ease;
+}
+
+.sidebar-wrapper .sidebar-main .sidebar-links li.sidebar-list.open > a.sidebar-link .according-menu i,
+.sidebar-wrapper .sidebar-main .sidebar-links li > a.sidebar-link.has-submenu.active .according-menu i {
+    color: #2fd6b7;
+}
+
+/* ---- Tabs ---- */
+.nav-tabs .nav-link.active,
+.custom-nav .nav-link.active {
+    color: var(--a-primary);
+    border-color: var(--a-primary);
+}
+
+/* ---- Dropdown selected item ---- */
+.dropdown-menu .dropdown-item.active,
+.dropdown-menu .dropdown-item:active {
+    background: var(--a-primary-soft, #e6f6f3);
+    color: var(--a-primary);
+}
+
+/* ---- Checkbox / radio / switch checked ---- */
+.form-check-input:checked {
+    background-color: var(--a-primary);
+    border-color: var(--a-primary);
+}
+
+.form-check-input:focus {
+    border-color: var(--a-primary);
+    box-shadow: 0 0 0 .2rem rgba(13, 164, 135, .18);
+}
+
+/* ---- Segmented / selectable buttons ---- */
+.btn-check:checked + .btn {
+    background: var(--a-primary);
+    border-color: var(--a-primary);
+    color: #fff;
+}
+
+/* ==========================================================================
+   TEXT SELECTION
+   ========================================================================== */
+.page-wrapper ::selection {
+    background: rgba(13, 164, 135, .30);
+    color: #06251f;
+}
+
+.page-wrapper ::-moz-selection {
+    background: rgba(13, 164, 135, .30);
+    color: #06251f;
+}
+
+/* Keep the selection readable on the dark sidebar. */
+.sidebar-wrapper ::selection {
+    background: rgba(47, 214, 183, .38);
+    color: #ffffff;
+}
+
+.sidebar-wrapper ::-moz-selection {
+    background: rgba(47, 214, 183, .38);
+    color: #ffffff;
+}

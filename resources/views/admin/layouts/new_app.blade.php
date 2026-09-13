@@ -387,8 +387,108 @@
             });
         };
 
+        // Keep the current page's parent menu open. Uses the server-rendered
+        // active link (captured before the theme JS strips it) so it survives
+        // refresh, Back/Forward, direct URL access and new tabs.
+        window.syncActiveSidebar = function() {
+            if (!window.jQuery) return;
+
+            var $wrapper = jQuery('.sidebar-wrapper');
+            if (!$wrapper.length) return;
+
+            // Reset to a clean state.
+            $wrapper.find('a.sidebar-link, .sidebar-submenu a').removeClass('active');
+            $wrapper.find('.sidebar-list').removeClass('open active');
+            $wrapper.find('.sidebar-submenu').hide();
+            $wrapper.find('a.sidebar-link .according-menu').html('<i class="ri-arrow-right-s-line"></i>');
+
+            // Prefer the server-rendered active link captured before the theme ran.
+            var activeHref = window.__sidebarActiveHref || '';
+            var $link = activeHref ? $wrapper.find('a[href="' + activeHref + '"]').first() : jQuery();
+
+            // Fallback: match by pathname (exact, then longest prefix).
+            if (!$link.length) {
+                var currentPath = window.location.pathname.replace(/\/+$/, '') || '/';
+                var best = null;
+                var bestLen = -1;
+                $wrapper.find('.sidebar-submenu a, a.sidebar-link').each(function() {
+                    var href = this.getAttribute('href');
+                    if (!href || href.indexOf('javascript:') === 0) return;
+                    var path;
+                    try {
+                        path = new URL(href, window.location.origin).pathname.replace(/\/+$/, '') || '/';
+                    } catch (e) {
+                        return;
+                    }
+                    if (path === currentPath) {
+                        best = this;
+                        bestLen = Infinity;
+                        return false;
+                    }
+                    if (currentPath.indexOf(path) === 0 && path.length > bestLen) {
+                        best = this;
+                        bestLen = path.length;
+                    }
+                });
+                if (best) $link = jQuery(best);
+            }
+
+            if (!$link.length) return;
+
+            $link.addClass('active');
+
+            var $submenu = $link.closest('.sidebar-submenu');
+            if ($submenu.length) {
+                var $li = $submenu.closest('.sidebar-list');
+                $li.addClass('open');
+                $submenu.show();
+                var $parentLink = $li.children('a.sidebar-link');
+                $parentLink.addClass('active');
+                $parentLink.find('.according-menu').html('<i class="ri-arrow-down-s-line"></i>');
+            } else {
+                $link.closest('.sidebar-list').addClass('active');
+            }
+
+            // Bring the active item into view (after the parent is expanded).
+            setTimeout(window.scrollActiveSidebarIntoView, 60);
+        };
+
+        // Scroll the sidebar so the active item is visible. Does nothing when the
+        // item is already fully visible (keeps the user's scroll position).
+        window.scrollActiveSidebarIntoView = function() {
+            if (!window.jQuery) return;
+
+            var $wrapper = jQuery('.sidebar-wrapper');
+            if (!$wrapper.length) return;
+
+            var $active = $wrapper.find('.sidebar-submenu a.active, a.sidebar-link.active:not(.has-submenu)').first();
+            if (!$active.length) return;
+
+            var el = $active[0];
+            var scroller = el.closest('.simplebar-content-wrapper') || el.closest('.sidebar-wrapper');
+            if (!scroller) return;
+
+            var elRect = el.getBoundingClientRect();
+            var scRect = scroller.getBoundingClientRect();
+            var fullyVisible = elRect.top >= scRect.top && elRect.bottom <= scRect.bottom;
+
+            if (fullyVisible) return; // already visible -> do not move the sidebar
+
+            el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        };
+
+        // Keep the .open class + chevron in sync when a parent is toggled.
+        jQuery(document).on('click', '.sidebar-wrapper .sidebar-title', function() {
+            setTimeout(function() {
+                jQuery('.sidebar-wrapper .sidebar-list').each(function() {
+                    jQuery(this).toggleClass('open', jQuery(this).children('.sidebar-submenu').is(':visible'));
+                });
+            }, 0);
+        });
+
         $(document).ready(function() {
             window.initRichEditors();
+            window.syncActiveSidebar();
 
             // Auto-enhance any select marked with .js-select2.
             window.initSelect2('.js-select2');
