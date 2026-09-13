@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\CourierSetting;
+use App\Models\CourierShipment;
 use App\Models\CustomerAddress;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -129,10 +131,19 @@ class OrderController extends Controller
         $orderedItems = OrderItem::with('variant.product')->where('order_id', $order->id)->get();
         $variants = ProductVariant::with('product')->get();
 
+        // Courier context (latest shipment + active configuration) for the panel.
+        $courierSetting = CourierSetting::current();
+        $courierShipment = CourierShipment::with('statusHistories')
+            ->where('order_id', $order->id)
+            ->latest('id')
+            ->first();
+
         return view('admin.orders.new_details', [
             'order' => $order,
             'orderedItems' => $orderedItems,
             'variants' => $variants,
+            'courierSetting' => $courierSetting,
+            'courierShipment' => $courierShipment,
         ]);
     }
 

@@ -123,6 +123,31 @@ Tests run against a dedicated MySQL DB `evan_ecom_test` (set in `phpunit.xml`); 
 - `App\Http\Controllers\Concerns\ProvidesStorefrontData` trait supplies the `$categories` /
   `$cartContent` the storefront layout requires (used by `AuthController`, `UserProfile`).
 
+### Courier integration (Steadfast + Test/Mock)
+- Provider-independent layer: the order system calls `App\Services\Courier\CourierManager` only.
+  The manager resolves the active `CourierSetting` and picks `MockCourier` (test) or
+  `SteadfastCourier` (live). Drivers implement `App\Contracts\CourierInterface` and return
+  `App\Services\Courier\CourierResponse` (`success`/`message`/`data`/`raw_response`).
+- Tables: `courier_settings` (one row per provider; `mode` = test/live; `api_key`/`secret_key` use
+  Laravel `encrypted` casts and are `$hidden`), `courier_shipments` (unique `(order_id, active)`
+  gives one in-flight shipment per order — `active=1` while in flight, `NULL` once cancelled/failed
+  so a retry is allowed; `active` is deliberately NOT boolean-cast so NULL survives),
+  `courier_status_histories`.
+- Test mode needs no credentials and never touches the network. Live mode refuses to operate without
+  credentials (no silent fallback) and calls Steadfast v1 with `Api-Key`/`Secret-Key` headers via
+  `Http`. Only `SteadfastCourier` knows Steadfast endpoints/payloads.
+- COD is always derived server-side (`App\Support\CourierPricing::codAmount`; paid orders collect 0);
+  browser-supplied amounts are never trusted. `item_description`/`total_lot` come from order items.
+- Duplicate protection: lock the order row + `(order_id, active)` unique index. Creation runs the
+  external request outside the DB transaction and deletes the reservation on failure.
+- Admin: `/admin/settings/courier` (`CourierSettingsController` — settings, Test Connection) and
+  order actions `admin.orders.courier.create|status|cancel|simulate` (`CourierShipmentController`).
+  Order details renders `admin/orders/partials/courier.blade.php`; simulation buttons are Test-mode
+  only. Sidebar has a System > Courier link (`admin.courier.*`).
+- Courier status is kept separate from `orders.status` (no automatic mapping). `App\Support\CourierStatus`
+  maps statuses to labels/badges. Live cancellation is not exposed by the Steadfast API (returns a
+  clear message). Raw responses are sanitized (`App\Support\CourierSanitizer`) before storage/logging.
+
 ### Settings & global data
 - `settings` table (key/value) + `App\Models\Setting` with caching (`site_settings`).
 - View composer in `AppServiceProvider` shares `$settings` / `$socialLinks` with all views.

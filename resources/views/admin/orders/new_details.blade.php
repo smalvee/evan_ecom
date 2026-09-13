@@ -281,6 +281,9 @@
                 <div class="col-lg-5">
                     @include('admin.orders.partials.status')
                     @include('admin.orders.partials.payment')
+                    @if ($courierSetting->is_active)
+                        @include('admin.orders.partials.courier')
+                    @endif
                 </div>
             </div>
 
@@ -291,4 +294,7 @@
 
 @section('customJs')
     @include('admin.orders.partials.scripts')
+    @if ($courierSetting->is_active)
+        @include('admin.orders.partials.courier-scripts')
+    @endif
 @endsection

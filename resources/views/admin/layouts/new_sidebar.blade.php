@@ -65,6 +65,7 @@
         'reports_shipping' => $routeIs('admin.reports.shipping'),
 
         'settings' => $routeIs('admin.settings*'),
+        'courier' => $routeIs('admin.courier.*'),
     ];
 @endphp
 
@@ -405,6 +406,13 @@
                     {{-- System --}}
                     <li class="sidebar-list sidebar-group">
                         <span class="sidebar-group-label">System</span>
+                    </li>
+                    <li class="sidebar-list {{ $active['courier'] ? 'active' : '' }}">
+                        <a class="sidebar-link sidebar-title link-nav {{ $active['courier'] ? 'active' : '' }}"
+                            href="{{ route('admin.courier.settings') }}">
+                            <i class="ri-truck-line"></i>
+                            <span>Courier</span>
+                        </a>
                     </li>
                     <li class="sidebar-list {{ $active['settings'] ? 'active' : '' }}">
                         <a class="sidebar-link sidebar-title link-nav {{ $active['settings'] ? 'active' : '' }}"

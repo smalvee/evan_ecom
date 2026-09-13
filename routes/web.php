@@ -5,6 +5,8 @@ use App\Http\Controllers\admin\AdvertisementController;
 use App\Http\Controllers\admin\BannerController;
 use App\Http\Controllers\admin\BrandController;
 use App\Http\Controllers\admin\CategoryController;
+use App\Http\Controllers\admin\CourierSettingsController;
+use App\Http\Controllers\admin\CourierShipmentController;
 use App\Http\Controllers\admin\HomeController;
 use App\Http\Controllers\admin\ImageController;
 use App\Http\Controllers\admin\NewProductController;
@@ -185,6 +187,12 @@ Route::group(['prefix' => 'admin'], function () {
         Route::post('/orders-full-update/{id}', [OrderController::class, 'updateOrder'])->name('orders.update_full');
         Route::post('/orders/{id}/payment-status', [OrderController::class, 'togglePaymentStatus'])->name('orders.paymentStatus');
 
+        // courier shipments (order-level actions)
+        Route::post('/orders/{order}/courier/create', [CourierShipmentController::class, 'create'])->name('admin.orders.courier.create');
+        Route::post('/orders/{order}/courier/status', [CourierShipmentController::class, 'refresh'])->name('admin.orders.courier.status');
+        Route::post('/orders/{order}/courier/cancel', [CourierShipmentController::class, 'cancel'])->name('admin.orders.courier.cancel');
+        Route::post('/orders/{order}/courier/simulate', [CourierShipmentController::class, 'simulate'])->name('admin.orders.courier.simulate');
+
         // pre-orders
         Route::get('/pre-orders', [PreOrderController::class, 'index'])->name('admin.pre_orders.index');
         Route::get('/pre-orders/{id}', [PreOrderController::class, 'details'])->name('admin.pre_orders.details');
@@ -286,6 +294,11 @@ Route::group(['prefix' => 'admin'], function () {
         // website settings
         Route::get('/settings', [SettingController::class, 'index'])->name('admin.settings');
         Route::put('/settings', [SettingController::class, 'update'])->name('admin.settings.update');
+
+        // courier settings
+        Route::get('/settings/courier', [CourierSettingsController::class, 'index'])->name('admin.courier.settings');
+        Route::put('/settings/courier', [CourierSettingsController::class, 'update'])->name('admin.courier.settings.update');
+        Route::post('/settings/courier/test-connection', [CourierSettingsController::class, 'testConnection'])->name('admin.courier.settings.test');
 
 
 
