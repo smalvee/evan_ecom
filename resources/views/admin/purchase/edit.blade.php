@@ -164,6 +164,21 @@
                         </div>
                     </div>
 
+                    <div class="a-form-section">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="update_price" id="update_price"
+                                value="1">
+                            <label class="form-check-label" for="update_price">
+                                <strong>Update Current Product Price</strong>
+                            </label>
+                        </div>
+                        <p class="text-muted small mb-0">
+                            Leave unchecked (default) to keep each product's current <strong>MRP</strong> and
+                            <strong>Selling Price</strong> unchanged — only the purchase cost and stock will be updated.
+                            Check this to overwrite the current price with this purchase's calculated price.
+                        </p>
+                    </div>
+
                     <div class="pt-3">
                         <button type="submit" class="btn btn-theme">
                             Update Purchase

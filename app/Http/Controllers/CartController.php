@@ -5,10 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\CustomerAddress;
 use App\Models\DiscountCoupon;
-use App\Models\NewProduct;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\ProductVariant;
 use App\Models\ShippingCharge;
@@ -20,6 +18,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Hash;
 
 class CartController extends Controller
@@ -39,13 +38,15 @@ class CartController extends Controller
             ]);
         }
 
-        // Stock check
-        // if ($request->qty > $product->qty) {
-        //     return response()->json([
-        //         'status' => false,
-        //         'message' => 'Only ' . $product->qty . ' items in stock',
-        //     ]);
-        // }
+        // Stock check (skip when the variant's qty is not tracked / null).
+        $availableQty = ($product->qty === null || $product->qty === '') ? null : (int) $product->qty;
+
+        if ($availableQty !== null && $request->qty > $availableQty) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Only ' . $availableQty . ' items in stock',
+            ]);
+        }
 
         // Check if product already exists in cart
         $exists = Cart::search(function ($cartItem) use ($product) {
@@ -89,32 +90,6 @@ class CartController extends Controller
             'cartCount' => Cart::count(),
             'swalType' => 'success', // optional, could be 'error'
         ]);
-    }
-
-    public function cart()
-    {
-        $cartContent = Cart::content();
-        $categories = Category::latest('id')->get();
-
-        $user = Auth::user();
-        $customerAddress = null; // default value
-
-        if ($user) {
-            $customerAddress = CustomerAddress::where('user_id', $user->id)->first();
-
-            // dd($customerAddress); // only for debugging
-        }
-
-        $shippingCharge = ShippingCharge::all();
-        $products = Product::latest('id')->where('status', 1)->where('qty', '>=', 1)->with('product_image')->get();
-
-        $data['cartContent'] = $cartContent;
-        $data['customerAddress'] = $customerAddress;
-        $data['shippingCharge'] = $shippingCharge;
-        $data['products'] = $products;
-        $data['categories'] = $categories;
-
-        return view('front.pages.view_cart', $data);
     }
 
     public function updateCart(Request $request)
@@ -247,6 +222,23 @@ class CartController extends Controller
             ]);
         }
 
+        // Validate stock availability for every cart line before placing the order.
+        foreach (Cart::content() as $cartItem) {
+            $stockVariant = ProductVariant::find($cartItem->id);
+
+            if (
+                $stockVariant
+                && $stockVariant->qty !== null
+                && $stockVariant->qty !== ''
+                && (int) $stockVariant->qty < (int) $cartItem->qty
+            ) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Insufficient stock for ' . ($stockVariant->sku ?? 'item') . '.',
+                ]);
+            }
+        }
+
         // ✅ STEP 1: Get or Create User
         $user = Auth::user();
 
@@ -271,7 +263,9 @@ class CartController extends Controller
                 $user->name = $request->name;
                 $user->email = $email;
                 $user->phone = $phone_number;
-                $user->password = Hash::make('123456');
+                // Guest accounts get a random, unguessable password. They cannot log in
+                // with it; registering with the same phone claims the account instead.
+                $user->password = Hash::make(Str::random(40));
                 $user->save();
             }
         }
@@ -299,7 +293,13 @@ class CartController extends Controller
         $couponCode = null;
 
         if (!empty($request->coupon)) {
-            $coupon = DiscountCoupon::where('code', $request->coupon)->where('status', 1)->where('expires_at', '>=', now())->first();
+            $coupon = DiscountCoupon::where('code', $request->coupon)
+                ->where('status', 1)
+                ->where('expires_at', '>=', now())
+                ->where(function ($q) {
+                    $q->whereNull('starts_at')->orWhere('starts_at', '<=', now());
+                })
+                ->first();
 
             if ($coupon && $subTotal >= $coupon->min_amount) {
                 $valid = true;
@@ -355,6 +355,9 @@ class CartController extends Controller
                 $orderItem->name = $item->name;
                 $orderItem->qty = $item->qty;
                 $orderItem->price = $item->price;
+                // Inventory cost snapshot at order time (for accurate historical COGS).
+                $variant = ProductVariant::find($item->id);
+                $orderItem->cost_price = $variant ? ($variant->average_cost ?? $variant->purchase_price ?? 0) : 0;
                 $orderItem->total = $item->price * $item->qty;
                 $orderItem->free_delivery = (int) ($item->options->freeDelivery ?? 0);
                 $orderItem->save();
@@ -379,26 +382,18 @@ class CartController extends Controller
         ]);
     }
 
-    public function thankyou($id)
-    {
-        $products = Product::latest('id')->where('status', 1)->where('qty', '>=', 1)->with('product_image')->get();
-        $categories = Category::latest('id')->get();
-        $cartContent = Cart::content();
-
-        $data['products'] = $products;
-        $data['id'] = $id;
-        $data['categories'] = $categories;
-        $data['cartContent'] = $cartContent;
-
-        return view('front.pages.order_success', $data);
-    }
-
     public function applyCoupon(Request $request)
     {
         $couponCode = $request->coupon;
         $subTotal = (float) $request->subtotal;
 
-        $coupon = DiscountCoupon::where('code', $couponCode)->where('status', 1)->where('expires_at', '>=', now())->first();
+        $coupon = DiscountCoupon::where('code', $couponCode)
+            ->where('status', 1)
+            ->where('expires_at', '>=', now())
+            ->where(function ($q) {
+                $q->whereNull('starts_at')->orWhere('starts_at', '<=', now());
+            })
+            ->first();
 
         if (!$coupon) {
             return response()->json([
@@ -422,6 +417,19 @@ class CartController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => 'This coupon has reached its maximum number of uses.',
+            ]);
+        }
+
+        // Check per-user maximum uses
+        $currentUser = Auth::user();
+        if (
+            $coupon->max_uses_user > 0
+            && $currentUser
+            && $coupon->orders()->where('user_id', $currentUser->id)->count() >= $coupon->max_uses_user
+        ) {
+            return response()->json([
+                'status' => false,
+                'message' => 'You have reached the maximum number of uses for this coupon.',
             ]);
         }
 
@@ -458,7 +466,6 @@ class CartController extends Controller
         }
 
         $shippingCharge = ShippingCharge::all();
-        $products = Product::latest('id')->where('status', 1)->where('qty', '>=', 1)->with('product_image')->get();
 
         $selected_products = ProductVariant::with('product')->where('id', $id)->get();
 
@@ -476,7 +483,6 @@ class CartController extends Controller
         $data['cartContent'] = $cartContent;
         $data['customerAddress'] = $customerAddress;
         $data['shippingCharge'] = $shippingCharge;
-        $data['products'] = $products;
         $data['categories'] = $categories;
         $data['selected_products'] = $selected_products;
         $data['selected_qty'] = $selected_qty;
@@ -493,6 +499,8 @@ class CartController extends Controller
             'phone' => 'required',
             'address' => 'required',
             'district' => 'required',
+            'product_id' => 'required|exists:product_variants,id',
+            'selected_qty' => 'required|integer|min:1',
         ]);
 
         if ($validator->fails()) {
@@ -519,7 +527,9 @@ class CartController extends Controller
                 $user->name = $request->name;
                 $user->email = $email;
                 $user->phone = $phone_number;
-                $user->password = Hash::make('123456');
+                // Guest accounts get a random, unguessable password. They cannot log in
+                // with it; registering with the same phone claims the account instead.
+                $user->password = Hash::make(Str::random(40));
                 $user->save();
             }
         }
@@ -535,21 +545,40 @@ class CartController extends Controller
             ],
         );
 
-        // ✅ STEP 3: Calculate amounts
-        $subTotal = (float) $request->subtotal;
+        // ✅ STEP 3: Calculate amounts (server-side; never trust client-supplied prices)
+        $variant = ProductVariant::with('product')->find($request->product_id);
 
-        $freeDelivery = false;
-        $variant = ProductVariant::find($request->product_id);
-        if ($variant) {
-            $freeDelivery = (bool) ($variant->product->free_delivery ?? false);
+        if (!$variant) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Product not found.',
+            ]);
         }
 
+        $quantity = max(1, (int) $request->selected_qty);
+        $unitPrice = (float) $variant->selling_price;
+        $subTotal = $unitPrice * $quantity;
+
+        if ($variant->qty !== null && $variant->qty !== '' && (int) $variant->qty < $quantity) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Only ' . (int) $variant->qty . ' items in stock.',
+            ]);
+        }
+
+        $freeDelivery = (bool) ($variant->product->free_delivery ?? false);
         $shipping = $freeDelivery ? 0 : ShippingCharge::rateForDistrict($request->district);
         $discount = 0;
         $couponCode = null;
 
         if (!empty($request->coupon)) {
-            $coupon = DiscountCoupon::where('code', $request->coupon)->where('status', 1)->where('expires_at', '>=', now())->first();
+            $coupon = DiscountCoupon::where('code', $request->coupon)
+                ->where('status', 1)
+                ->where('expires_at', '>=', now())
+                ->where(function ($q) {
+                    $q->whereNull('starts_at')->orWhere('starts_at', '<=', now());
+                })
+                ->first();
 
             if ($coupon && $subTotal >= (float) $coupon->min_amount) {
                 $valid = true;
@@ -600,12 +629,14 @@ class CartController extends Controller
             // ✅ STEP 5: Store Order Items
 
             $orderItem = new OrderItem();
-            $orderItem->product_id = $request->product_id;
+            $orderItem->product_id = $variant->id;
             $orderItem->order_id = $order->id;
-            $orderItem->name = $request->product_sku;
-            $orderItem->qty = $request->selected_qty;
-            $orderItem->price = $request->selling_price;
-            $orderItem->total = $request->subtotal;
+            $orderItem->name = $variant->sku;
+            $orderItem->qty = $quantity;
+            $orderItem->price = $unitPrice;
+            // Inventory cost snapshot at order time (for accurate historical COGS).
+            $orderItem->cost_price = $variant->average_cost ?? $variant->purchase_price ?? 0;
+            $orderItem->total = $subTotal;
             $orderItem->free_delivery = $freeDelivery;
             $orderItem->save();
 

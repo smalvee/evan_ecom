@@ -61,9 +61,79 @@ class DiscontCodeController extends Controller
         }
     }
 
-    public function edit() {}
+    public function edit($id)
+    {
+        $coupon = DiscountCoupon::find($id);
 
-    public function update() {}
+        if (empty($coupon)) {
+            return redirect()->route('coupon.index')->with('error', 'Coupon not found');
+        }
 
-    public function distroy() {}
+        return view('admin.coupon.edit', compact('coupon'));
+    }
+
+    public function update($id, Request $request)
+    {
+        $coupon = DiscountCoupon::find($id);
+
+        if (empty($coupon)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Coupon not found',
+            ]);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'code' => 'required',
+            'type' => 'required',
+            'discount_amount' => 'required',
+            'status' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ]);
+        }
+
+        $coupon->code = $request->code;
+        $coupon->name = $request->name;
+        $coupon->description = $request->description;
+        $coupon->max_uses = $request->max_uses;
+        $coupon->max_uses_user = $request->max_uses_user;
+        $coupon->type = $request->type;
+        $coupon->discount_amount = $request->discount_amount;
+        $coupon->min_amount = $request->min_amount;
+        $coupon->status = $request->status;
+        $coupon->starts_at = $request->starts_at;
+        $coupon->expires_at = $request->expires_at;
+        $coupon->save();
+
+        $request->session()->flash('success', 'Coupon updated successfully');
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Coupon updated successfully',
+        ]);
+    }
+
+    public function distroy($id)
+    {
+        $coupon = DiscountCoupon::find($id);
+
+        if (!$coupon) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Coupon not found',
+            ]);
+        }
+
+        $coupon->delete();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Coupon deleted successfully',
+        ]);
+    }
 }

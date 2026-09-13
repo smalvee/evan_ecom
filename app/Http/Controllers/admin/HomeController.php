@@ -104,13 +104,17 @@ class HomeController extends Controller
         $threshold = 10;
         $totalVariants = ProductVariant::count();
         $outOfStockVariants = ProductVariant::where(function ($q) {
-            $q->whereNull('qty')->orWhere('qty', '')->orWhere('qty', '0');
+            $q->whereNull('qty')->orWhereRaw('CAST(qty AS SIGNED) <= 0');
         })->count();
-        $lowStockVariants = ProductVariant::whereNotNull('qty')->where('qty', '>', 0)->where('qty', '<=', $threshold)->count();
+        $lowStockVariants = ProductVariant::whereRaw('CAST(qty AS SIGNED) > 0')
+            ->whereRaw('CAST(qty AS SIGNED) <= ?', [$threshold])
+            ->count();
         $inStockVariants = $totalVariants - $outOfStockVariants - $lowStockVariants;
 
-        $lowStockProducts = ProductVariant::whereNotNull('qty')->where('qty', '>', 0)->where('qty', '<=', $threshold)
-            ->orderBy('qty')->with('product')->take(8)->get();
+        $lowStockProducts = ProductVariant::whereRaw('CAST(qty AS SIGNED) > 0')
+            ->whereRaw('CAST(qty AS SIGNED) <= ?', [$threshold])
+            ->orderByRaw('CAST(qty AS SIGNED) ASC')
+            ->with('product')->take(8)->get();
 
         $data = compact(
             'range', 'from', 'to',

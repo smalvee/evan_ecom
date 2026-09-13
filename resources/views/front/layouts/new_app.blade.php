@@ -295,19 +295,24 @@ src="https://www.facebook.com/tr?id=2261244381019011&ev=PageView&noscript=1"
                                      </div>
                                      <div class="offcanvas-body">
                                          <ul class="navbar-nav">
-                                            <li class="nav-item dropdown"><a class="nav-link remove-dropdown" style="font-size: 15px"
-                                                             href="{{ route('product_shop.home', 'hot-products') }}">HotProducts</a></li>
+                                             <li class="nav-item dropdown"><a class="nav-link remove-dropdown" style="font-size: 15px"
+                                                              href="{{ route('product_shop.home', 'hot-products') }}">HotProducts</a></li>
                                              @if (!empty($categories))
+                                                 @php
+                                                     // Load all sub-categories in one query (avoids N+1 in the loop below).
+                                                     $navSubCategories = $categories->isNotEmpty()
+                                                         ? \App\Models\SubCategory::whereIn('category_id', $categories->pluck('id'))
+                                                             ->get()
+                                                             ->groupBy('category_id')
+                                                         : collect();
+                                                 @endphp
                                                  @foreach ($categories as $category)
                                                      <li class="nav-item dropdown">
                                                          <a class="nav-link remove-dropdown" style="font-size: 15px"
                                                              href="{{ route('product_shop.home', $category->slug) }}">{{ $category->name }}</a>
                                                          <ul class="dropdown-menu">
                                                              @php
-                                                                 $sub_categories = SubCategory::where(
-                                                                     'category_id',
-                                                                     $category->id,
-                                                                 )->get();
+                                                                 $sub_categories = $navSubCategories[$category->id] ?? collect();
                                                              @endphp
 
                                                              @if (!empty($sub_categories))
@@ -633,9 +638,6 @@ src="https://www.facebook.com/tr?id=2261244381019011&ev=PageView&noscript=1"
 
      <!-- theme setting js -->
      <script src=" {{ asset('new-front-assets/js/theme-setting.js') }}"></script>
-     @php
-         $all_products = \App\Models\NewProduct::get();
-     @endphp
 
 
      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -754,40 +756,43 @@ src="https://www.facebook.com/tr?id=2261244381019011&ev=PageView&noscript=1"
 
 
      @php
-         $products = DB::select("
-            SELECT 
-                p.id AS product_id,
-                p.name AS title,
-                p.slug,
-                v.selling_price AS price,
-                v.compare_price,
-                img.image
-            FROM new_products p
+         // Cache the search index rows (URLs are built per-request below).
+         $searchRows = \Illuminate\Support\Facades\Cache::remember('front_search_products', now()->addMinutes(10), function () {
+             return DB::select("
+                SELECT 
+                    p.id AS product_id,
+                    p.name AS title,
+                    p.slug,
+                    v.selling_price AS price,
+                    v.compare_price,
+                    img.image
+                FROM new_products p
 
-            /* FIRST VARIANT PER PRODUCT */
-            LEFT JOIN product_variants v 
-                ON v.id = (
-                    SELECT pv.id
-                    FROM product_variants pv
-                    WHERE pv.product_id = p.id
-                    ORDER BY pv.id ASC
-                    LIMIT 1
-                )
+                /* FIRST VARIANT PER PRODUCT */
+                LEFT JOIN product_variants v 
+                    ON v.id = (
+                        SELECT pv.id
+                        FROM product_variants pv
+                        WHERE pv.product_id = p.id
+                        ORDER BY pv.id ASC
+                        LIMIT 1
+                    )
 
-            /* FIRST IMAGE PER VARIANT */
-            LEFT JOIN product_images img 
-                ON img.id = (
-                    SELECT pi.id
-                    FROM product_images pi
-                    WHERE pi.product_id = v.id
-                    ORDER BY pi.sort_order ASC, pi.id ASC
-                    LIMIT 1
-                )
+                /* FIRST IMAGE PER VARIANT */
+                LEFT JOIN product_images img 
+                    ON img.id = (
+                        SELECT pi.id
+                        FROM product_images pi
+                        WHERE pi.product_id = v.id
+                        ORDER BY pi.sort_order ASC, pi.id ASC
+                        LIMIT 1
+                    )
 
-            WHERE p.status = 1
-        ");
+                WHERE p.status = 1
+            ");
+         });
 
-         $allProducts = collect($products)
+         $allProducts = collect($searchRows)
              ->map(function ($p) {
                  return [
                      'id' => $p->product_id,

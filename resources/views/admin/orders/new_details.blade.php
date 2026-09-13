@@ -99,6 +99,20 @@
                                                                 class="dot"></span>Cancelled</span>
                                                     @endif
                                                 </li>
+                                                <li class="d-flex justify-content-between align-items-center mt-3">
+                                                    <span class="text-muted">Payment</span>
+                                                    <span class="d-flex align-items-center gap-2">
+                                                        <span
+                                                            class="a-badge {{ $order->payment_status ? 'a-badge-success' : 'a-badge-warning' }}"
+                                                            id="payment-badge">
+                                                            <span
+                                                                class="dot"></span>{{ $order->payment_status ? 'Paid' : 'Unpaid' }}
+                                                        </span>
+                                                        <button type="button"
+                                                            class="btn btn-sm btn-outline-secondary"
+                                                            onclick="togglePaymentStatus()">Toggle</button>
+                                                    </span>
+                                                </li>
                                             </ul>
                                         </div>
                                     </div>
@@ -461,6 +475,38 @@
         });
 
         updateTotals();
+
+        function togglePaymentStatus() {
+            $.ajax({
+                url: '{{ route('orders.paymentStatus', $order->id) }}',
+                type: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}'
+                },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.status) {
+                        const badge = document.getElementById('payment-badge');
+                        badge.className = 'a-badge ' + (response.payment_status ? 'a-badge-success' :
+                            'a-badge-warning');
+                        badge.innerHTML = '<span class="dot"></span>' + (response.payment_status ? 'Paid' :
+                            'Unpaid');
+                        Swal.fire({
+                            icon: 'success',
+                            title: response.message,
+                            timer: 1200,
+                            showConfirmButton: false
+                        });
+                    }
+                },
+                error: function() {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Something went wrong'
+                    });
+                }
+            });
+        }
     </script>
 
     @if (session('success'))

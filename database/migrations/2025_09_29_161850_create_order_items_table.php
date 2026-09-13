@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('name');
             $table->integer('qty');
             $table->double('price',10,2);
+            $table->integer('discount')->default(0);
             $table->double('total',10,2);
             $table->timestamps();
         });

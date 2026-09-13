@@ -89,6 +89,12 @@
                             <span>Variations</span>
                         </a>
                     </li>
+                    <li class="sidebar-list">
+                        <a class="sidebar-link sidebar-title link-nav" href="{{ route('admin.pricing.index') }}">
+                            <i class="ri-price-tag-3-line"></i>
+                            <span>Pricing</span>
+                        </a>
+                    </li>
 
                     {{-- Sales --}}
                     <li class="sidebar-list sidebar-group">

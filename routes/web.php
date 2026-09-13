@@ -11,7 +11,7 @@ use App\Http\Controllers\admin\NewProductController;
 use App\Http\Controllers\admin\OrderController;
 use App\Http\Controllers\admin\PageInfoController;
 use App\Http\Controllers\admin\ProductController;
-use App\Http\Controllers\admin\ProductImageController;
+use App\Http\Controllers\admin\ProductPricingController;
 use App\Http\Controllers\admin\ProductSubCategoryController;
 use App\Http\Controllers\admin\PurchaseController;
 use App\Http\Controllers\admin\SettingController;
@@ -66,9 +66,7 @@ Route::get('/product-shop-inv/{slug}', [NewFrontController::class, 'shop_page_su
 Route::get('/search-products', [NewProductController::class, 'search'])->name('search.products');
 
 // cart
-// Route::get('/cart', [CartController::class, 'cart'])->name('front.cart');
 Route::get('/cart', [NewFrontController::class, 'cart'])->name('front.cart');
-Route::get('/cart-sidebar', [CartController::class, 'cart_side_bar'])->name('front.cart_sidebar');
 Route::post('/add-to-cart', [CartController::class, 'addToCart'])->name('front.addToCart');
 Route::post('/update-cart', [CartController::class, 'updateCart'])->name('front.updateCart');
 Route::post('/delete-item-cart', [CartController::class, 'deleteItem'])->name('front.deleteItem.cart');
@@ -99,7 +97,7 @@ Route::group(['prefix' => 'account'], function () {
         Route::get('/register', [AuthController::class, 'register'])->name('account.register');
         Route::post('/process-register', [AuthController::class, 'processRegister'])->name('account.processRegister');
         Route::get('/login', [AuthController::class, 'login'])->name('account.userLogin');
-        Route::post('/login', [AuthController::class, 'authenticate'])->name('account.authenticate');
+        Route::post('/login', [AuthController::class, 'authenticate'])->name('account.authenticate')->middleware('throttle:10,1');
     });
     Route::group(['middleware' => 'auth'], function () {
         Route::get('/user-dashboard', [AuthController::class, 'dashboard'])->name('account.userDashboard');
@@ -115,7 +113,7 @@ Route::group(['prefix' => 'account'], function () {
 Route::group(['prefix' => 'admin'], function () {
     Route::group(['middleware' => 'admin.guest'], function () {
         Route::get('/login', [AdminLoginController::class, 'index'])->name('admin.login');
-        Route::post('/authenticate', [AdminLoginController::class, 'authenticate'])->name('admin.authenticate');
+        Route::post('/authenticate', [AdminLoginController::class, 'authenticate'])->name('admin.authenticate')->middleware('throttle:10,1');
     });
 
     Route::group(['middleware' => 'admin.auth'], function () {
@@ -169,6 +167,9 @@ Route::group(['prefix' => 'admin'], function () {
         Route::get('coupon/create', [DiscontCodeController::class, 'create'])->name('coupon.create');
         Route::post('/coupon', [DiscontCodeController::class, 'store'])->name('coupon.store');
         Route::get('/coupons', [DiscontCodeController::class, 'index'])->name('coupon.index');
+        Route::get('/coupons/{id}/edit', [DiscontCodeController::class, 'edit'])->name('coupon.edit');
+        Route::put('/coupons/{id}', [DiscontCodeController::class, 'update'])->name('coupon.update');
+        Route::delete('/coupons/{id}', [DiscontCodeController::class, 'distroy'])->name('coupon.delete');
 
         // orders
         Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
@@ -180,6 +181,7 @@ Route::group(['prefix' => 'admin'], function () {
         Route::post('/orders-address-update/{id}', [OrderController::class, 'order_address_update'])->name('orders.address_update');
         Route::post('/orders-update/{id}', [OrderController::class, 'order_update'])->name('orders.order_update');
         Route::post('/orders-full-update/{id}', [OrderController::class, 'updateOrder'])->name('orders.update_full');
+        Route::post('/orders/{id}/payment-status', [OrderController::class, 'togglePaymentStatus'])->name('orders.paymentStatus');
 
         // users
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
@@ -301,13 +303,11 @@ Route::group(['prefix' => 'admin'], function () {
         Route::get('/products', [ProductController::class, 'index'])->name('products.index');
         Route::get('/products/create', [ProductController::class, 'create'])->name('products.create');
         Route::get('/pruducts-sub-category', [ProductSubCategoryController::class, 'index'])->name('pruducts-sub-category.index');
-        Route::post('/products', [ProductController::class, 'store'])->name('products.store');
-        Route::get('/products/{product_id}/edit', [ProductController::class, 'edit'])->name('products.edit');
-        Route::put('/products/{product_id}', [ProductController::class, 'update'])->name('products.update');
-        Route::delete('/product/{product_id}', [ProductController::class, 'distroy'])->name('product.delete');
-        Route::delete('/product-images', [ProductImageController::class, 'distroy'])->name('product-images.delete');
 
-        Route::post('/product-images/update', [ProductImageController::class, 'update'])->name('product-images.update');
+        // Product pricing management (MRP + selling price, separate from purchase cost)
+        Route::get('/product-pricing', [ProductPricingController::class, 'index'])->name('admin.pricing.index');
+        Route::post('/product-pricing/{variant}', [ProductPricingController::class, 'update'])->name('admin.pricing.update');
+        Route::get('/product-pricing/{variant}/history', [ProductPricingController::class, 'history'])->name('admin.pricing.history');
 
         // temporary image create
         Route::post('/upload-temp-image', [TempImagesController::class, 'create'])->name('temp-images.create');

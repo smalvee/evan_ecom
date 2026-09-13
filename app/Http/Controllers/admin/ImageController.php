@@ -121,6 +121,8 @@ class ImageController extends Controller
 
             $request->session()->flash('success', 'Product Image Added successfully');
 
+            \Illuminate\Support\Facades\Cache::forget('front_search_products');
+
             return response()->json([
                 'status' => true,
                 'message' => 'Product Image added successfully',
@@ -155,6 +157,8 @@ class ImageController extends Controller
 
         // Delete record from DB
         $galery_image->delete();
+
+        \Illuminate\Support\Facades\Cache::forget('front_search_products');
 
         return response()->json([
             'status' => true,

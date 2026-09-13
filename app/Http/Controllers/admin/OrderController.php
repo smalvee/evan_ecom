@@ -86,6 +86,30 @@ class OrderController extends Controller
         ]);
     }
 
+    /**
+     * Toggle an order's paid/unpaid flag (payment_status).
+     */
+    public function togglePaymentStatus($id)
+    {
+        $order = Order::find($id);
+
+        if (!$order) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Order not found.',
+            ]);
+        }
+
+        $order->payment_status = $order->payment_status ? 0 : 1;
+        $order->save();
+
+        return response()->json([
+            'status' => true,
+            'payment_status' => (int) $order->payment_status,
+            'message' => $order->payment_status ? 'Order marked as paid.' : 'Order marked as unpaid.',
+        ]);
+    }
+
     public function details($orderId)
     {
         $order = Order::where('id', $orderId)->first();
@@ -256,15 +280,33 @@ class OrderController extends Controller
             ],
         );
 
+        // Compute totals server-side from the submitted items (never trust the client).
+        $subtotal = 0;
+        $itemDiscountTotal = 0;
+
+        foreach ($request->products as $item) {
+            $product = ProductVariant::find($item['id']);
+            if (!$product) {
+                continue;
+            }
+            $qty = max(1, (int) $item['qty']);
+            $discount = max(0, (float) $item['discount']);
+            $subtotal += max(0, ((float) $product->selling_price * $qty) - $discount);
+            $itemDiscountTotal += $discount;
+        }
+
+        $shipping = max(0, (float) $request->shipping_amount);
+        $grandTotal = $subtotal + $shipping;
+
         // ✅ STEP 4: Create Order
         $order = new Order();
         $order->user_id = $user->id;
-        $order->subtotal = $request->sum_subTotal;
-        $order->shipping = $request->shipping_amount;
-        $order->additional_discount = $request->discount_amount;
+        $order->subtotal = $subtotal;
+        $order->shipping = $shipping;
+        $order->additional_discount = $itemDiscountTotal;
         $order->coupon_code = null;
         $order->discount = 0;
-        $order->grand_total = $request->total_amount;
+        $order->grand_total = $grandTotal;
         $order->name = $request->name;
         $order->phone = $request->phone;
         $order->address = $request->address;
@@ -282,14 +324,19 @@ class OrderController extends Controller
                 continue;
             }
 
+            $qty = max(1, (int) $item['qty']);
+            $discount = max(0, (float) $item['discount']);
+
             $orderItem = new OrderItem();
             $orderItem->order_id = $order->id;
             $orderItem->product_id = $product->id;
             $orderItem->name = $product->sku; // or name
-            $orderItem->qty = $item['qty'];
+            $orderItem->qty = $qty;
             $orderItem->price = $product->selling_price;
-            $orderItem->discount = $item['discount'];
-            $orderItem->total = $product->selling_price * $item['qty'] - $item['discount'];
+            // Inventory cost snapshot at order time.
+            $orderItem->cost_price = $product->average_cost ?? $product->purchase_price ?? 0;
+            $orderItem->discount = $discount;
+            $orderItem->total = max(0, ((float) $product->selling_price * $qty) - $discount);
             $orderItem->free_delivery = (bool) ($product->product->free_delivery ?? false);
             $orderItem->save();
         }
@@ -485,6 +532,8 @@ class OrderController extends Controller
                 $orderItem->name = $variant->sku;
                 $orderItem->qty = $qty;
                 $orderItem->price = $price;
+                // Inventory cost snapshot at order time.
+                $orderItem->cost_price = $variant->average_cost ?? $variant->purchase_price ?? 0;
                 $orderItem->discount = $discount;
                 $orderItem->total = max(0, ($price * $qty) - $discount);
                 $orderItem->free_delivery = (bool) ($variant->product->free_delivery ?? false);

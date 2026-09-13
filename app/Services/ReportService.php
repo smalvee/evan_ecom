@@ -191,7 +191,7 @@ class ReportService
         $cogs = (clone $base)
             ->join('order_items', 'order_items.order_id', '=', 'orders.id')
             ->join('product_variants', 'product_variants.id', '=', 'order_items.product_id')
-            ->selectRaw('COALESCE(SUM(CAST(product_variants.purchase_price AS DECIMAL(12,2)) * order_items.qty), 0) as cogs')
+            ->selectRaw('COALESCE(SUM(CAST(COALESCE(order_items.cost_price, product_variants.purchase_price) AS DECIMAL(12,2)) * order_items.qty), 0) as cogs')
             ->value('cogs');
 
         $discount = (float) $row->discount;
@@ -304,7 +304,7 @@ class ReportService
                 SUM(oi.qty) as units,
                 COALESCE(SUM(oi.total), 0) as revenue,
                 COALESCE(SUM(oi.discount), 0) as item_discount,
-                COALESCE(SUM(CAST(pv.purchase_price AS DECIMAL(12,2)) * oi.qty), 0) as cost
+                COALESCE(SUM(CAST(COALESCE(oi.cost_price, pv.purchase_price) AS DECIMAL(12,2)) * oi.qty), 0) as cost
             ")
             ->groupBy('np.id', 'np.name', 'oi.name', 'pv.sku', 'c.name', 'b.name')
             ->orderByDesc('revenue')
@@ -322,7 +322,7 @@ class ReportService
                 COALESCE(np.name, oi.name) as product,
                 SUM(oi.qty) as units,
                 COALESCE(SUM(oi.total), 0) as revenue,
-                COALESCE(SUM(oi.total) - SUM(CAST(pv.purchase_price AS DECIMAL(12,2)) * oi.qty), 0) as profit
+                COALESCE(SUM(oi.total) - SUM(CAST(COALESCE(oi.cost_price, pv.purchase_price) AS DECIMAL(12,2)) * oi.qty), 0) as profit
             ")
             ->groupBy('np.id', 'np.name', 'oi.name')
             ->orderByDesc('units')
@@ -351,7 +351,7 @@ class ReportService
                 COALESCE(c.name, 'Uncategorized') as category,
                 SUM(oi.qty) as units,
                 COALESCE(SUM(oi.total), 0) as revenue,
-                COALESCE(SUM(CAST(pv.purchase_price AS DECIMAL(12,2)) * oi.qty), 0) as cost
+                COALESCE(SUM(CAST(COALESCE(oi.cost_price, pv.purchase_price) AS DECIMAL(12,2)) * oi.qty), 0) as cost
             ")
             ->groupBy('c.id', 'c.name')
             ->orderByDesc('revenue')
@@ -366,7 +366,7 @@ class ReportService
                 COUNT(DISTINCT np.id) as products,
                 SUM(oi.qty) as units,
                 COALESCE(SUM(oi.total), 0) as revenue,
-                COALESCE(SUM(CAST(pv.purchase_price AS DECIMAL(12,2)) * oi.qty), 0) as cost
+                COALESCE(SUM(CAST(COALESCE(oi.cost_price, pv.purchase_price) AS DECIMAL(12,2)) * oi.qty), 0) as cost
             ")
             ->groupBy('b.id', 'b.name')
             ->orderByDesc('revenue')
@@ -571,7 +571,7 @@ class ReportService
                 COUNT(*) as variants,
                 COUNT(DISTINCT np.id) as products,
                 COALESCE(SUM(CAST(pv.qty AS SIGNED)), 0) as units,
-                COALESCE(SUM(CASE WHEN CAST(pv.qty AS SIGNED) > 0 THEN CAST(pv.qty AS SIGNED) * CAST(pv.purchase_price AS DECIMAL(12,2)) ELSE 0 END), 0) as stock_value,
+                COALESCE(SUM(CASE WHEN CAST(pv.qty AS SIGNED) > 0 THEN CAST(pv.qty AS SIGNED) * CAST(COALESCE(pv.average_cost, pv.purchase_price) AS DECIMAL(12,2)) ELSE 0 END), 0) as stock_value,
                 SUM(CASE WHEN CAST(pv.qty AS SIGNED) <= 0 THEN 1 ELSE 0 END) as out_of_stock,
                 SUM(CASE WHEN CAST(pv.qty AS SIGNED) > 0 AND CAST(pv.qty AS SIGNED) <= $threshold THEN 1 ELSE 0 END) as low_stock
             ")
@@ -611,7 +611,7 @@ class ReportService
         }
 
         return $q->selectRaw("
-                pv.id, pv.sku, pv.qty, pv.purchase_price, pv.selling_price,
+                pv.id, pv.sku, pv.qty, pv.purchase_price, pv.average_cost, pv.selling_price,
                 np.name as product, c.name as category
             ")
             ->orderByRaw('CAST(pv.qty AS SIGNED) ASC')

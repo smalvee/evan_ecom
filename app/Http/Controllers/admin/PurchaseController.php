@@ -9,12 +9,24 @@ use App\Models\PurchaseItem;
 use App\Models\PurchaseReturn;
 use App\Models\PurchaseReturnItems;
 use App\Models\Supplier;
+use App\Services\InventoryCostingService;
+use App\Services\ProductVariantPricingService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class PurchaseController extends Controller
 {
+    protected ProductVariantPricingService $pricing;
+    protected InventoryCostingService $costing;
+
+    public function __construct(ProductVariantPricingService $pricing, InventoryCostingService $costing)
+    {
+        $this->pricing = $pricing;
+        $this->costing = $costing;
+    }
+
     public function index(Request $request)
     {
         $query = Purchase::latest('id')->with('supplier');
@@ -140,13 +152,18 @@ class PurchaseController extends Controller
 
                     $variant = ProductVariant::find($variantId);
                     if ($variant) {
-                        $variant->purchase_price = $unitCost;
-                        $variant->selling_price = $selling;
-                        $variant->compare_price = $mrp;
-                        $variant->save();
+                        // Stock + weighted-average inventory cost.
+                        $this->costing->recordPurchase($variant, $qty, $unitCost);
 
-                        // Atomic stock increase (creating a purchase means goods received).
-                        $variant->increment('qty', $qty);
+                        // Purchase cost + initial/current pricing. A manually managed
+                        // price is preserved (only cost and stock are updated).
+                        $this->pricing->applyPurchasePricing(
+                            $variant,
+                            $unitCost,
+                            $profitAmount,
+                            $discount,
+                            'Purchase #' . $purchase->id
+                        );
                     }
                 }
 
@@ -205,8 +222,13 @@ class PurchaseController extends Controller
             ]);
         }
 
+        // Explicit opt-in: only recalculate the current selling price / MRP when the
+        // admin checks "Update Current Product Price". Default is NOT to change it.
+        $updatePrice = $request->boolean('update_price');
+        $adminId = Auth::guard('admin')->id() ?? Auth::id();
+
         try {
-            DB::transaction(function () use ($id, $request) {
+            DB::transaction(function () use ($id, $request, $updatePrice, $adminId) {
                 $purchase = Purchase::findOrFail($id);
                 $purchase->supplier_id = $request->supplier_id;
                 $purchase->date = $request->date;
@@ -245,10 +267,24 @@ class PurchaseController extends Controller
                     $variantId = $variantIds[$index] ?? $purchaseItem->variant_id;
                     $variant = $variantId ? ProductVariant::find($variantId) : null;
                     if ($variant) {
-                        $variant->purchase_price = $unitCost;
-                        $variant->selling_price = $selling;
-                        $variant->compare_price = $mrp;
-                        $variant->save();
+                        if ($updatePrice) {
+                            // Admin explicitly chose to update current pricing.
+                            $this->pricing->applyPurchasePricing(
+                                $variant,
+                                $unitCost,
+                                $profitAmount,
+                                $discount,
+                                'Purchase #' . $purchase->id . ' price update',
+                                $adminId,
+                                true
+                            );
+                        } else {
+                            // Default: cost only. Current MRP / selling price is preserved.
+                            $this->pricing->applyPurchaseCost($variant, $unitCost);
+                        }
+
+                        // Inventory average cost is independent of commercial pricing.
+                        $this->costing->recalculateAverageCost($variant);
                     }
                 }
 
@@ -396,9 +432,6 @@ class PurchaseController extends Controller
                 // Value the return at the ORIGINAL purchase cost.
                 $unitCost = (float) $purchaseItem->unit_cost;
 
-                // Atomic stock decrease.
-                $variant->decrement('qty', $returnQty);
-
                 $lineAmount = $returnQty * $unitCost;
                 $totalReturnAmount += $lineAmount;
 
@@ -408,6 +441,10 @@ class PurchaseController extends Controller
                     'qty' => $returnQty,
                     'unit_cost' => $unitCost,
                 ]);
+
+                // Decrease stock and recalculate the weighted-average cost
+                // (now that the return is recorded).
+                $this->costing->applyReturn($variant, $returnQty);
 
                 $hasItems = true;
             }

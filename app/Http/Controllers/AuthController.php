@@ -5,11 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\Product;
 use App\Models\User;
 use Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Testing\Fluent\Concerns\Has;
 use Gloudemans\Shoppingcart\Facades\Cart;
@@ -19,7 +19,6 @@ class AuthController extends Controller
 {
     public function dashboard()
     {
-        $products = Product::latest('id')->where('status', 1)->where('qty', '>=', 1)->with('product_image')->get();
         $cartContent = Cart::content();
         $categories = Category::latest('id')->get();
 
@@ -31,7 +30,6 @@ class AuthController extends Controller
         // dd($orders);
 
         $data['orders'] = $orders;
-        $data['products'] = $products;
         $data['user'] = $user;
         $data['categories'] = $categories;
         $data['cartContent'] = $cartContent;
@@ -41,7 +39,6 @@ class AuthController extends Controller
 
     public function orderDetails($orderId)
     {
-        $products = Product::latest('id')->where('status', 1)->where('qty', '>=', 1)->with('product_image')->get();
         $categories = Category::latest('id')->get();
         $cartContent = Cart::content();
 
@@ -56,19 +53,16 @@ class AuthController extends Controller
         $data['user'] = $user;
         $data['orderedItems'] = $orderedItems;
         $data['categories'] = $categories;
-        $data['products'] = $products;
         $data['cartContent'] = $cartContent;
         return view('front.account.new_order_details', $data);
     }
 
     public function login()
     {
-        $products = Product::latest('id')->where('status', 1)->where('qty', '>=', 1)->with('product_image')->get();
         $categories = Category::latest('id')->get();
         $cartContent = Cart::content();
 
 
-        $data['products'] = $products;
         $data['categories'] = $categories;
         $data['cartContent'] = $cartContent;
 
@@ -77,13 +71,11 @@ class AuthController extends Controller
 
     public function register()
     {
-        $products = Product::latest('id')->where('status', 1)->where('qty', '>=', 1)->with('product_image')->get();
         $categories = Category::latest('id')->get();
         $cartContent = Cart::content();
 
 
         $data['categories'] = $categories;
-        $data['products'] = $products;
         $data['cartContent'] = $cartContent;
         return view('front.account.new_register', $data);
     }
@@ -93,34 +85,46 @@ class AuthController extends Controller
         $rules = [
             'name' => 'required|min:3',
             'email' => 'required|email|unique:users,email',
-            'phone' => 'required|regex:/^[0-9]{10,15}$/|unique:users,phone',
+            'phone' => 'required|regex:/^[0-9]{10,15}$/',
             'password' => 'required|min:5|confirmed',
         ];
 
         $validator = Validator::make($request->all(), $rules);
 
-        if ($validator->passes()) {
-            $user = new User();
-            $user->name = $request->name;
-            $user->email = $request->email;
-            $user->phone = $request->phone;
-            $user->password = Hash::make($request->password);
-            $user->save();
-
-            $successMessage = 'Account Created Successfully';
-
-            session()->flash('success', $successMessage);
-
-            return response()->json([
-                'status' => true,
-                'message' => $successMessage,
-            ]);
-        } else {
+        if ($validator->fails()) {
             return response()->json([
                 'status' => false,
                 'errors' => $validator->errors(),
             ]);
         }
+
+        // A phone may already exist as a guest account created during guest checkout.
+        // Only such guest accounts may be claimed; real registered accounts are protected.
+        $existing = User::where('phone', $request->phone)->first();
+
+        if ($existing && !Str::startsWith((string) $existing->email, 'guest_')) {
+            return response()->json([
+                'status' => false,
+                'errors' => ['phone' => ['This phone number is already registered.']],
+            ]);
+        }
+
+        $user = $existing ?: new User();
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $user->phone = $request->phone;
+        $user->role = 1;
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        $successMessage = 'Account Created Successfully';
+
+        session()->flash('success', $successMessage);
+
+        return response()->json([
+            'status' => true,
+            'message' => $successMessage,
+        ]);
     }
 
     public function authenticate(Request $request)

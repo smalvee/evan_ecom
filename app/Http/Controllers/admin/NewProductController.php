@@ -82,6 +82,8 @@ class NewProductController extends Controller
             }
         }
 
+        \Illuminate\Support\Facades\Cache::forget('front_search_products');
+
         return response()->json([
             'status' => true,
             'message' => 'Product added successfully',
@@ -173,32 +175,34 @@ class NewProductController extends Controller
             ],
         );
 
-        // Single product default variant
+        // Single product: ensure exactly one non-variant variant for THIS product.
         if ($request->product_type == 0) {
-            ProductVariant::updateOrCreate(
-                ['product_id' => $id],
-                [
-                    'sku' => $request->product_sku,
-                    'is_variant' => 0,
-                ],
-            );
+            $variant = ProductVariant::where('product_id', $id)->where('is_variant', 0)->first()
+                ?? ProductVariant::where('product_id', $id)->first()
+                ?? new ProductVariant();
+
+            $variant->product_id = $id;
+            $variant->sku = $request->product_sku;
+            $variant->is_variant = 0;
+            $variant->save();
         }
 
-        // Handle variable product variations
+        // Variable product: create/update variants scoped to THIS product.
         if ($request->filled('variation_sku') && $request->filled('variation_values')) {
             foreach ($request->variation_sku as $index => $variationSku) {
                 $variationJson = json_decode(urldecode($request->variation_values[$index]), true);
 
-                ProductVariant::firstOrCreate(
-                    ['sku' => $variationSku], // check uniqueness on sku
+                ProductVariant::updateOrCreate(
+                    ['product_id' => $id, 'sku' => $variationSku],
                     [
-                        'product_id' => $product->id,
                         'is_variant' => 1,
                         'variation_values' => $variationJson ? json_encode($variationJson) : null,
                     ],
                 );
             }
         }
+
+        \Illuminate\Support\Facades\Cache::forget('front_search_products');
 
         return response()->json([
             'status' => true,
@@ -211,6 +215,7 @@ class NewProductController extends Controller
         $variant = ProductVariant::find($id);
 
         $variant->delete();
+        \Illuminate\Support\Facades\Cache::forget('front_search_products');
         return redirect()->back()->with('success', 'Unit Deleted successfully!');
     }
 
@@ -226,6 +231,8 @@ class NewProductController extends Controller
         $new_product->delete();
 
         // return redirect()->back()->with('success', 'Product and its variants deleted successfully!');
+
+        \Illuminate\Support\Facades\Cache::forget('front_search_products');
 
         return response()->json([
             'status' => true,

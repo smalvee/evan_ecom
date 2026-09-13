@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -19,22 +18,18 @@ class UserProfile extends Controller
     public function index()
     {
         $user = Auth::user();
-        $products = Product::latest('id')->where('status', 1)->where('qty', '>=', 1)->with('product_image')->get();
         $cartContent = Cart::content();
         $categories = Category::latest('id')->get();
-
-        $user = Auth::user();
 
         $orders = Order::select('orders.*')->where('user_id', $user->id)->get();
 
         // dd($orders);
 
         $data['orders'] = $orders;
-        $data['products'] = $products;
         $data['user'] = $user;
         $data['categories'] = $categories;
         $data['cartContent'] = $cartContent;
-        return view('front.account.profile', $data);
+        return view('front.account.new_profile', $data);
     }
 
     public function update(Request $request)
@@ -60,7 +55,6 @@ class UserProfile extends Controller
             $user->name = $request->name;
             $user->email = $request->email;
             $user->phone = $request->phone;
-            $user->role = 1;
             $user->save();
 
             $request->session()->flash('success', 'User profile updated succesfully');

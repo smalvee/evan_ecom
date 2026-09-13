@@ -466,7 +466,7 @@
                                         <td>{{ $variant->sku }}</td>
                                         <td>{{ $variant->qty }}</td>
                                         <td>
-                                            @if ($variant->qty <= 2)
+                                            @if ((int) $variant->qty <= 2)
                                                 <span class="a-badge a-badge-danger"><span class="dot"></span>Critical</span>
                                             @else
                                                 <span class="a-badge a-badge-warning"><span class="dot"></span>Low Stock</span>

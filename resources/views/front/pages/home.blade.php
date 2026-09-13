@@ -320,7 +320,7 @@
 
                                                 </a>
                                                 <h5 class="price theme-color">৳ {{ $product_details->selling_price }}
-                                                    @if ($product_details->selling_price < $product_details->compare_price)
+                                                    @if ((float) $product_details->selling_price < (float) $product_details->compare_price)
                                                         <del>৳ {{ $product_details->compare_price }}</del>
                                                     @endif
                                                 </h5>
@@ -425,7 +425,7 @@
                                                             {{ $product_details->selling_price }}
 
 
-                                                            @if ($product_details->selling_price < $product_details->compare_price)
+                                                            @if ((float) $product_details->selling_price < (float) $product_details->compare_price)
                                                                 <del>৳ {{ $product_details->compare_price }}</del>
                                                             @endif
 

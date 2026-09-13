@@ -27,7 +27,7 @@ class FrontController extends Controller
         $data['cartContent'] = $cartContent;
         $data['banner'] = $banner;
         // dd($cartContent);
-        return view('front.home', $data);
+        return view('front.pages.home', $data);
     }
 
     public function Product_details($slug)
@@ -58,7 +58,7 @@ class FrontController extends Controller
         $data['categories'] = $categories;
         $data['cartContent'] = $cartContent;
 
-        return view('front.product_details', $data);
+        return view('front.pages.product_details', $data);
     }
 
     public function shop_page($category_id)
@@ -84,57 +84,38 @@ class FrontController extends Controller
         $data['cartContent'] = $cartContent;
         $data['brandList'] = $brandList;
 
-        return view('front.shop', $data);
+        return view('front.pages.shop', $data);
     }
 
     public function shop_page_offerZone($is_offered)
     {
-        $categories = Category::latest('id')->get();
-        $brandList = Brand::get();
-        // $selectedCategory = Category::where('id', $category_id)->first();
-        $products = Product::where('is_offered', $is_offered)->where('status', 1)->with('product_image')->get();
-        $cartContent = Cart::content();
-
-        // dd($selectedCategory);
-
-        // if (!empty($request->get('keyword'))) {
-        //     $categories = $categories->where('name', 'like', '%' . $request->get('keyword') . '%');
-        // }
-
-        // $products = $query->paginate(20);
-
-        $data = [];
-        $data['products'] = $products;
-        $data['categories'] = $categories;
-        // $data['selectedCategory'] = $selectedCategory;
-        $data['cartContent'] = $cartContent;
-        $data['brandList'] = $brandList;
-
-        return view('front.shop', $data);
+        // Offer zone used the legacy product system; consolidate to the hot-products shop.
+        return redirect()->route('product_shop.home', 'hot-products');
     }
 
     public function trackOrderPage()
     {
-        $products = Product::latest('id')->where('status', 1)->where('qty', '>=', 1)->with('product_image')->get();
-
         $categories = Category::latest('id')->get();
         $cartContent = Cart::content();
 
         $data = [];
-        $data['products'] = $products;
         $data['categories'] = $categories;
         $data['cartContent'] = $cartContent;
 
-        return view('front.trac_order', $data);
+        return view('front.pages.track_order', $data);
     }
 
     public function trackOrder(Request $request)
     {
         $request->validate([
             'order_id' => 'required|numeric',
+            'phone' => 'required',
         ]);
 
-        $order = Order::where('order_id', $request->order_id)->first();
+        // Require the phone to match so orders cannot be enumerated by ID alone.
+        $order = Order::where('order_id', $request->order_id)
+            ->where('phone', $request->phone)
+            ->first();
 
         if (!$order) {
             return response()->json([

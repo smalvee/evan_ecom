@@ -133,8 +133,8 @@ class UserController extends Controller
         if (empty($user)) {
             $request->session()->flash('error', 'User not Found');
             return response()->json([
-                'status' => true,
-                'message' => 'Category Not found',
+                'status' => false,
+                'message' => 'User not found',
             ]);
         }
 

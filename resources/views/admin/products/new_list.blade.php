@@ -82,6 +82,9 @@ use App\Models\SubCategory;
 
                                     <td>
                                         <div class="a-actions-cell">
+                                            <a class="a-action-btn"
+                                                href="{{ route('admin.pricing.index', ['product_id' => $product_info->id]) }}"
+                                                title="Manage Pricing"><i class="ri-price-tag-3-line"></i></a>
                                             <a class="a-action-btn" href="{{ route('new_products.edit', $product_info->id) }}"><i
                                                 class="ri-pencil-line"></i></a>
 

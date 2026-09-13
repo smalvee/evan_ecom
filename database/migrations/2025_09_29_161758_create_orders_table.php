@@ -13,11 +13,13 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
+            $table->string('order_id', 50)->nullable();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->double('subtotal', 10,2);
             $table->double('shipping', 10,2);
             $table->string('coupon_code')->nullable();
             $table->double('discount', 10,2);
+            $table->integer('additional_discount')->default(0);
             $table->double('grand_total', 10,2);
 
 
@@ -26,7 +28,10 @@ return new class extends Migration
             $table->string('name');
             $table->string('phone');
             $table->text('address');
-            $table->text('notes');
+            $table->text('notes')->nullable();
+            $table->string('status', 11)->default('pending');
+            $table->string('admin_note', 500)->nullable();
+            $table->boolean('payment_status')->default(false);
 
             $table->timestamps();
         });

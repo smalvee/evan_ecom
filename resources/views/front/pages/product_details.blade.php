@@ -108,7 +108,7 @@
                                 <div class="price-rating">
                                     <h3 class="theme-color price">
                                         {{ $variants->first()->selling_price ?? 'As Pre Order' }} Tk
-                                        @if ($variants->first()->selling_price < $variants->first()->compare_price)
+                                        @if ((float) $variants->first()->selling_price < (float) $variants->first()->compare_price)
                                             <del>{{ $variants->first()->compare_price ?? 'As Pre Order' }} Tk</del>
                                         @endif
 
@@ -224,7 +224,7 @@
                                     <div class="tab-pane fade show active" id="description" role="tabpanel">
                                         <div class="product-description">
                                             <div class="nav-desh">
-                                                {!! $product_info->description !!}
+                                                {!! \App\Support\HtmlSanitizer::clean($product_info->description) !!}
                                             </div>
                                         </div>
                                     </div>
@@ -336,7 +336,7 @@
                                                 {{ $product_details->selling_price }}
 
 
-                                                @if ($product_details->selling_price < $product_details->compare_price)
+                                                @if ((float) $product_details->selling_price < (float) $product_details->compare_price)
                                                     <del>৳ {{ $product_details->compare_price }}</del>
                                                 @endif
 

@@ -8,7 +8,6 @@ use Gloudemans\Shoppingcart\Facades\Cart;
 use Illuminate\Http\Request;
 use App\Models\Category;
 use App\Models\CustomerAddress;
-use App\Models\Product;
 use App\Models\ShippingCharge;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -30,16 +29,14 @@ class PageInfoController extends Controller
         }
 
         $shippingCharge = ShippingCharge::all();
-        $products = Product::latest('id')->where('status', 1)->where('qty', '>=', 1)->with('product_image')->get();
 
         $data['cartContent'] = $cartContent;
         $data['customerAddress'] = $customerAddress;
         $data['shippingCharge'] = $shippingCharge;
-        $data['products'] = $products;
         $data['categories'] = $categories;
         $data['about_us'] = $about_us;
 
-        return view('front.pageinfo.aboutus', $data);
+        return view('front.pages.about_us', $data);
     }
 
     public function ViewReturnPolicy()
@@ -57,15 +54,13 @@ class PageInfoController extends Controller
         }
 
         $shippingCharge = ShippingCharge::all();
-        $products = Product::latest('id')->where('status', 1)->where('qty', '>=', 1)->with('product_image')->get();
 
         $data['cartContent'] = $cartContent;
         $data['customerAddress'] = $customerAddress;
         $data['shippingCharge'] = $shippingCharge;
-        $data['products'] = $products;
         $data['categories'] = $categories;
         $data['about_us'] = $about_us;
-        return view('front.pageinfo.returnpolicy', $data);
+        return view('front.pages.return_policy', $data);
     }
 
     public function ViewRefundPolicy()
@@ -85,15 +80,13 @@ class PageInfoController extends Controller
         }
 
         $shippingCharge = ShippingCharge::all();
-        $products = Product::latest('id')->where('status', 1)->where('qty', '>=', 1)->with('product_image')->get();
 
         $data['cartContent'] = $cartContent;
         $data['customerAddress'] = $customerAddress;
         $data['shippingCharge'] = $shippingCharge;
-        $data['products'] = $products;
         $data['categories'] = $categories;
         $data['about_us'] = $about_us;
-        return view('front.pageinfo.refundpolicy', $data);
+        return view('front.pages.refund_policy', $data);
     }
 
     public function displayaboutus()

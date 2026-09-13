@@ -9,10 +9,13 @@ class OrderItem extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['order_id', 'product_id', 'name', 'qty', 'price', 'discount', 'total', 'free_delivery'];
+    protected $fillable = ['order_id', 'product_id', 'name', 'qty', 'price', 'cost_price', 'discount', 'total', 'free_delivery'];
 
     protected $casts = [
         'free_delivery' => 'boolean',
+        'price' => 'float',
+        'cost_price' => 'float',
+        'total' => 'float',
     ];
 
     /**

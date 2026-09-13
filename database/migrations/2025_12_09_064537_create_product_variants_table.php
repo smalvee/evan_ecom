@@ -12,9 +12,11 @@ return new class extends Migration {
     {
         Schema::create('product_variants', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('product_id')->constrained('new_products')->onDelete('cascade');
+            $table->unsignedBigInteger('product_id')->nullable();
             $table->string('sku')->unique();
             $table->boolean('is_variant')->default(false);
+            $table->string('variation_sku', 200)->nullable();
+            $table->longText('variation_values')->nullable();
             $table->string('purchase_price')->nullable();
             $table->string('selling_price')->nullable();
             $table->string('compare_price')->nullable();

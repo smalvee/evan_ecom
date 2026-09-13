@@ -493,8 +493,9 @@ class ReportController extends Controller
                 $rows = $this->reports->inventoryList($filters, 10, 100000);
                 $data = collect($rows->items())->map(function ($v) {
                     $qty = (int) $v->qty;
-                    $value = $qty > 0 ? $qty * (float) $v->purchase_price : 0;
-                    return [$v->product, $v->sku, $v->category, $qty, (float) $v->purchase_price, $value];
+                    $cost = (float) ($v->average_cost ?? $v->purchase_price);
+                    $value = $qty > 0 ? $qty * $cost : 0;
+                    return [$v->product, $v->sku, $v->category, $qty, $cost, $value];
                 })->all();
                 return [['Product', 'SKU', 'Category', 'Stock', 'Purchase Cost', 'Stock Value'], $data];
 

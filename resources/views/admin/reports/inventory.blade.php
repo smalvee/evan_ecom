@@ -32,7 +32,7 @@
                 ['label' => 'Total Stock Units', 'value' => number_format($summary['units']), 'icon' => 'ri-stack-line', 'color' => 'info'],
                 ['label' => 'Low Stock', 'value' => number_format($summary['low_stock']), 'icon' => 'ri-alert-line', 'color' => 'warning', 'sub' => '≤ ' . $summary['threshold'] . ' units', 'delta' => 'flat'],
                 ['label' => 'Out of Stock', 'value' => number_format($summary['out_of_stock']), 'icon' => 'ri-close-circle-line', 'color' => 'danger'],
-                ['label' => 'Stock Value (at cost)', 'value' => '৳ ' . number_format($summary['stock_value'], 0), 'icon' => 'ri-money-dollar-circle-line', 'color' => 'success', 'hint' => 'Positive stock × variant purchase price.'],
+                ['label' => 'Stock Value (at cost)', 'value' => '৳ ' . number_format($summary['stock_value'], 0), 'icon' => 'ri-money-dollar-circle-line', 'color' => 'success', 'hint' => 'Positive stock × current weighted-average cost.'],
             ],
         ])
 
@@ -58,7 +58,8 @@
                         @forelse ($variants as $index => $v)
                             @php
                                 $qty = (int) $v->qty;
-                                $value = $qty > 0 ? $qty * (float) $v->purchase_price : 0;
+                                $cost = (float) ($v->average_cost ?? $v->purchase_price);
+                                $value = $qty > 0 ? $qty * $cost : 0;
                             @endphp
                             <tr>
                                 <td>{{ $variants->firstItem() + $index }}</td>
@@ -66,7 +67,7 @@
                                 <td>{{ $v->sku ?? '—' }}</td>
                                 <td>{{ $v->category ?? '—' }}</td>
                                 <td class="a-table-num">{{ number_format($qty) }}</td>
-                                <td class="a-table-num">৳ {{ number_format((float) $v->purchase_price, 2) }}</td>
+                                <td class="a-table-num">৳ {{ number_format($cost, 2) }}</td>
                                 <td class="a-table-num">৳ {{ number_format($value, 2) }}</td>
                                 <td>
                                     @if ($qty <= 0)
