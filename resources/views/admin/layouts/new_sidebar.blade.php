@@ -18,6 +18,7 @@
         'units' => $routeIs('units.*'),
         'variations' => $routeIs('variation.*', 'variations.*'),
         'pricing' => $routeIs('admin.pricing.*'),
+        'adjustments' => $routeIs('admin.adjustments.*'),
 
         'orders_parent' => $routeIs('orders.*'),
         'orders_list' => $routeIs('orders.index', 'orders.details', 'orders.delete', 'orders.changeStatus', 'orders.address_update', 'orders.order_update', 'orders.update_full', 'orders.paymentStatus'),
@@ -175,6 +176,13 @@
                             href="{{ route('admin.pricing.index') }}">
                             <i class="ri-price-tag-3-line"></i>
                             <span>Pricing</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-list {{ $active['adjustments'] ? 'active' : '' }}">
+                        <a class="sidebar-link sidebar-title link-nav {{ $active['adjustments'] ? 'active' : '' }}"
+                            href="{{ route('admin.adjustments.index') }}">
+                            <i class="ri-scales-3-line"></i>
+                            <span>Stock Adjustment</span>
                         </a>
                     </li>
 

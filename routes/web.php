@@ -14,6 +14,7 @@ use App\Http\Controllers\admin\OrderController;
 use App\Http\Controllers\admin\PageInfoController;
 use App\Http\Controllers\admin\PreOrderController;
 use App\Http\Controllers\admin\ProductController;
+use App\Http\Controllers\admin\ProductAdjustmentController;
 use App\Http\Controllers\admin\ProductPricingController;
 use App\Http\Controllers\admin\ProductSubCategoryController;
 use App\Http\Controllers\admin\PurchaseController;
@@ -328,6 +329,12 @@ Route::group(['prefix' => 'admin'], function () {
         Route::get('/product-pricing', [ProductPricingController::class, 'index'])->name('admin.pricing.index');
         Route::post('/product-pricing/{variant}', [ProductPricingController::class, 'update'])->name('admin.pricing.update');
         Route::get('/product-pricing/{variant}/history', [ProductPricingController::class, 'history'])->name('admin.pricing.history');
+
+        // Product stock adjustments (increase / decrease / correction)
+        Route::get('/product-adjustments', [ProductAdjustmentController::class, 'index'])->name('admin.adjustments.index');
+        Route::get('/product-adjustments/create', [ProductAdjustmentController::class, 'create'])->name('admin.adjustments.create');
+        Route::post('/product-adjustments', [ProductAdjustmentController::class, 'store'])->name('admin.adjustments.store');
+        Route::get('/product-adjustments/{id}', [ProductAdjustmentController::class, 'show'])->name('admin.adjustments.show');
 
         // temporary image create
         Route::post('/upload-temp-image', [TempImagesController::class, 'create'])->name('temp-images.create');

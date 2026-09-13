@@ -101,6 +101,22 @@ Tests run against a dedicated MySQL DB `evan_ecom_test` (set in `phpunit.xml`); 
 - **`ProductController::create` / `NewProductController::edit`** pass `$variationData` (and
   `$variantsForJs` on edit) for the form JS. Pricing/stock are intentionally not on this form.
 
+### Product stock adjustments
+- Admin module `/admin/product-adjustments` (`ProductAdjustmentController`, views in
+  `resources/views/admin/adjustments/*`). Create / List / View only — no edit/delete.
+- Types (`ProductAdjustment::types()`): `increase`, `decrease`, `correction`. Increase/decrease use a
+  quantity; correction takes the **actual physical stock** (works even when system stock is negative).
+- `App\Services\ProductAdjustmentService::adjust()` is the authority: inside a transaction it locks
+  the variant, reads the existing stock field `product_variants.qty` as `stock_before`, computes the
+  signed adjustment, validates (decrease cannot go negative; actual stock >= 0), updates `qty`, and
+  writes the history row. Browser values for `current_stock`/`stock_before`/`stock_after`/
+  `adjustment` are ignored.
+- `product_adjustments` stores `adjustment_no` (`ADJ-000001`), product_id, variant_id, type, signed
+  `quantity`, stock_before/after, `actual_stock` (correction only), reason, note, created_by.
+- The create form reuses `admin.partials.product-search` (ProductAutocomplete); its live preview is
+  UX only. The existing stock field is never duplicated. Reasons: Stock Correction / Damaged / Lost /
+  Found Stock / Other.
+
 ### Customer account area (storefront)
 - Routes (auth `web` guard): `account.userDashboard`, `account.orders` (new, paginated history),
   `account.orderDetails/{order_id}`, `account.profile` (+ `profileUpdate`/`updatePassword`),
