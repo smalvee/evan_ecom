@@ -12,6 +12,7 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 /**
  * The ONLY place that knows Steadfast-specific endpoints, headers, payload
@@ -96,7 +97,8 @@ class SteadfastCourier implements CourierInterface
             'cod_amount' => CourierPricing::codAmount($order),
             'item_description' => CourierPricing::itemDescription($order),
             'total_lot' => CourierPricing::totalLot($order),
-            'delivery_type' => 'home',
+            // Steadfast expects an integer: 0 = home delivery, 1 = hub/point.
+            'delivery_type' => 0,
         ];
 
         // Only send optional fields that actually exist on the order.
@@ -122,8 +124,9 @@ class SteadfastCourier implements CourierInterface
 
     protected function baseUrl(): string
     {
-        $url = $this->config['base_url']
-            ?? config('courier.providers.steadfast.base_url');
+        // A custom URL saved in Courier Settings wins, then the config default.
+        $url = $this->setting->base_url
+            ?: ($this->config['base_url'] ?? config('courier.providers.steadfast.base_url'));
 
         return rtrim((string) $url, '/');
     }
@@ -135,8 +138,26 @@ class SteadfastCourier implements CourierInterface
                 ? $this->client()->post($path, $payload)
                 : $this->client()->get($path);
         } catch (ConnectionException $e) {
-            return CourierResponse::failure('Unable to connect to Steadfast. Please try again.');
+            // The request never reached Steadfast (DNS/SSL/timeout/firewall).
+            // Log the technical reason (no secrets) so it is diagnosable.
+            Log::warning('courier.connection_failed', [
+                'provider' => 'steadfast',
+                'operation' => $operation,
+                'base_url' => $this->baseUrl(),
+                'error' => $e->getMessage(),
+            ]);
+
+            return CourierResponse::failure(
+                'Unable to connect to Steadfast. Please check the API base URL and the server internet connection.'
+            );
         } catch (\Throwable $e) {
+            Log::warning('courier.request_failed', [
+                'provider' => 'steadfast',
+                'operation' => $operation,
+                'base_url' => $this->baseUrl(),
+                'error' => $e->getMessage(),
+            ]);
+
             return CourierResponse::failure('Unable to reach Steadfast. Please try again.');
         }
 
@@ -144,6 +165,25 @@ class SteadfastCourier implements CourierInterface
     }
 
     protected function interpret(Response $response, string $operation): CourierResponse
+    {
+        $result = $this->interpretResponse($response, $operation);
+
+        if (!$result->success) {
+            // Log the provider's actual response (sanitised, no secrets) so a
+            // rejected request is diagnosable.
+            Log::warning('courier.api_error', [
+                'provider' => 'steadfast',
+                'operation' => $operation,
+                'http_status' => $response->status(),
+                'message' => $result->message,
+                'response' => $result->raw,
+            ]);
+        }
+
+        return $result;
+    }
+
+    protected function interpretResponse(Response $response, string $operation): CourierResponse
     {
         $status = $response->status();
         $json = $response->json();
@@ -175,12 +215,12 @@ class SteadfastCourier implements CourierInterface
         }
 
         if (!$response->successful()) {
-            return CourierResponse::failure($json['message'] ?? 'Steadfast request failed.', [], $raw, $status);
+            return CourierResponse::failure($this->providerErrorMessage($json, 'Steadfast request failed.'), [], $raw, $status);
         }
 
         // Steadfast also returns an internal `status` code in the body.
         if (isset($json['status']) && (int) $json['status'] !== 200) {
-            return CourierResponse::failure($json['message'] ?? 'Steadfast rejected the request.', [], $raw, $status);
+            return CourierResponse::failure($this->providerErrorMessage($json, 'Steadfast rejected the request.'), [], $raw, $status);
         }
 
         if ($operation === 'test_connection') {
@@ -236,5 +276,26 @@ class SteadfastCourier implements CourierInterface
         }
 
         return $message;
+    }
+
+    /**
+     * Best-effort human message from a provider error body: its `message`,
+     * otherwise the first validation error, otherwise the fallback.
+     */
+    protected function providerErrorMessage(array $json, string $fallback): string
+    {
+        if (!empty($json['message']) && is_string($json['message'])) {
+            return $json['message'];
+        }
+
+        if (!empty($json['errors']) && is_array($json['errors'])) {
+            $first = collect($json['errors'])->flatten()->first();
+
+            if ($first) {
+                return $fallback . ' ' . $first;
+            }
+        }
+
+        return $fallback;
     }
 }

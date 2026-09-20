@@ -15,6 +15,130 @@
             inset: 0;
             z-index: 10;
         }
+
+        /* ---------- Shop By Categories: compact responsive grid ---------- */
+        .category-section-3 .shop-categories-grid {
+            display: grid;
+            grid-template-columns: repeat(8, minmax(0, 1fr));
+            gap: 16px 14px;
+        }
+
+        .category-section-3 .shop-category-tile {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100%;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .category-section-3 .shop-category-tile-img {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #f1f1f3;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, .06);
+            transition: transform .25s ease, box-shadow .25s ease;
+        }
+
+        .category-section-3 .shop-category-tile:hover .shop-category-tile-img {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(15, 23, 42, .12);
+        }
+
+        .category-section-3 .shop-category-tile-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            /* These images load via src; the theme's blur-up would never resolve. */
+            -webkit-filter: none !important;
+            filter: none !important;
+        }
+
+        .category-section-3 .shop-category-tile-img .tile-fallback {
+            color: #b8bec7;
+        }
+
+        .category-section-3 .shop-category-tile-img .tile-fallback svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .category-section-3 .shop-category-tile-name {
+            margin-top: 7px;
+            font-size: 13px;
+            font-weight: 600;
+            line-height: 1.3;
+            min-height: calc(2 * 1.3em);
+            color: #222;
+            text-align: center;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            overflow-wrap: anywhere;
+        }
+
+        /* Large tablet */
+        @media (max-width: 1199.98px) {
+            .category-section-3 .shop-categories-grid {
+                grid-template-columns: repeat(7, minmax(0, 1fr));
+            }
+        }
+
+        /* Tablet */
+        @media (max-width: 991.98px) {
+            .category-section-3 .shop-categories-grid {
+                grid-template-columns: repeat(6, minmax(0, 1fr));
+                gap: 14px 12px;
+            }
+        }
+
+        /* Small tablet */
+        @media (max-width: 767.98px) {
+            .category-section-3 .shop-categories-grid {
+                grid-template-columns: repeat(5, minmax(0, 1fr));
+                gap: 12px 10px;
+            }
+
+            .category-section-3 .shop-category-tile-img {
+                border-radius: 10px;
+            }
+
+            .category-section-3 .shop-category-tile-name {
+                margin-top: 6px;
+                font-size: 12px;
+            }
+        }
+
+        /* Mobile: horizontal scroll strip (≈3 tiles visible, swipe for more) */
+        @media (max-width: 575.98px) {
+            .category-section-3 .shop-categories-grid {
+                display: flex;
+                flex-wrap: nowrap;
+                gap: 10px;
+                overflow-x: auto;
+                overflow-y: hidden;
+                padding: 2px 0 6px;
+                scroll-snap-type: x proximity;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+            }
+
+            .category-section-3 .shop-categories-grid::-webkit-scrollbar {
+                display: none;
+            }
+
+            .category-section-3 .shop-category-tile {
+                flex: 0 0 30%;
+                scroll-snap-align: start;
+            }
+        }
     </style>
     <!-- Home Section Start -->
     <section class="home-section-2 home-section-bg pt-0 overflow-hidden">
@@ -67,38 +191,24 @@
             <div class="title">
                 <h2>Shop By Categories</h2>
             </div>
-            <div class="row">
-                <div class="col-12">
-                    <div class="category-slider-1 arrow-slider wow fadeInUp">
-                        @if (!empty($categories))
-                            @foreach ($categories as $category)
-                                <div>
-                                    <div class="category-box-list">
-                                        <a href="{{ route('product_shop.home', $category->slug) }}" class="category-name">
-                                            <h4>{{ \Illuminate\Support\Str::limit($category->name, 8) }}</h4>
-                                            {{-- <h6>29 items</h6> --}}
-                                        </a>
-                                        <div class="category-box-view">
-                                            <a href="{{ route('product_shop.home', $category->slug) }}">
-                                                @if (!empty($category->image))
-                                                    <img src="{{ asset('uploads/category/' . $category->image) }}"
-                                                        class="img-fluid blur-up lazyload" alt="">
-                                                @endif
-                                            </a>
-                                            <button
-                                                onclick="location.href = '{{ route('product_shop.home', $category->slug) }}';"
-                                                class="btn shop-button">
-                                                <span>Shop Now</span>
-                                                <i class="fas fa-angle-right"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
-                        @endif
-                    </div>
+            @if (!empty($categories))
+                <div class="shop-categories-grid wow fadeInUp">
+                    @foreach ($categories as $category)
+                        <a href="{{ route('product_shop.home', $category->slug) }}" class="shop-category-tile"
+                            title="{{ $category->name }}">
+                            <span class="shop-category-tile-img">
+                                @if (!empty($category->image))
+                                    <img src="{{ asset('uploads/category/' . $category->image) }}" class="img-fluid"
+                                        loading="lazy" alt="{{ $category->name }}">
+                                @else
+                                    <span class="tile-fallback"><i data-feather="image"></i></span>
+                                @endif
+                            </span>
+                            <span class="shop-category-tile-name">{{ $category->name }}</span>
+                        </a>
+                    @endforeach
                 </div>
-            </div>
+            @endif
         </div>
     </section>
 

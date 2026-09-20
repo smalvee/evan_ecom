@@ -8,6 +8,12 @@
     $hasShipment = (bool) $courierShipment;
     $isActive = $hasShipment && $courierShipment->isActive();
     $status = $courierShipment->status ?? null;
+    // Can (re)send whenever there is no active shipment — a released/cancelled
+    // shipment is history and must not block a new one.
+    $canSend = !$isActive;
+    // Only Confirmed orders may be sent to the courier (enforced server-side too).
+    $orderConfirmed = $order->status === 'confirm';
+    $sendDisabled = !$orderConfirmed;
     $canCancel = $isActive && !$courierShipment->isDelivered() && !$courierShipment->isCancelled();
 @endphp
 
@@ -15,6 +21,7 @@
     data-create-url="{{ route('admin.orders.courier.create', $order->id) }}"
     data-status-url="{{ route('admin.orders.courier.status', $order->id) }}"
     data-cancel-url="{{ route('admin.orders.courier.cancel', $order->id) }}"
+    data-release-url="{{ route('admin.orders.courier.release', $order->id) }}"
     data-simulate-url="{{ route('admin.orders.courier.simulate', $order->id) }}"
     data-mode="{{ $courierMode }}">
     <div class="a-card-head">
@@ -32,6 +39,13 @@
     <div class="a-card-body">
         <div id="courierAlert" class="mb-3" hidden></div>
 
+        @if ($sendDisabled)
+            <div class="alert alert-warning py-2 px-3 small mb-3">
+                <i class="ri-lock-line"></i> Only confirmed orders can be sent to the courier. Change the order status
+                to <strong>Confirmed</strong> first.
+            </div>
+        @endif
+
         @if (!$hasShipment)
             <div class="courier-empty d-flex flex-wrap justify-content-between align-items-end gap-3">
                 <div class="courier-meta">
@@ -40,7 +54,8 @@
                     <div class="courier-meta-row"><span>COD</span><strong>৳
                             {{ number_format(CourierPricing::codAmount($order), 2) }}</strong></div>
                 </div>
-                <button type="button" class="btn btn-theme" id="courierSendBtn">
+                <button type="button" class="btn btn-theme" id="courierSendBtn"
+                    {{ $sendDisabled ? 'disabled' : '' }}>
                     <i class="ri-send-plane-line"></i> Send to Courier
                 </button>
             </div>
@@ -70,13 +85,34 @@
                 </div>
             </div>
 
+            @if ($canSend && $orderConfirmed)
+                <div class="alert alert-secondary py-2 px-3 small mt-3 mb-0">
+                    <i class="ri-information-line"></i> The shipment above is no longer active. You can send this order
+                    to the courier again.
+                </div>
+            @endif
+
             <div class="d-flex flex-wrap gap-2 mt-3">
-                <button type="button" class="btn btn-outline-secondary btn-sm" id="courierRefreshBtn">
-                    <i class="ri-refresh-line"></i> Refresh Status
-                </button>
+                @if ($canSend)
+                    <button type="button" class="btn btn-theme btn-sm" id="courierSendBtn"
+                        {{ $sendDisabled ? 'disabled' : '' }}>
+                        <i class="ri-send-plane-line"></i> Send to Courier
+                    </button>
+                @endif
+                @if ($isActive)
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="courierRefreshBtn">
+                        <i class="ri-refresh-line"></i> Refresh Status
+                    </button>
+                @endif
                 @if ($canCancel)
                     <button type="button" class="btn btn-outline-danger btn-sm" id="courierCancelBtn">
                         <i class="ri-close-circle-line"></i> Cancel Shipment
+                    </button>
+                @endif
+                @if ($isActive)
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="courierReleaseBtn"
+                        title="Remove this shipment from your side only. Use when the consignment was deleted at the courier.">
+                        <i class="ri-arrow-go-back-line"></i> Release Shipment
                     </button>
                 @endif
             </div>

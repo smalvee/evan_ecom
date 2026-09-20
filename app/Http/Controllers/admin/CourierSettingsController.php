@@ -16,10 +16,12 @@ class CourierSettingsController extends Controller
     {
         $setting = CourierSetting::current();
         $providers = config('courier.providers', []);
+        $defaultBaseUrl = config('courier.providers.steadfast.base_url');
 
         return view('admin.courier.settings', [
             'setting' => $setting,
             'providers' => $providers,
+            'defaultBaseUrl' => $defaultBaseUrl,
         ]);
     }
 
@@ -28,6 +30,7 @@ class CourierSettingsController extends Controller
         $data = $request->validate([
             'provider' => 'required|string|in:' . implode(',', array_keys(config('courier.providers', ['steadfast' => []]))),
             'mode' => 'required|in:test,live',
+            'base_url' => 'nullable|url|max:255',
             'api_key' => 'nullable|string|max:255',
             'secret_key' => 'nullable|string|max:255',
             'is_active' => 'nullable|boolean',
@@ -36,6 +39,8 @@ class CourierSettingsController extends Controller
         $setting = CourierSetting::forProvider($data['provider']);
         $setting->provider = $data['provider'];
         $setting->mode = $data['mode'];
+        // Blank (or absent) clears the override, falling back to the config default.
+        $setting->base_url = ($data['base_url'] ?? null) ?: null;
         // The form always posts is_active (hidden 0 + checkbox 1), so an
         // unchecked box correctly resolves to false.
         $setting->is_active = $request->boolean('is_active');
@@ -74,7 +79,11 @@ class CourierSettingsController extends Controller
         $setting->provider = $provider;
         $setting->mode = $request->input('mode', $setting->mode ?: CourierSetting::MODE_TEST);
 
-        // Allow testing credentials before they are persisted.
+        // Allow testing credentials / base URL before they are persisted.
+        if ($request->filled('base_url')) {
+            $setting->base_url = $request->input('base_url');
+        }
+
         if ($request->filled('api_key')) {
             $setting->api_key = $request->input('api_key');
         }

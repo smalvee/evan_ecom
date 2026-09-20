@@ -1,78 +1,195 @@
 @extends('front.layouts.new_app')
 
 @section('content')
-<section class="breadcrumb-section pt-0">
-        <div class="container-fluid-lg">
-            <div class="row">
-                <div class="col-12">
-                    <div class="breadcrumb-contain breadcrumb-order">
-                        <div class="order-box">
-                            <div class="order-image">
-                                <div class="checkmark">
-                                    <svg class="star" height="19" viewBox="0 0 19 19" width="19"
-                                        xmlns="http://www.w3.org/2000/svg">
-                                        <path
-                                            d="M8.296.747c.532-.972 1.393-.973 1.925 0l2.665 4.872 4.876 2.66c.974.532.975 1.393 0 1.926l-4.875 2.666-2.664 4.876c-.53.972-1.39.973-1.924 0l-2.664-4.876L.76 10.206c-.972-.532-.973-1.393 0-1.925l4.872-2.66L8.296.746z">
-                                        </path>
-                                    </svg>
-                                    <svg class="star" height="19" viewBox="0 0 19 19" width="19"
-                                        xmlns="http://www.w3.org/2000/svg">
-                                        <path
-                                            d="M8.296.747c.532-.972 1.393-.973 1.925 0l2.665 4.872 4.876 2.66c.974.532.975 1.393 0 1.926l-4.875 2.666-2.664 4.876c-.53.972-1.39.973-1.924 0l-2.664-4.876L.76 10.206c-.972-.532-.973-1.393 0-1.925l4.872-2.66L8.296.746z">
-                                        </path>
-                                    </svg>
-                                    <svg class="star" height="19" viewBox="0 0 19 19" width="19"
-                                        xmlns="http://www.w3.org/2000/svg">
-                                        <path
-                                            d="M8.296.747c.532-.972 1.393-.973 1.925 0l2.665 4.872 4.876 2.66c.974.532.975 1.393 0 1.926l-4.875 2.666-2.664 4.876c-.53.972-1.39.973-1.924 0l-2.664-4.876L.76 10.206c-.972-.532-.973-1.393 0-1.925l4.872-2.66L8.296.746z">
-                                        </path>
-                                    </svg>
-                                    <svg class="star" height="19" viewBox="0 0 19 19" width="19"
-                                        xmlns="http://www.w3.org/2000/svg">
-                                        <path
-                                            d="M8.296.747c.532-.972 1.393-.973 1.925 0l2.665 4.872 4.876 2.66c.974.532.975 1.393 0 1.926l-4.875 2.666-2.664 4.876c-.53.972-1.39.973-1.924 0l-2.664-4.876L.76 10.206c-.972-.532-.973-1.393 0-1.925l4.872-2.66L8.296.746z">
-                                        </path>
-                                    </svg>
-                                    <svg class="star" height="19" viewBox="0 0 19 19" width="19"
-                                        xmlns="http://www.w3.org/2000/svg">
-                                        <path
-                                            d="M8.296.747c.532-.972 1.393-.973 1.925 0l2.665 4.872 4.876 2.66c.974.532.975 1.393 0 1.926l-4.875 2.666-2.664 4.876c-.53.972-1.39.973-1.924 0l-2.664-4.876L.76 10.206c-.972-.532-.973-1.393 0-1.925l4.872-2.66L8.296.746z">
-                                        </path>
-                                    </svg>
-                                    <svg class="star" height="19" viewBox="0 0 19 19" width="19"
-                                        xmlns="http://www.w3.org/2000/svg">
-                                        <path
-                                            d="M8.296.747c.532-.972 1.393-.973 1.925 0l2.665 4.872 4.876 2.66c.974.532.975 1.393 0 1.926l-4.875 2.666-2.664 4.876c-.53.972-1.39.973-1.924 0l-2.664-4.876L.76 10.206c-.972-.532-.973-1.393 0-1.925l4.872-2.66L8.296.746z">
-                                        </path>
-                                    </svg>
-                                    <svg class="checkmark__check" height="36" viewBox="0 0 48 36" width="48"
-                                        xmlns="http://www.w3.org/2000/svg">
-                                        <path
-                                            d="M47.248 3.9L43.906.667a2.428 2.428 0 0 0-3.344 0l-23.63 23.09-9.554-9.338a2.432 2.432 0 0 0-3.345 0L.692 17.654a2.236 2.236 0 0 0 .002 3.233l14.567 14.175c.926.894 2.42.894 3.342.01L47.248 7.128c.922-.89.922-2.34 0-3.23">
-                                        </path>
-                                    </svg>
-                                    <svg class="checkmark__background" height="115" viewBox="0 0 120 115" width="120"
-                                        xmlns="http://www.w3.org/2000/svg">
-                                        <path
-                                            d="M107.332 72.938c-1.798 5.557 4.564 15.334 1.21 19.96-3.387 4.674-14.646 1.605-19.298 5.003-4.61 3.368-5.163 15.074-10.695 16.878-5.344 1.743-12.628-7.35-18.545-7.35-5.922 0-13.206 9.088-18.543 7.345-5.538-1.804-6.09-13.515-10.696-16.877-4.657-3.398-15.91-.334-19.297-5.002-3.356-4.627 3.006-14.404 1.208-19.962C10.93 67.576 0 63.442 0 57.5c0-5.943 10.93-10.076 12.668-15.438 1.798-5.557-4.564-15.334-1.21-19.96 3.387-4.674 14.646-1.605 19.298-5.003C35.366 13.73 35.92 2.025 41.45.22c5.344-1.743 12.628 7.35 18.545 7.35 5.922 0 13.206-9.088 18.543-7.345 5.538 1.804 6.09 13.515 10.696 16.877 4.657 3.398 15.91.334 19.297 5.002 3.356 4.627-3.006 14.404-1.208 19.962C109.07 47.424 120 51.562 120 57.5c0 5.943-10.93 10.076-12.668 15.438z">
-                                        </path>
-                                    </svg>
-                                </div>
-                            </div>
+    <style>
+        .order-success-wrap {
+            background: #f6f7f9;
+            padding: 48px 16px 64px;
+        }
 
-                            <div class="order-contain">
-                                <h3 class="theme-color">Order Success</h3>
-                                <h6>Order ID: {{ $id }}</h6>
-                                <a href="{{ route('front.invoice', $id) }}"><h4 style="padding-top:5px; ">Invoice</h4></a>
-                            </div>
-                            
-                        </div>
-                    </div>
-                </div>
+        .order-success-card {
+            max-width: 620px;
+            margin: 0 auto;
+            background: #fff;
+            border: 1px solid #eceef2;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, .06);
+            padding: 44px 34px 40px;
+            text-align: center;
+        }
+
+        .order-success-icon {
+            width: 88px;
+            height: 88px;
+            margin: 0 auto 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(var(--theme-color-rgb, 217, 159, 70), .14);
+            color: var(--theme-color, #d99f46);
+        }
+
+        .order-success-icon svg {
+            width: 44px;
+            height: 44px;
+            stroke-width: 2.5;
+        }
+
+        .order-success-title {
+            font-size: 28px;
+            font-weight: 800;
+            color: #1b2430;
+            margin: 0 0 8px;
+            line-height: 1.2;
+        }
+
+        .order-success-text {
+            color: #6b7280;
+            font-size: 15px;
+            margin: 0 auto 26px;
+            max-width: 420px;
+        }
+
+        .order-id-box {
+            background: #faf7f2;
+            border: 1px dashed rgba(var(--theme-color-rgb, 217, 159, 70), .55);
+            border-radius: 12px;
+            padding: 18px 16px;
+            margin-bottom: 28px;
+        }
+
+        .order-id-label {
+            font-size: 12px;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            color: #8a8f98;
+            font-weight: 700;
+        }
+
+        .order-id-value {
+            font-size: 24px;
+            font-weight: 800;
+            color: #1b2430;
+            margin-top: 4px;
+            word-break: break-word;
+        }
+
+        .order-success-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .order-success-actions .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-width: 176px;
+            padding: 12px 22px;
+            border-radius: 10px;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        .order-success-actions svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .btn-order-primary {
+            background: var(--theme-color, #d99f46);
+            border: 1px solid var(--theme-color, #d99f46);
+            color: #fff;
+        }
+
+        .btn-order-primary:hover,
+        .btn-order-primary:focus {
+            background: var(--theme-color, #d99f46);
+            border-color: var(--theme-color, #d99f46);
+            color: #fff;
+            filter: brightness(.94);
+        }
+
+        .btn-order-outline {
+            background: #fff;
+            border: 1px solid #dfe3e8;
+            color: #1b2430;
+        }
+
+        .btn-order-outline:hover,
+        .btn-order-outline:focus {
+            border-color: var(--theme-color, #d99f46);
+            color: var(--theme-color, #d99f46);
+            background: #fff;
+        }
+
+        @media (max-width: 575.98px) {
+            .order-success-wrap {
+                padding: 28px 12px 44px;
+            }
+
+            .order-success-card {
+                padding: 30px 18px 28px;
+                border-radius: 14px;
+            }
+
+            .order-success-icon {
+                width: 72px;
+                height: 72px;
+                margin-bottom: 18px;
+            }
+
+            .order-success-icon svg {
+                width: 36px;
+                height: 36px;
+            }
+
+            .order-success-title {
+                font-size: 22px;
+            }
+
+            .order-id-value {
+                font-size: 20px;
+            }
+
+            .order-success-actions .btn {
+                width: 100%;
+                min-width: 0;
+            }
+        }
+    </style>
+
+    <section class="order-success-wrap">
+        <div class="order-success-card">
+            <div class="order-success-icon" aria-hidden="true">
+                <i data-feather="check"></i>
+            </div>
+
+            <h1 class="order-success-title">Order Success</h1>
+            <p class="order-success-text">
+                Your order has been placed successfully. We'll start processing it right away.
+            </p>
+
+            <div class="order-id-box">
+                <div class="order-id-label">Order ID</div>
+                <div class="order-id-value">{{ $id }}</div>
+            </div>
+
+            <div class="order-success-actions">
+                <a href="{{ route('front.invoice', $id) }}" class="btn btn-order-primary">
+                    <i data-feather="file-text"></i>
+                    <span>View Invoice</span>
+                </a>
+                <a href="{{ route('front.home') }}" class="btn btn-order-outline">
+                    <i data-feather="arrow-left"></i>
+                    <span>Continue Shopping</span>
+                </a>
             </div>
         </div>
     </section>
-
 @endsection
 
 @section('customJs')

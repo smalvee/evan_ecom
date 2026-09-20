@@ -183,7 +183,9 @@
                                     <span>৳ <span id="grandTotalText">0.00</span></span>
                                 </div>
                                 <small class="text-muted d-block mt-2">
-                                    Item discount affects the selling price, not the purchase amount.
+                                    Profit and discount are saved with the purchase record only. They do not
+                                    change the customer's selling price or MRP — set those in Catalog &rarr;
+                                    Pricing.
                                 </small>
 
                                 <input type="hidden" id="total_purchase" name="total_purchase">

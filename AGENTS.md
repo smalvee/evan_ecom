@@ -156,6 +156,11 @@ Tests run against a dedicated MySQL DB `evan_ecom_test` (set in `phpunit.xml`); 
   browser-supplied amounts are never trusted. `item_description`/`total_lot` come from order items.
 - Duplicate protection: lock the order row + `(order_id, active)` unique index. Creation runs the
   external request outside the DB transaction and deletes the reservation on failure.
+- The Steadfast API base URL is configurable: `courier_settings.base_url` (blank falls back to
+  `config('courier.providers.steadfast.base_url')`, env `STEADFAST_BASE_URL`). Editable on the
+  Courier Settings page. Connection failures are logged (`courier.connection_failed`) with the base
+  URL + cURL error (no secrets). NOTE: Steadfast's old `portal.steadfast.com.bd` host no longer
+  resolves (NXDOMAIN) — get the current URL from the Steadfast merchant panel (`/user/api`).
 - Admin: `/admin/settings/courier` (`CourierSettingsController` — settings, Test Connection) and
   order actions `admin.orders.courier.create|status|cancel|simulate` (`CourierShipmentController`).
   Order details renders `admin/orders/partials/courier.blade.php`; simulation buttons are Test-mode

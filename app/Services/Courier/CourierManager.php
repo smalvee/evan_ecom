@@ -207,6 +207,36 @@ class CourierManager
         return $response;
     }
 
+    /**
+     * Release a shipment locally without contacting the provider.
+     *
+     * Use when the consignment no longer exists at the courier (e.g. deleted in
+     * their portal). It frees the order's active slot so it can be re-sent.
+     */
+    public function releaseShipment(CourierShipment $shipment): CourierResponse
+    {
+        if (!$shipment->isActive()) {
+            return CourierResponse::failure('This shipment is not active.');
+        }
+
+        DB::transaction(function () use ($shipment) {
+            $shipment->status = 'cancelled';
+            $shipment->active = null;
+            $shipment->save();
+
+            $this->recordStatus(
+                $shipment,
+                'cancelled',
+                'Released locally — consignment is no longer active at the courier.',
+                ['released_locally' => true]
+            );
+        });
+
+        $this->log('release', $shipment->order, $shipment, true, null, 'Released locally.');
+
+        return CourierResponse::success('Shipment released. You can send this order to the courier again.');
+    }
+
     public function refreshStatus(CourierShipment $shipment): CourierResponse
     {
         try {
@@ -277,6 +307,11 @@ class CourierManager
 
     protected function validateOrder(Order $order): ?string
     {
+        // Only confirmed orders may be dispatched to the courier.
+        if ($order->status !== 'confirm') {
+            return 'Only confirmed orders can be sent to the courier.';
+        }
+
         if (blank($order->name)) {
             return 'Order is missing a recipient name.';
         }

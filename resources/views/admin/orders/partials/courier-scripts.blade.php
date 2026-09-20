@@ -191,6 +191,33 @@
             });
         }
 
+        /* ---------- Release shipment (local only) ---------- */
+        var releaseBtn = document.getElementById('courierReleaseBtn');
+        if (releaseBtn) {
+            releaseBtn.addEventListener('click', function() {
+                Swal.fire({
+                    title: 'Release shipment?',
+                    text: 'Removes the shipment from your side only (no Steadfast call). Use this when the consignment was deleted at Steadfast so the order can be sent again.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#0da487',
+                    confirmButtonText: 'Release',
+                    cancelButtonText: 'Keep'
+                }).then(function(res) {
+                    if (!res.isConfirmed) return;
+
+                    post(card.dataset.releaseUrl, {
+                        _token: token
+                    }, releaseBtn, 'Releasing…').done(function(r) {
+                        showAlert(!!r.success, r.message);
+                        if (r.success) reloadSoon();
+                    }).fail(function(xhr) {
+                        showAlert(false, failureMessage(xhr));
+                    });
+                });
+            });
+        }
+
         /* ---------- Test-mode simulation ---------- */
         jQuery('.courier-sim-btn').on('click', function() {
             var btn = this;

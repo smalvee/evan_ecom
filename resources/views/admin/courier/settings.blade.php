@@ -83,6 +83,23 @@
                             </div>
 
                             <div class="mb-3">
+                                <label class="form-label" for="base_url">API Base URL</label>
+                                <input type="url" name="base_url" id="base_url"
+                                    class="form-control @error('base_url') is-invalid @enderror"
+                                    value="{{ old('base_url', $setting->base_url) }}"
+                                    placeholder="{{ $defaultBaseUrl }}">
+                                @error('base_url')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                                <p class="text-muted small mb-0 mt-1">
+                                    The <strong>API</strong> address from Steadfast — it ends with
+                                    <code>/api/v1</code>. Do <strong>not</strong> paste the panel page
+                                    (e.g. <code>…/user/api</code>); that is the page that <em>shows</em> your keys,
+                                    not the API. Leave blank to use the default.
+                                </p>
+                            </div>
+
+                            <div class="mb-3">
                                 <label class="form-label" for="api_key">API Key</label>
                                 <input type="password" name="api_key" id="api_key" class="form-control"
                                     autocomplete="new-password"
@@ -125,6 +142,9 @@
                         <div class="a-card-body">
                             <p class="text-muted small">
                                 Verify the current configuration. Test mode always succeeds without credentials.
+                            </p>
+                            <p class="text-muted small mb-3">
+                                API base URL:<br><code>{{ $setting->base_url ?: $defaultBaseUrl }}</code>
                             </p>
                             <div id="connectionResult" class="mb-3" hidden></div>
                             <button type="button" class="btn btn-outline-secondary w-100" id="testConnectionBtn">
@@ -179,6 +199,7 @@
                     _token: '{{ csrf_token() }}',
                     provider: document.getElementById('provider').value,
                     mode: (document.querySelector('input[name="mode"]:checked') || {}).value || 'test',
+                    base_url: document.getElementById('base_url').value,
                     api_key: document.getElementById('api_key').value,
                     secret_key: document.getElementById('secret_key').value
                 };

@@ -21,6 +21,7 @@ class CourierSetting extends Model
     protected $fillable = [
         'provider',
         'mode',
+        'base_url',
         'api_key',
         'secret_key',
         'is_active',

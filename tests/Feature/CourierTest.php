@@ -320,6 +320,65 @@ class CourierTest extends TestCase
         $this->assertSame(0, CourierShipment::where('order_id', $order->id)->count());
     }
 
+    /* ------------------------------------------------------------------ */
+    /* Only Confirmed orders may be sent to the courier                   */
+    /* ------------------------------------------------------------------ */
+
+    public function test_send_button_disabled_for_unconfirmed_orders(): void
+    {
+        $admin = $this->makeAdmin();
+
+        foreach (['pending', 'cancell', 'shipped'] as $status) {
+            $order = $this->makeOrder($this->makeCustomer(), ['status' => $status]);
+
+            $response = $this->actingAs($admin, 'admin')->get(route('orders.details', $order->id));
+
+            $response->assertOk();
+            $this->assertMatchesRegularExpression(
+                '/<button[^>]*id="courierSendBtn"[^>]*\bdisabled\b/s',
+                $response->getContent(),
+                "Send button must be disabled for status [{$status}]"
+            );
+            $response->assertSee('Only confirmed orders can be sent to the courier', false);
+        }
+    }
+
+    public function test_send_button_enabled_for_confirmed_order(): void
+    {
+        $admin = $this->makeAdmin();
+        $order = $this->makeOrder($this->makeCustomer(), ['status' => 'confirm']);
+
+        $response = $this->actingAs($admin, 'admin')->get(route('orders.details', $order->id));
+
+        $response->assertOk();
+        $this->assertDoesNotMatchRegularExpression(
+            '/<button[^>]*id="courierSendBtn"[^>]*\bdisabled\b/s',
+            $response->getContent(),
+            'Send button must be enabled for a confirmed order'
+        );
+    }
+
+    public function test_backend_blocks_courier_for_unconfirmed_order(): void
+    {
+        $admin = $this->makeAdmin();
+
+        foreach (['pending', 'cancell', 'shipped'] as $status) {
+            $order = $this->makeOrder($this->makeCustomer(), ['status' => $status]);
+
+            Http::fake();
+
+            $response = $this->actingAs($admin, 'admin')
+                ->postJson(route('admin.orders.courier.create', $order->id));
+
+            $response->assertOk()->assertJson(['success' => false]);
+            $this->assertStringContainsString('confirmed', strtolower((string) $response->json('message')));
+
+            // No shipment created and no courier API call made.
+            $this->assertSame(0, CourierShipment::where('order_id', $order->id)->count());
+            Http::assertNothingSent();
+        }
+    }
+
     public function test_refresh_status_returns_current_status(): void
     {
         $admin = $this->makeAdmin();
@@ -374,6 +433,58 @@ class CourierTest extends TestCase
 
         $this->assertSame(2, CourierShipment::where('order_id', $order->id)->count());
         $this->assertSame(1, CourierShipment::where('order_id', $order->id)->where('active', 1)->count());
+    }
+
+    public function test_release_shipment_locally_allows_resend(): void
+    {
+        $admin = $this->makeAdmin();
+        $order = $this->makeOrder($this->makeCustomer());
+
+        $this->actingAs($admin, 'admin')->postJson(route('admin.orders.courier.create', $order->id))->assertJson(['success' => true]);
+
+        // Release locally (no provider call).
+        $this->actingAs($admin, 'admin')
+            ->postJson(route('admin.orders.courier.release', $order->id))
+            ->assertOk()
+            ->assertJson(['success' => true]);
+
+        $shipment = CourierShipment::where('order_id', $order->id)->first();
+        $this->assertSame('cancelled', $shipment->status);
+        $this->assertNull($shipment->active);
+
+        // The order can be sent again.
+        $this->actingAs($admin, 'admin')
+            ->postJson(route('admin.orders.courier.create', $order->id))
+            ->assertOk()
+            ->assertJson(['success' => true]);
+
+        $this->assertSame(1, CourierShipment::where('order_id', $order->id)->where('active', 1)->count());
+    }
+
+    public function test_order_details_shows_send_button_after_release(): void
+    {
+        $admin = $this->makeAdmin();
+        $order = $this->makeOrder($this->makeCustomer());
+
+        $this->actingAs($admin, 'admin')->postJson(route('admin.orders.courier.create', $order->id));
+        $this->actingAs($admin, 'admin')->postJson(route('admin.orders.courier.release', $order->id));
+
+        $response = $this->actingAs($admin, 'admin')->get(route('orders.details', $order->id));
+
+        $response->assertOk()->assertSee('Send to Courier');
+    }
+
+    public function test_order_details_hides_send_button_when_active(): void
+    {
+        $admin = $this->makeAdmin();
+        $order = $this->makeOrder($this->makeCustomer());
+
+        $this->actingAs($admin, 'admin')->postJson(route('admin.orders.courier.create', $order->id));
+
+        $this->actingAs($admin, 'admin')
+            ->get(route('orders.details', $order->id))
+            ->assertOk()
+            ->assertDontSee('Send to Courier');
     }
 
     public function test_test_connection_in_test_mode_succeeds(): void
@@ -518,6 +629,36 @@ class CourierTest extends TestCase
         $this->assertSame('in_review', $shipment->status);
     }
 
+    public function test_live_payload_uses_integer_delivery_type_and_numeric_cod(): void
+    {
+        $this->liveSetting();
+        $order = $this->makeOrder($this->makeCustomer());
+
+        Http::fake([
+            'portal.steadfast.com.bd/*' => Http::response([
+                'status' => 200,
+                'message' => 'Consignment has been created successfully.',
+                'consignment' => [
+                    'consignment_id' => 111,
+                    'invoice' => '1',
+                    'tracking_code' => 'TRK',
+                    'status' => 'in_review',
+                ],
+            ], 200),
+        ]);
+
+        CourierManager::make()->createShipment($order);
+
+        Http::assertSent(function ($request) {
+            $data = $request->data();
+
+            return array_key_exists('delivery_type', $data)
+                && is_int($data['delivery_type'])
+                && $data['delivery_type'] === 0
+                && is_numeric($data['cod_amount']);
+        });
+    }
+
     public function test_live_create_401_returns_credential_error(): void
     {
         $this->assertLiveFailure(
@@ -586,6 +727,61 @@ class CourierTest extends TestCase
         $this->assertStringContainsString('credentials', $response->message);
         Http::assertNothingSent();
         $this->assertSame(0, CourierShipment::where('order_id', $order->id)->count());
+    }
+
+    public function test_admin_can_save_custom_base_url(): void
+    {
+        $admin = $this->makeAdmin();
+
+        $this->actingAs($admin, 'admin')->put(route('admin.courier.settings.update'), [
+            'provider' => 'steadfast',
+            'mode' => 'test',
+            'base_url' => 'https://custom-steadfast.test/api/v1',
+            'is_active' => '1',
+        ])->assertRedirect(route('admin.courier.settings'));
+
+        $this->assertSame('https://custom-steadfast.test/api/v1', CourierSetting::current()->base_url);
+    }
+
+    public function test_blank_base_url_clears_the_override(): void
+    {
+        $admin = $this->makeAdmin();
+        $this->liveSetting(['base_url' => 'https://custom-steadfast.test/api/v1']);
+
+        $this->actingAs($admin, 'admin')->put(route('admin.courier.settings.update'), [
+            'provider' => 'steadfast',
+            'mode' => 'test',
+            'base_url' => '',
+            'is_active' => '1',
+        ]);
+
+        $this->assertNull(CourierSetting::current()->base_url);
+    }
+
+    public function test_custom_base_url_is_used_for_live_requests(): void
+    {
+        $this->liveSetting(['base_url' => 'https://custom-steadfast.test/api/v1']);
+        $order = $this->makeOrder($this->makeCustomer());
+
+        Http::fake([
+            '*' => Http::response([
+                'status' => 200,
+                'message' => 'Consignment has been created successfully.',
+                'consignment' => [
+                    'consignment_id' => 555,
+                    'invoice' => '1',
+                    'tracking_code' => 'CUSTOMTRK',
+                    'status' => 'in_review',
+                ],
+            ], 200),
+        ]);
+
+        $response = CourierManager::make()->createShipment($order);
+
+        $this->assertTrue($response->success);
+        Http::assertSent(function ($request) {
+            return str_contains($request->url(), 'custom-steadfast.test/api/v1/create_order');
+        });
     }
 
     public function test_live_test_connection_success(): void

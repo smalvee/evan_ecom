@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<title>Softco - Ecommerce manual</title>
+<style>
+  @page { size: A4; margin: 16mm 14mm; }
+  body {
+    font-family: 'Nirmala UI', 'Vrinda', 'Kalpurush', 'SolaimanLipi', 'Poppins', sans-serif;
+    font-size: 11.5pt;
+    line-height: 1.85;
+    color: #1b2430;
+    margin: 0;
+  }
+  h1 { font-size: 22pt; color: #b26a00; margin: 0 0 4px; }
+  h2 {
+    font-size: 15.5pt;
+    color: #1b2430;
+    border-bottom: 2px solid #d99f46;
+    padding-bottom: 4px;
+    margin-top: 26px;
+    page-break-after: avoid;
+  }
+  h3 { font-size: 13pt; color: #b26a00; margin: 18px 0 6px; page-break-after: avoid; }
+  h4 { font-size: 12pt; margin: 14px 0 4px; page-break-after: avoid; }
+  p { margin: 6px 0; }
+  ul, ol { margin: 6px 0 6px 24px; padding: 0; }
+  li { margin: 3px 0; }
+  table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+  th, td { border: 1px solid #d8dee5; padding: 6px 9px; text-align: left; vertical-align: top; }
+  th { background: #f6f2ea; font-weight: 700; }
+  .menu-path { color: #b26a00; font-weight: 700; }
+  .tip { background: #fff8ec; border-left: 4px solid #d99f46; padding: 8px 12px; margin: 10px 0; }
+  .warn { background: #fdeaea; border-left: 4px solid #d9534f; padding: 8px 12px; margin: 10px 0; }
+  .note { background: #eef6ff; border-left: 4px solid #3b82f6; padding: 8px 12px; margin: 10px 0; }
+  .page-break { page-break-before: always; }
+  .cover { text-align: center; padding-top: 120px; }
+  .cover h1 { font-size: 34pt; }
+  .cover p { font-size: 14pt; color: #555; }
+  .lead { font-size: 12.5pt; color: #444; }
+  .toc li { margin: 2px 0; }
+  code { background: #f1f5f9; padding: 1px 5px; border-radius: 4px; font-family: Consolas, monospace; font-size: 10.5pt; }
+  .sub { color: #666; font-size: 10.5pt; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <h1>Softco - Ecommerce manual</h1>
+  <p><strong>ব্যবহারকারী ম্যানুয়াল</strong></p>
+  <p>আপনার অনলাইন স্টোর পরিচালনার জন্য ধাপে ধাপে নির্দেশিকা</p>
+  <p class="sub">এই ম্যানুয়ালে অ্যাডমিন প্যানেল ও কাস্টমার স্টোর — দুটি অংশই রয়েছে।</p>
+</div>
+
+<div class="page-break"></div>
+
+<h1>সূচিপত্র</h1>
+
+<h3>প্রথম অংশ — অ্যাডমিন প্যানেল</h3>
+<ol class="toc">
+  <li>শুরু করা (লগ ইন)</li>
+  <li>ড্যাশবোর্ড</li>
+  <li>স্টোরের প্রাথমিক সেটআপ</li>
+  <li>প্রোডাক্ট যোগ ও পরিচালনা</li>
+  <li>প্রোডাক্টের ছবি</li>
+  <li>প্রাইসিং (দাম)</li>
+  <li>স্টক অ্যাডজাস্টমেন্ট</li>
+  <li>সাপ্লায়ার (সরবরাহকারী)</li>
+  <li>পারচেজ (স্টক কেনা)</li>
+  <li>পারচেজ রিটার্ন (ক্রয় ফেরত)</li>
+  <li>অর্ডার</li>
+  <li>প্রি-অর্ডার</li>
+  <li>কুপন</li>
+  <li>শিপিং চার্জ</li>
+  <li>ব্যানার</li>
+  <li>বিজ্ঞাপন</li>
+  <li>কাস্টমার (ইউজার)</li>
+  <li>কনটেন্ট পেজ</li>
+  <li>রিপোর্ট</li>
+  <li>কুরিয়ার</li>
+  <li>সেটিংস</li>
+  <li>লগ আউট</li>
+</ol>
+
+<h3>দ্বিতীয় অংশ — কাস্টমার স্টোর</h3>
+<ol class="toc" start="23">
+  <li>কাস্টমার কী দেখে</li>
+  <li>রেজিস্ট্রেশন ও লগ ইন</li>
+  <li>ব্রাউজিং ও সার্চ</li>
+  <li>প্রোডাক্ট পেজ</li>
+  <li>কার্ট ও কুপন</li>
+  <li>চেকআউট ও পেমেন্ট</li>
+  <li>অর্ডারের পরে (থ্যাংক ইউ, ইনভয়েস, ট্র্যাক অর্ডার)</li>
+  <li>কাস্টমার অ্যাকাউন্ট এরিয়া</li>
+</ol>
+
+<h3>তৃতীয় অংশ — ভালো অভ্যাস</h3>
+<ol class="toc" start="31">
+  <li>দৈনিক ও সাপ্তাহিক রুটিন</li>
+  <li>মনে রাখার মতো গুরুত্বপূর্ণ নিয়ম</li>
+  <li>সাধারণ সমস্যা ও সমাধান</li>
+</ol>
+
+<div class="page-break"></div>
+
+<h1>প্রথম অংশ — অ্যাডমিন প্যানেল</h1>
+
+<h2>১. শুরু করা (লগ ইন)</h2>
+<ol>
+  <li>আপনার ইন্টারনেট ব্রাউজার খুলুন।</li>
+  <li>আপনার ওয়েবসাইটের ঠিকানার শেষে <code>/admin/login</code> যোগ করুন।</li>
+  <li>আপনার <strong>ইমেইল</strong> ও <strong>পাসওয়ার্ড</strong> লিখুন।</li>
+  <li><strong>Log In</strong> বাটনে ক্লিক করুন।</li>
+</ol>
+<p>এখন আপনি <strong>অ্যাডমিন প্যানেলে</strong> আছেন। বাঁ দিকে পুরো মেনু দেখা যাবে। সব কিছু নিচের দলে সাজানো:</p>
+<ul>
+  <li><strong>Main</strong> → Dashboard</li>
+  <li><strong>Catalog</strong> → Categories, Sub Categories, Brands, Products, Units, Variations, Pricing, Stock Adjustment</li>
+  <li><strong>Sales</strong> → Orders, Pre Orders, Coupons, Shipping</li>
+  <li><strong>Purchasing</strong> → Suppliers, Purchase, Purchase Return</li>
+  <li><strong>Marketing</strong> → Banners, Advertisement</li>
+  <li><strong>Customers</strong> → Users</li>
+  <li><strong>Content</strong> → Pages</li>
+  <li><strong>Reports</strong> → Reports Dashboard, Reports</li>
+  <li><strong>System</strong> → Courier, Settings</li>
+</ul>
+<div class="tip">কাজ শেষে সবসময় <strong>Logout</strong> করুন (বিভাগ ২২ দেখুন)।</div>
+
+<h2>২. ড্যাশবোর্ড</h2>
+<p><span class="menu-path">মেনু: Main → Dashboard</span></p>
+<p>এটি আপনার হোম স্ক্রিন। এক নজরে ব্যবসার অবস্থা দেখা যায়:</p>
+<ul>
+  <li>মোট বিক্রি ও মোট অর্ডার।</li>
+  <li>কতজন কাস্টমার ও কতটি প্রোডাক্ট আছে।</li>
+  <li>কতটি প্রোডাক্ট স্টকে আছে, কম আছে বা শেষ হয়ে গেছে।</li>
+  <li>সময় অনুযায়ী বিক্রির চার্ট।</li>
+  <li>সবচেয়ে বেশি বিক্রি হওয়া প্রোডাক্ট ও শীর্ষ ক্যাটাগরি।</li>
+  <li>সাম্প্রতিক কাস্টমার।</li>
+  <li>অপেক্ষমাণ <strong>Pending Pre Orders</strong> এর সংখ্যা।</li>
+</ul>
+<p>প্রতিদিন সকালে এই স্ক্রিনটি একবার দেখে নিন।</p>
+
+<h2>৩. স্টোরের প্রাথমিক সেটআপ</h2>
+<p>প্রোডাক্ট যোগ করার <strong>আগে</strong> একবার এই ধাপগুলো করুন। এতে সব কিছু গোছানো থাকে।</p>
+
+<h3>৩.১ Categories (ক্যাটাগরি)</h3>
+<p><span class="menu-path">মেনু: Catalog → Categories</span></p>
+<ol>
+  <li><strong>Categories</strong> এ ক্লিক করুন।</li>
+  <li>নতুন ক্যাটাগরি যোগ করুন (যেমন “Home Appliances”)।</li>
+  <li>ক্যাটাগরির <strong>নাম</strong> ও ছোট বিবরণ লিখুন।</li>
+  <li>সেভ করুন।</li>
+  <li>পরে বদলাতে <strong>Edit</strong>, মুছতে <strong>Delete</strong> ক্লিক করুন।</li>
+</ol>
+
+<h3>৩.২ Sub Categories (উপ-বিভাগ)</h3>
+<p><span class="menu-path">মেনু: Catalog → Sub Categories</span></p>
+<ol>
+  <li><strong>Sub Categories</strong> এ ক্লিক করুন।</li>
+  <li>নতুন উপ-বিভাগ যোগ করে ঠিক করুন এটি কোন <strong>মূল ক্যাটাগরির</strong> অধীনে থাকবে (যেমন “Air Fryers”, “Home Appliances” এর অধীনে)।</li>
+  <li>সেভ করুন।</li>
+</ol>
+
+<h3>৩.৩ Brands (ব্র্যান্ড)</h3>
+<p><span class="menu-path">মেনু: Catalog → Brands</span></p>
+<ol>
+  <li><strong>Brands</strong> এ ক্লিক করুন।</li>
+  <li>ব্র্যান্ডের নাম লিখুন (যেমন “Philips”)।</li>
+  <li>সেভ করুন।</li>
+</ol>
+
+<h3>৩.৪ Units (ইউনিট)</h3>
+<p><span class="menu-path">মেনু: Catalog → Units</span></p>
+<p>ইউনিট বোঝায় প্রোডাক্ট কীভাবে মাপা বা গোনা হয় (যেমন “Piece”, “Kg”, “Box”)।</p>
+<ol>
+  <li><strong>Units</strong> এ ক্লিক করুন।</li>
+  <li>ইউনিটের নাম লিখুন।</li>
+  <li>সেভ করুন।</li>
+</ol>
+
+<h3>৩.৫ Variations (ভ্যারিয়েশন)</h3>
+<p><span class="menu-path">মেনু: Catalog → Variations</span></p>
+<p>ভ্যারিয়েশন হলো প্রোডাক্টের বিকল্প, যেমন <strong>Size</strong> (মাপ) বা <strong>Colour</strong> (রং)।</p>
+<ol>
+  <li><strong>Variations</strong> এ ক্লিক করুন।</li>
+  <li>ভ্যারিয়েশনের নাম লিখুন (যেমন “Colour”)।</li>
+  <li>এর মান যোগ করুন (যেমন “Black”, “White”, “Blue”)।</li>
+  <li>সেভ করুন।</li>
+</ol>
+<div class="tip">উদাহরণ: একটি শার্টের ভ্যারিয়েশন “Size” এবং মান “S, M, L, XL”।</div>
+
+<h2>৪. প্রোডাক্ট যোগ ও পরিচালনা</h2>
+<p><span class="menu-path">মেনু: Catalog → Products</span></p>
+<p><strong>Products</strong> এ ক্লিক করলে তিনটি অপশন পাবেন:</p>
+<ul>
+  <li><strong>List Products</strong> — সব প্রোডাক্টের তালিকা।</li>
+  <li><strong>Add Product</strong> — নতুন প্রোডাক্ট তৈরি।</li>
+  <li><strong>Product Images</strong> — প্রোডাক্টের ছবি আপলোড।</li>
+</ul>
+
+<h3>৪.১ একটি সাধারণ প্রোডাক্ট যোগ করা (একটি দাম, একটি স্টক)</h3>
+<ol>
+  <li>যান <span class="menu-path">Catalog → Products → Add Product</span>।</li>
+  <li>তথ্য পূরণ করুন: প্রোডাক্টের <strong>নাম</strong>, <strong>Category</strong>, <strong>Sub Category</strong>, <strong>Brand</strong>, <strong>Unit</strong>।</li>
+  <li><strong>Description</strong> লিখুন (এডিটরে বোল্ড, তালিকা, ছবি, টেবিল ব্যবহার করা যায়)।</li>
+  <li><strong>Product type</strong> থেকে <strong>Single</strong> বেছে নিন।</li>
+  <li>ডেলিভারি চার্জ নিতে না চাইলে <strong>Free Delivery</strong> চালু করুন।</li>
+  <li>প্রোডাক্টটি <strong>Active</strong> (স্টোরে দেখা যাবে) হবে কিনা ঠিক করুন।</li>
+  <li>সেভ করুন।</li>
+</ol>
+<div class="note">মনে রাখবেন: দাম ও স্টক এই পেজে দেওয়া হয় <strong>না</strong>। দাম দেবেন <strong>Pricing</strong> (বিভাগ ৬) এ, স্টক দেবেন <strong>Stock Adjustment</strong> (বিভাগ ৭) বা <strong>Purchase</strong> (বিভাগ ৯) দিয়ে। এটি স্বাভাবিক।</div>
+
+<h3>৪.২ ভ্যারিয়েশনযুক্ত প্রোডাক্ট (মাপ বা রং)</h3>
+<ol>
+  <li>যান <span class="menu-path">Catalog → Products → Add Product</span>।</li>
+  <li><strong>Product type</strong> থেকে <strong>Variable</strong> বেছে নিন।</li>
+  <li><strong>variation builder</strong> দিয়ে ভ্যারিয়েশন ও মান বেছে নিন (যেমন Size: S, M, L)।</li>
+  <li>প্রতিটি সমন্বয়ের জন্য একটি আলাদা লাইন তৈরি হবে। প্রতিটির নিজস্ব <strong>SKU</strong> (প্রোডাক্ট কোড) থাকবে।</li>
+  <li>সেভ করুন।</li>
+</ol>
+
+<h3>৪.৩ প্রোডাক্ট এডিট বা ডিলিট</h3>
+<p><span class="menu-path">মেনু: Catalog → Products → List Products</span></p>
+<ol>
+  <li>তালিকায় প্রোডাক্ট খুঁজুন।</li>
+  <li>বদলাতে <strong>Edit</strong> ক্লিক করুন।</li>
+  <li>মুছতে <strong>Delete</strong> ক্লিক করুন।</li>
+</ol>
+<div class="warn">কোনো প্রোডাক্টের স্টক থাকলে বা সেটি কোনো অর্ডার/ক্রয়ে ব্যবহৃত হয়ে থাকলে সিস্টেম তা <strong>ডিলিট করতে দেবে না</strong> এবং একটি বার্তা দেখাবে। এটি আপনার হিসাব রক্ষার জন্য।</div>
+
+<h3>৪.৪ SKU (প্রোডাক্ট কোড) — সংক্ষেপে</h3>
+<p>প্রতিটি প্রোডাক্ট অপশনের একটি <strong>SKU</strong> থাকে — এটি আপনার বানানো ছোট কোড (যেমন <code>AF-V3-BLK</code>)। পরিষ্কার ও আলাদা কোড ব্যবহার করুন। সার্চ করার সময় এই কোডই কাজে লাগে।</p>
+
+<h2>৫. প্রোডাক্টের ছবি</h2>
+<p><span class="menu-path">মেনু: Catalog → Products → Product Images</span></p>
+<ol>
+  <li><strong>Product Images</strong> এ ক্লিক করুন।</li>
+  <li>যে প্রোডাক্ট/অপশনে ছবি দিতে চান সেটি বেছে নিন।</li>
+  <li>এক বা একাধিক ছবি আপলোড করুন।</li>
+  <li>একটি ছবিকে <strong>thumbnail</strong> (তালিকায় দেখানো মূল ছবি) হিসেবে চিহ্নিত করুন।</li>
+  <li>সেভ করুন।</li>
+</ol>
+<div class="tip">পরিষ্কার ব্যাকগ্রাউন্ডে স্পষ্ট ছবি ব্যবহার করুন। সিস্টেম নিজেই বড়, ছোট ও thumbnail সংস্করণ তৈরি করে।</div>
+
+<h2>৬. প্রাইসিং (দাম)</h2>
+<p><span class="menu-path">মেনু: Catalog → Pricing</span></p>
+<p>এখানে প্রতিটি প্রোডাক্ট অপশনের <strong>বিক্রয় মূল্য</strong> ও <strong>MRP</strong> (কাটাকাটির আগের দাম) ঠিক করবেন।</p>
+<ol>
+  <li><strong>Pricing</strong> এ ক্লিক করুন।</li>
+  <li>নাম বা SKU দিয়ে প্রোডাক্ট/অপশন খুঁজুন।</li>
+  <li><strong>MRP</strong> (ঐচ্ছিক) ও <strong>Selling Price</strong> (কাস্টমার যে দাম দেবে) লিখুন।</li>
+  <li>সেভ করুন।</li>
+</ol>
+<div class="warn">গুরুত্বপূর্ণ: একবার এখানে দাম বদলালে সেটি <strong>নিজে হাতে ঠিক করা দাম</strong> হিসেবে গণ্য হবে। এরপর নতুন ক্রয় করলে আপনার দাম <strong>নিজে থেকে বদলাবে না</strong>। নিয়ন্ত্রণ আপনার হাতেই থাকবে। আপনি <strong>price history</strong> দেখে পুরোনো পরিবর্তনও দেখতে পারেন।</div>
+
+<h2>৭. স্টক অ্যাডজাস্টমেন্ট</h2>
+<p><span class="menu-path">মেনু: Catalog → Stock Adjustment</span></p>
+<p>স্টক বাড়ানো, কমানো, বা সিস্টেমের স্টক বাস্তব গুননার সাথে মেলানোর সময় এটি ব্যবহার করুন। এখানে <strong>তিন ধরনের</strong> কাজ আছে।</p>
+
+<h3>৭.১ Increase Stock (স্টক বাড়ানো)</h3>
+<p>অতিরিক্ত মাল পেলে ব্যবহার করুন।</p>
+<ol>
+  <li><strong>Stock Adjustment</strong> এরপর <strong>New Adjustment</strong> ক্লিক করুন।</li>
+  <li>প্রোডাক্ট/অপশন সার্চ করে বেছে নিন।</li>
+  <li><strong>Increase Stock</strong> বেছে নিন।</li>
+  <li>যোগ করার <strong>পরিমাণ</strong> লিখুন (যেমন ৫)।</li>
+  <li>একটি <strong>reason</strong> (কারণ) বেছে নিন (যেমন “Found Stock”)।</li>
+  <li>চাইলে একটি <strong>note</strong> লিখুন।</li>
+  <li><strong>Save Adjustment</strong> ক্লিক করুন।</li>
+</ol>
+<p>ফলাফল: বর্তমান ২০ + ৫ = <strong>২৫</strong>।</p>
+
+<h3>৭.২ Decrease Stock (স্টক কমানো)</h3>
+<p>মাল নষ্ট, হারানো বা সরানোর সময় ব্যবহার করুন।</p>
+<ol>
+  <li>প্রোডাক্ট/অপশন বেছে নিন।</li>
+  <li><strong>Decrease Stock</strong> বেছে নিন।</li>
+  <li>সরানোর <strong>পরিমাণ</strong> লিখুন।</li>
+  <li>কারণ বেছে নিন (যেমন “Damaged”)।</li>
+  <li>সেভ করুন।</li>
+</ol>
+<p>ফলাফল: বর্তমান ২০ − ৫ = <strong>১৫</strong>।</p>
+<div class="warn">শূন্যের নিচে কমানো যাবে না। চেষ্টা করলে সিস্টেম সতর্ক করবে এবং কিছুই বদলাবে না।</div>
+
+<h3>৭.৩ Stock Correction (স্টক সংশোধন)</h3>
+<p>বাস্তবে গুনে দেখার পর সিস্টেমের সংখ্যার সাথে না মিললে এটি ব্যবহার করুন। <strong>আপনি শুধু গুনে পাওয়া আসল সংখ্যাটি লিখবেন</strong> — হিসাব সিস্টেম করবে।</p>
+<ol>
+  <li>প্রোডাক্ট/অপশন বেছে নিন।</li>
+  <li><strong>Stock Correction</strong> বেছে নিন।</li>
+  <li><strong>Actual Physical Stock</strong> ঘরে আপনি যত গুনেছেন সেই সংখ্যা লিখুন (যেমন ০)।</li>
+  <li>সেভ করুন।</li>
+</ol>
+<p>সিস্টেম দেখাবে:</p>
+<ul>
+  <li><strong>System Stock</strong> — সিস্টেমে যা ছিল</li>
+  <li><strong>Actual Stock</strong> — আপনি যা গুনেছেন</li>
+  <li><strong>Adjustment</strong> — পার্থক্য (নিজে থেকে যোগ হবে)</li>
+  <li><strong>Final Stock</strong> — সংশোধিত সংখ্যা</li>
+</ul>
+<p>উদাহরণ: System Stock ছিল <strong>−৩</strong>, আপনি গুনে পেলেন <strong>০</strong>, তাই সিস্টেম <strong>+৩</strong> যোগ করবে এবং Final Stock হবে <strong>০</strong>।</p>
+<div class="tip">ভুলে স্টক মাইনাস হয়ে গেলে এটি খুব কাজে লাগে।</div>
+
+<h3>৭.৪ অ্যাডজাস্টমেন্টের ইতিহাস</h3>
+<p><span class="menu-path">মেনু: Catalog → Stock Adjustment</span></p>
+<p>তালিকায় প্রতিটি সংশোধনের নম্বর (যেমন <code>ADJ-000001</code>), তারিখ, প্রোডাক্ট, ধরন, পরিবর্তন (+ বা −), আগের ও পরের স্টক, কারণ এবং কে করেছে তা দেখা যায়। বিস্তারিত দেখতে <strong>View</strong> ক্লিক করুন।</p>
+<div class="note">সংশোধনগুলো স্থায়ী রেকর্ড। এগুলো এডিট বা ডিলিট করা যায় না। এতে আপনার হিসাব সৎ থাকে।</div>
+
+<h2>৮. সাপ্লায়ার (সরবরাহকারী)</h2>
+<p><span class="menu-path">মেনু: Purchasing → Suppliers</span></p>
+<p>সাপ্লায়ার হলো যার কাছ থেকে আপনি মাল কেনেন।</p>
+<ol>
+  <li><strong>Suppliers</strong> এ ক্লিক করুন।</li>
+  <li><strong>Add Supplier</strong> ক্লিক করুন।</li>
+  <li>সাপ্লায়ারের নাম ও যোগাযোগের তথ্য লিখুন।</li>
+  <li>সেভ করুন।</li>
+  <li>পরে বদলাতে <strong>Edit</strong> ব্যবহার করুন।</li>
+</ol>
+
+<h2>৯. পারচেজ (স্টক কেনা)</h2>
+<p><span class="menu-path">মেনু: Purchasing → Purchase</span></p>
+<p>ক্রয় রেকর্ড করলে একসাথে দুটি কাজ হয়: <strong>স্টক বাড়ে</strong> এবং আপনার <strong>ক্রয়মূল্য</strong> সংরক্ষিত হয়।</p>
+<ol>
+  <li><strong>Purchase → Add Purchase</strong> ক্লিক করুন।</li>
+  <li><strong>supplier</strong> বেছে নিন।</li>
+  <li>প্রতিটি কেনা আইটেম যোগ করুন: প্রোডাক্ট/অপশন সার্চ করুন, <strong>পরিমাণ</strong> ও <strong>unit cost</strong> (প্রতি পিসের দাম) লিখুন।</li>
+  <li>মোট হিসাব দেখে নিন।</li>
+  <li>সেভ করুন।</li>
+</ol>
+<p><strong>দাম সম্পর্কে:</strong> সাধারণত ক্রয় সেভ করলে আপনার বিক্রয় মূল্য <strong>বদলাবে না</strong>। যদি আপনি চান যে এই ক্রয় থেকে বিক্রয় মূল্য আপডেট হোক, তাহলে সেভ করার আগে <strong>update price</strong> অপশনটি টিক দিন।</p>
+<p><strong>খরচ সম্পর্কে:</strong> সিস্টেম প্রতিটি আইটেমের একটি চলমান <strong>গড় ক্রয়মূল্য</strong> রাখে। পরে লাভের রিপোর্টে এটি ব্যবহার হয়, ফলে লাভের হিসাব সঠিক থাকে।</p>
+
+<h3>৯.১ পারচেজের তালিকা ও এডিট</h3>
+<p><span class="menu-path">মেনু: Purchasing → Purchase → List Purchase</span></p>
+<ol>
+  <li><strong>List Purchase</strong> খুলে সব ক্রয় দেখুন।</li>
+  <li>কিছু ঠিক করার দরকার হলে ক্রয়টি খুলে <strong>Edit</strong> করুন।</li>
+</ol>
+
+<h2>১০. পারচেজ রিটার্ন (ক্রয় ফেরত)</h2>
+<p><span class="menu-path">মেনু: Purchasing → Purchase Return</span></p>
+<p>সাপ্লায়ারের কাছে মাল ফেরত দিলে এটি ব্যবহার করুন।</p>
+<ol>
+  <li>যান <strong>Purchase Return → New Return</strong>।</li>
+  <li>ক্রয় ও যে আইটেম ফেরত দিচ্ছেন তা বেছে নিন।</li>
+  <li>ফেরতের পরিমাণ লিখুন।</li>
+  <li>সেভ করুন। স্টক ও খরচ নিজে থেকে ঠিক হয়ে যাবে।</li>
+</ol>
+<p>পুরোনো সব ফেরত দেখতে <strong>Return List</strong> ব্যবহার করুন।</p>
+
+<h2>১১. অর্ডার</h2>
+<p><span class="menu-path">মেনু: Sales → Orders</span></p>
+<p>এখানে প্রতিটি কাস্টমার অর্ডার পরিচালনা করবেন।</p>
+
+<h3>১১.১ Order List (অর্ডারের তালিকা)</h3>
+<p><span class="menu-path">মেনু: Sales → Orders → Order List</span></p>
+<ol>
+  <li>সব অর্ডার — নম্বর, কাস্টমার, মোট ও স্টেটাসসহ দেখুন।</li>
+  <li><strong>search box</strong> দিয়ে কাস্টমারের নাম, ফোন, ইমেইল বা অর্ডার নম্বর দিয়ে খুঁজুন।</li>
+  <li><strong>status filter</strong> দিয়ে শুধু Pending, Confirmed, Shipped বা Cancelled দেখুন।</li>
+</ol>
+
+<h3>১১.২ Create Order (ফোন বা দোকানের কাস্টমারের জন্য)</h3>
+<p><span class="menu-path">মেনু: Sales → Orders → Create Order</span></p>
+<ol>
+  <li>প্রোডাক্ট সার্চ করে অর্ডারে যোগ করুন।</li>
+  <li>কাস্টমারের <strong>নাম</strong>, <strong>ফোন</strong> ও <strong>ঠিকানা</strong> লিখুন।</li>
+  <li><strong>shipping</strong> অপশন বেছে নিন।</li>
+  <li>মোট হিসাব দেখে নিন।</li>
+  <li>অর্ডার সেভ করুন।</li>
+</ol>
+
+<h3>১১.৩ Order Details ও স্টেটাস</h3>
+<p>তালিকা থেকে অর্ডার খুললে একসাথে সব দেখা যায়: কাস্টমার, প্রোডাক্ট, পেমেন্ট, ডেলিভারি ও কুরিয়ার।</p>
+<p><strong>অর্ডার স্টেটাস:</strong></p>
+<ul>
+  <li><strong>Pending</strong> — সবেমাত্র এসেছে, এখনো নিশ্চিত করা হয়নি।</li>
+  <li><strong>Confirmed</strong> — আপনি অর্ডারটি গ্রহণ করেছেন।</li>
+  <li><strong>Shipped</strong> — অর্ডার পাঠানো হয়েছে।</li>
+  <li><strong>Cancelled</strong> — অর্ডার বাতিল হয়েছে।</li>
+</ul>
+<div class="warn">
+<strong>খুব গুরুত্বপূর্ণ — অর্ডারে স্টক কীভাবে কাজ করে:</strong>
+<ul>
+  <li>অর্ডার পড়লে স্টক <strong>কমে না</strong>।</li>
+  <li>আপনি অর্ডারটি <strong>Confirmed</strong> বা <strong>Shipped</strong> করলে স্টক <strong>একবার</strong> কমে।</li>
+  <li>অর্ডারটি <strong>Cancelled</strong> করলে স্টক <strong>ফিরে আসে</strong>।</li>
+  <li>এটি নিজে থেকে হয় — আপনাকে হাতে স্টক বদলাতে হবে না।</li>
+</ul>
+</div>
+<p><strong>অর্ডার এডিট:</strong> অর্ডার ডিটেইলস পেজে আপনি স্টেটাস বদলাতে, ঠিকানা আপডেট করতে, পরিমাণ বদলাতে, আইটেম বাদ দিতে বা নতুন আইটেম যোগ করতে পারেন; শেষে <strong>Update Order</strong> ক্লিক করুন। সব পরিবর্তন একসাথে সেভ হয়।</p>
+<p><strong>অর্ডার ডিলিট:</strong> Confirmed বা Shipped অর্ডার <strong>ডিলিট করা যায় না</strong>। সরাতে হলে আগে সেটি <strong>Cancelled</strong> করুন।</p>
+<p><strong>পেমেন্ট:</strong> অর্ডার <strong>Cash on Delivery</strong>। টাকা হাতে পেলে পেমেন্ট বাটনে ক্লিক করে অর্ডারটি <strong>Paid</strong> চিহ্নিত করুন (দরকার হলে আবার ক্লিক করে <strong>Unpaid</strong>)।</p>
+
+<h2>১২. প্রি-অর্ডার</h2>
+<p><span class="menu-path">মেনু: Sales → Pre Orders</span></p>
+<p>প্রি-অর্ডার কাস্টমারকে এখন স্টকে নেই এমন প্রোডাক্ট অর্ডার করতে দেয়।</p>
+
+<h3>১২.১ একটি প্রোডাক্ট অপশনে প্রি-অর্ডার চালু করা</h3>
+<ol>
+  <li>যান <span class="menu-path">Catalog → Products → List Products</span> এবং প্রোডাক্টটি এডিট করুন।</li>
+  <li>নির্দিষ্ট অপশনের জন্য <strong>Allow Pre Order</strong> চালু করুন।</li>
+  <li>সেভ করুন।</li>
+</ol>
+
+<h3>১২.২ প্রি-অর্ডার পরিচালনা</h3>
+<ol>
+  <li>যান <strong>Sales → Pre Orders</strong>।</li>
+  <li>ফিল্টার ব্যবহার করুন: Pending, Stock Available, Processing, Completed, Cancelled।</li>
+  <li>স্টক এলে প্রি-অর্ডারটি খুলে <strong>Process Pre Order</strong> ক্লিক করুন।</li>
+</ol>
+<div class="tip">এর ফলে স্টক <strong>একবার</strong> কমে, অর্ডার নিশ্চিত হয় এবং সাধারণ অর্ডার প্রবাহে চলে যায়। প্রি-অর্ডারটি আপনার রেকর্ডে সবসময় প্রি-অর্ডারই থাকে, পরে সেটিং বন্ধ করলেও।</div>
+
+<h2>১৩. কুপন</h2>
+<p><span class="menu-path">মেনু: Sales → Coupons</span></p>
+<p>কুপন কাস্টমারকে ছাড় দেয়।</p>
+
+<h3>১৩.১ Create Coupon (কুপন তৈরি)</h3>
+<p><span class="menu-path">মেনু: Sales → Coupons → Create Coupon</span></p>
+<ol>
+  <li><strong>coupon code</strong> লিখুন (যেমন <code>SAVE10</code>)।</li>
+  <li>একটি <strong>name</strong> ও ছোট <strong>description</strong> দিন।</li>
+  <li><strong>discount type</strong> বেছে নিন: <strong>Fixed amount</strong> বা <strong>Percentage</strong>।</li>
+  <li><strong>discount amount</strong> লিখুন।</li>
+  <li><strong>minimum order amount</strong> দিন (ঐচ্ছিক)।</li>
+  <li><strong>maximum total uses</strong> ও <strong>maximum uses per customer</strong> দিন (ঐচ্ছিক; ০ মানে সীমাহীন)।</li>
+  <li>সেভ করুন।</li>
+</ol>
+
+<h3>১৩.২ কুপন পরিচালনা</h3>
+<p><span class="menu-path">মেনু: Sales → Coupons → Coupon List</span></p>
+<ul>
+  <li>সব কুপন দেখুন, <strong>Edit</strong> বা <strong>Delete</strong> করুন।</li>
+</ul>
+
+<h2>১৪. শিপিং চার্জ</h2>
+<p><span class="menu-path">মেনু: Sales → Shipping</span></p>
+<p>প্রতিটি জেলা/এলাকার ডেলিভারি চার্জ ঠিক করুন।</p>
+<ol>
+  <li><strong>Shipping</strong> এ ক্লিক করুন।</li>
+  <li>শিপিং অপশনের <strong>নাম</strong> ও জেলার <strong>চার্জ</strong> লিখে যোগ করুন।</li>
+  <li>সেভ করুন।</li>
+  <li>পরে তালিকা থেকে যেকোনো চার্জ এডিট করুন।</li>
+</ol>
+<div class="tip">কোনো প্রোডাক্ট <strong>Free Delivery</strong> হলে তার জন্য কাস্টমারের কোনো শিপিং লাগে না।</div>
+
+<h2>১৫. ব্যানার</h2>
+<p><span class="menu-path">মেনু: Marketing → Banners</span></p>
+<p>ব্যানার হলো হোম পেজের প্রচারমূলক ছবি।</p>
+<ol>
+  <li><strong>Banners</strong> এ ক্লিক করুন।</li>
+  <li>ব্যানারের ছবি আপলোড করুন, প্রয়োজনে শিরোনাম/লিংক দিন।</li>
+  <li>সেভ করুন।</li>
+  <li><strong>toggle</strong> দিয়ে ব্যানার <strong>Active</strong> (দেখাবে) বা <strong>Inactive</strong> (লুকানো) করুন।</li>
+  <li>অপ্রয়োজনীয় ব্যানার ডিলিট করুন।</li>
+</ol>
+
+<h2>১৬. বিজ্ঞাপন</h2>
+<p><span class="menu-path">মেনু: Marketing → Advertisement</span></p>
+<p>বিজ্ঞাপন স্টোরের নির্দিষ্ট জায়গায় (slot) বসে।</p>
+<ol>
+  <li><strong>Advertisement</strong> এ ক্লিক করুন।</li>
+  <li>প্রতিটি slot এর জন্য ছবি ও লিংক দিন।</li>
+  <li>সেভ করুন।</li>
+  <li><strong>toggle</strong> দিয়ে slot <strong>Active</strong> বা <strong>Inactive</strong> করুন।</li>
+</ol>
+
+<h2>১৭. কাস্টমার (ইউজার)</h2>
+<p><span class="menu-path">মেনু: Customers → Users</span></p>
+<p>এটি আপনার কাস্টমারদের তালিকা।</p>
+<ol>
+  <li><strong>Users</strong> এ ক্লিক করে সব নিবন্ধিত কাস্টমার দেখুন।</li>
+  <li>প্রয়োজনে <strong>Add User</strong> দিয়ে কাস্টমারের অ্যাকাউন্ট তৈরি করুন।</li>
+  <li>তথ্য বদলাতে <strong>Edit</strong> ব্যবহার করুন।</li>
+</ol>
+<div class="tip">কাস্টমার নিজেও ওয়েবসাইট থেকে অ্যাকাউন্ট তৈরি করতে পারে (বিভাগ ২৪ দেখুন)।</div>
+
+<h2>১৮. কনটেন্ট পেজ</h2>
+<p><span class="menu-path">মেনু: Content → Pages</span></p>
+<p>আপনার স্টোরের টেক্সট পেজ সম্পাদনা করুন:</p>
+<ul>
+  <li><strong>About Us</strong></li>
+  <li><strong>Return Policy</strong></li>
+  <li><strong>Refund Policy</strong></li>
+</ul>
+<ol>
+  <li>যে পেজ এডিট করতে চান সেটি ক্লিক করুন।</li>
+  <li>এডিটর দিয়ে কনটেন্ট লিখুন বা বদলান (বোল্ড, তালিকা, লিংক, ছবি)।</li>
+  <li>সেভ করুন।</li>
+</ol>
+
+<h2>১৯. রিপোর্ট</h2>
+<p><span class="menu-path">মেনু: Reports</span></p>
+<p>ব্যবসা বোঝার জন্য রিপোর্ট ব্যবহার করুন। প্রতিটি রিপোর্ট তারিখ অনুযায়ী ফিল্টার করা যায় এবং বেশিরভাগ <strong>Excel/CSV</strong> এ এক্সপোর্ট বা <strong>প্রিন্ট</strong> করা যায়।</p>
+<ul>
+  <li><strong>Reports Dashboard</strong> — সবকিছুর সারসংক্ষেপ।</li>
+  <li><strong>Sales Report</strong> — সময় অনুযায়ী মোট বিক্রি।</li>
+  <li><strong>Product Sales</strong> — প্রতি প্রোডাক্টের বিক্রি।</li>
+  <li><strong>Product Performance</strong> — সবচেয়ে ভালো ও খারাপ পারফরম্যান্স।</li>
+  <li><strong>Profit &amp; Loss</strong> — খরচ বাদ দেওয়ার পর লাভ।</li>
+  <li><strong>Order Report</strong> — অর্ডার ও তাদের স্টেটাস।</li>
+  <li><strong>Customer Report</strong> — কে সবচেয়ে বেশি কেনে।</li>
+  <li><strong>Payment Report</strong> — Paid বনাম Unpaid।</li>
+  <li><strong>Inventory Report</strong> — বর্তমান স্টক।</li>
+  <li><strong>Purchase Report</strong> — কী কিনেছেন।</li>
+  <li><strong>Purchase Return</strong> — ফেরত দেওয়া আইটেম।</li>
+  <li><strong>Coupon Report</strong> — কুপনের ব্যবহার।</li>
+  <li><strong>Shipping Report</strong> — ডেলিভারি চার্জ।</li>
+</ul>
+<div class="note">বাতিল (Cancelled) অর্ডার বিক্রি ও লাভের হিসাব থেকে বাদ থাকে, তাই আপনার মোট সংখ্যা সঠিক থাকে।</div>
+
+<h2>২০. কুরিয়ার</h2>
+<p><span class="menu-path">মেনু: System → Courier</span></p>
+<p>স্টোর আপনার ডেলিভারি কোম্পানিতে (<strong>Steadfast</strong>) অর্ডার পাঠাতে পারে। দুটি মোড আছে:</p>
+<ul>
+  <li><strong>Test Mode</strong> — একটি অনুশীলন মোড। কোনো কোড ছাড়াই পুরোপুরি কাজ করে এবং <strong>সত্যিকারের শিপমেন্ট পাঠায় না</strong>। শেখার জন্য এটি ব্যবহার করুন।</li>
+  <li><strong>Live Mode</strong> — আসল মোড। Steadfast এর কোড লাগে এবং সত্যিকারের শিপমেন্ট পাঠায়।</li>
+</ul>
+
+<h3>২০.১ কুরিয়ার সেটআপ</h3>
+<ol>
+  <li>যান <strong>System → Courier</strong>।</li>
+  <li><strong>Courier Provider: Steadfast</strong> বেছে নিন।</li>
+  <li><strong>Environment</strong> বেছে নিন:
+    <ul>
+      <li><strong>Test / Mock</strong> (অনুশীলন) — শেখার সময় এটি ব্যবহার করুন।</li>
+      <li><strong>Live</strong> (আসল) — Steadfast কোড দেওয়ার পরেই।</li>
+    </ul>
+  </li>
+  <li><strong>Live</strong> বেছে নিলে আপনার <strong>API Key</strong> ও <strong>Secret Key</strong> (Steadfast এর দেওয়া দুটি কোড) বসান। এগুলো নিরাপদে সংরক্ষিত হয় এবং শুধু ডট হিসেবে দেখা যায়।</li>
+  <li><strong>Courier integration active</strong> চালু রাখুন।</li>
+  <li><strong>Save Settings</strong> ক্লিক করুন।</li>
+</ol>
+<div class="warn">Live বেছে নিয়ে কোড খালি রাখলে সিস্টেম সেভ করবে <strong>না</strong> এবং কোড চাইবে। এতে ভুল এড়ানো যায়।</div>
+
+<h3>২০.২ সংযোগ পরীক্ষা (Test Connection)</h3>
+<ol>
+  <li>একই পেজে <strong>Test Connection</strong> ক্লিক করুন।</li>
+  <li>Test Mode এ দেখাবে: “Test connection successful.”</li>
+  <li>Live Mode এ আপনার কোড সঠিক কিনা পরীক্ষা করবে।</li>
+</ol>
+
+<h3>২০.৩ অর্ডার কুরিয়ারে পাঠানো</h3>
+<ol>
+  <li>অর্ডার খুলুন: <span class="menu-path">Sales → Orders → Order List</span> এরপর অর্ডারে ক্লিক করুন।</li>
+  <li>অর্ডার পেজে <strong>Courier</strong> অংশ খুঁজুন।</li>
+  <li><strong>COD</strong> (কুরিয়ার যে টাকা নেবে) দেখুন। এটি নিজে থেকে হিসাব হয়।</li>
+  <li><strong>Send to Courier</strong> ক্লিক করুন।</li>
+  <li>এখন অর্ডারে <strong>Consignment ID</strong>, <strong>Tracking Code</strong> ও কুরিয়ার স্টেটাস দেখা যাবে।</li>
+</ol>
+<div class="warn">একই অর্ডার দুইবার পাঠানো যাবে না। চেষ্টা করলে সিস্টেম বলবে এটি আগেই পাঠানো হয়েছে।</div>
+
+<h3>২০.৪ আপডেট, বাতিল বা সিমুলেট</h3>
+<ul>
+  <li><strong>Refresh Status</strong> — সর্বশেষ কুরিয়ার স্টেটাস আনুন।</li>
+  <li><strong>Cancel Shipment</strong> — কুরিয়ার বুকিং বাতিল করে (কাস্টমার অর্ডার নয়)।</li>
+  <li><strong>Test tools</strong> (শুধু Test Mode) — <strong>Simulate Delivered</strong>, <strong>Hold</strong> বা <strong>Cancelled</strong> চেপে দেখতে পারেন কেমন দেখায়।</li>
+</ul>
+<div class="note">কুরিয়ার স্টেটাস আর অর্ডার স্টেটাস আলাদা। একটি বদলালে অন্যটি বদলায় না।</div>
+
+<h2>২১. সেটিংস</h2>
+<p><span class="menu-path">মেনু: System → Settings</span></p>
+<p>এটি ঠিক করে আপনার স্টোর কেমন দেখাবে ও কাস্টমার কীভাবে যোগাযোগ করবে।</p>
+<ol>
+  <li><strong>Settings</strong> এ ক্লিক করুন।</li>
+  <li><strong>Website Logo</strong> — আপনার লোগো আপলোড করুন।</li>
+  <li><strong>Phone Number</strong>, <strong>Email Address</strong>, <strong>Business Address</strong> — ফুটার ও যোগাযোগের জায়গায় দেখা যাবে।</li>
+  <li><strong>Social Media</strong> — Facebook, Instagram, YouTube ইত্যাদির লিংক বসান। কোনো ঘর খালি রাখলে সেই আইকন লুকিয়ে যাবে।</li>
+  <li><strong>Save Changes</strong> ক্লিক করুন।</li>
+</ol>
+<div class="tip">লোগো, যোগাযোগ ও সোশ্যাল লিংক সঙ্গে সঙ্গে পুরো ওয়েবসাইটে আপডেট হয়ে যায়।</div>
+
+<h2>২২. লগ আউট</h2>
+<ol>
+  <li>উপরের ডান কোণে <strong>logout</strong> অপশনে ক্লিক করুন।</li>
+  <li>নিশ্চিত করুন। আপনি লগ ইন পেজে ফিরে যাবেন।</li>
+</ol>
+<div class="warn">শেয়ার করা কম্পিউটারে ব্যবহার করলে সবসময় লগ আউট করুন।</div>
+
+<div class="page-break"></div>
+
+<h1>দ্বিতীয় অংশ — কাস্টমার স্টোর</h1>
+
+<h2>২৩. কাস্টমার কী দেখে</h2>
+<p>পাবলিক ওয়েবসাইটে (স্টোরফ্রন্ট) কাস্টমার:</p>
+<ul>
+  <li>প্রোডাক্ট ব্রাউজ ও সার্চ করে।</li>
+  <li>প্রোডাক্টের বিবরণ ও ছবি দেখে।</li>
+  <li>কার্টে আইটেম যোগ করে।</li>
+  <li>কুপন প্রয়োগ করে।</li>
+  <li>Cash on Delivery দিয়ে অর্ডার করে।</li>
+  <li>অর্ডার ট্র্যাক করে।</li>
+  <li>অ্যাকাউন্ট খুলে অর্ডারের ইতিহাস দেখে।</li>
+</ul>
+
+<h2>২৪. রেজিস্ট্রেশন ও লগ ইন</h2>
+<ul>
+  <li><strong>Register:</strong> উপরের ডানে <strong>My Account</strong> → <strong>Register</strong> ক্লিক করুন। নাম, ইমেইল, ফোন ও পাসওয়ার্ড দিন।</li>
+  <li><strong>Log In:</strong> <strong>My Account</strong> → <strong>Log In</strong> ক্লিক করুন। কাস্টমার <strong>ইমেইল বা ফোন</strong> ও পাসওয়ার্ড দিয়ে লগ ইন করতে পারে।</li>
+  <li>লগ ইন করার পর উপরের ডানে <strong>“Hello, [নাম]”</strong> এবং <strong>Dashboard</strong> ও <strong>Logout</strong> অপশন দেখা যাবে।</li>
+</ul>
+<div class="note">কাস্টমার <strong>অ্যাকাউন্ট ছাড়াও</strong> চেকআউট করতে পারে। সিস্টেম ফোন নম্বর দিয়ে একটি সাধারণ অ্যাকাউন্ট তৈরি করে, যা পরে একই ফোন দিয়ে রেজিস্ট্রেশন করে দখল করা যায়।</div>
+
+<h2>২৫. ব্রাউজিং ও সার্চ</h2>
+<ul>
+  <li><strong>হোম পেজে</strong> ফিচার্ড প্রোডাক্ট, ব্যানার ও ক্যাটাগরি থাকে।</li>
+  <li><strong>মেনু</strong> থেকে কাস্টমার <strong>ক্যাটাগরি</strong> বা <strong>উপ-বিভাগ</strong> খুলতে পারে।</li>
+  <li><strong>Search</strong> (ম্যাগনিফাইং আইকন) চেপে প্রোডাক্টের নাম বা কোড লিখে খোঁজা যায়।</li>
+  <li><strong>Offer Zone</strong> ছাড় দেওয়া আইটেম দেখায়।</li>
+</ul>
+
+<h2>২৬. প্রোডাক্ট পেজ</h2>
+<p>প্রোডাক্ট পেজে কাস্টমার:</p>
+<ul>
+  <li>ছবি, দাম ও বিবরণ দেখে।</li>
+  <li>একটি অপশন বেছে নেয় (যেমন সাইজ বা রং)।</li>
+  <li><strong>পরিমাণ</strong> ঠিক করে।</li>
+  <li><strong>Add to Cart</strong> ক্লিক করে।</li>
+</ul>
+<p><strong>তিনটি অবস্থা:</strong></p>
+<ul>
+  <li><strong>স্টকে আছে</strong> — কার্টে যোগ করা যায়।</li>
+  <li><strong>স্টক নেই</strong> — বাটন নিষ্ক্রিয় থাকে।</li>
+  <li><strong>Pre Order</strong> — আপনি অনুমতি দিলে কাস্টমার অর্ডার করতে পারে এবং “Pre Order” নোট দেখে।</li>
+</ul>
+
+<h2>২৭. কার্ট ও কুপন</h2>
+<ol>
+  <li>উপরের <strong>কার্ট</strong> আইকনে ক্লিক করুন।</li>
+  <li>পরিমাণ বদলান বা আইটেম সরান।</li>
+  <li><strong>কুপন কোড</strong> লিখে <strong>Apply</strong> চাপলে ছাড় পাবে।</li>
+  <li>কার্টে <strong>Subtotal</strong>, <strong>Shipping</strong>, <strong>Discount</strong> ও <strong>Total</strong> দেখা যায়।</li>
+</ol>
+
+<h2>২৮. চেকআউট ও পেমেন্ট</h2>
+<ol>
+  <li><strong>Checkout</strong> ক্লিক করুন।</li>
+  <li><strong>নাম</strong>, <strong>ফোন</strong>, <strong>ঠিকানা</strong> দিন এবং <strong>জেলা</strong> বেছে নিন।</li>
+  <li>সেই জেলার <strong>শিপিং চার্জ</strong> নিজে থেকে যোগ হবে (প্রোডাক্ট যোগ্য হলে ফ্রি)।</li>
+  <li><strong>Total</strong> দেখে নিন।</li>
+  <li>অর্ডার <strong>প্লেস</strong> করুন।</li>
+</ol>
+<p><strong>পেমেন্ট Cash on Delivery (COD)</strong> — কাস্টমার মাল হাতে পেয়ে ডেলিভারি ব্যক্তিকে টাকা দেয়। অনলাইন পেমেন্ট নেই।</p>
+
+<h2>২৯. অর্ডারের পরে (থ্যাংক ইউ, ইনভয়েস, ট্র্যাক অর্ডার)</h2>
+<ul>
+  <li><strong>Thank You পেজ</strong> — অর্ডার দেওয়ার পরপর দেখানো হয়।</li>
+  <li><strong>Invoice</strong> — অর্ডারের প্রিন্টযোগ্য সারসংক্ষেপ।</li>
+  <li><strong>Track Order</strong> — কাস্টমার অর্ডারের তথ্য দিয়ে স্টেটাস দেখতে পারে; ফোন নম্বর অর্ডারের সাথে মিলতে হবে।</li>
+</ul>
+
+<h2>৩০. কাস্টমার অ্যাকাউন্ট এরিয়া</h2>
+<p>লগ ইন করার পর কাস্টমার বাঁ দিকের অ্যাকাউন্ট মেনু ব্যবহার করে:</p>
+<ul>
+  <li><strong>Dashboard</strong> — স্বাগত বার্তা, অর্ডারের সংখ্যা (Total, Pending, Confirmed, Shipped) এবং সাম্প্রতিক ৫টি অর্ডার।</li>
+  <li><strong>My Orders</strong> — পুরো অর্ডার ইতিহাস, স্টেটাস অনুযায়ী ফিল্টার এবং <strong>View Details</strong> বাটন।</li>
+  <li><strong>Order Details</strong> — ছবিসহ প্রোডাক্ট, পরিমাণ, দাম, মোট, ঠিকানা ও পেমেন্ট স্টেটাস।</li>
+  <li><strong>Profile</strong> — নাম, ইমেইল ও ফোন আপডেট এবং পাসওয়ার্ড পরিবর্তন।</li>
+  <li><strong>Logout</strong> — নিরাপদে লগ আউট।</li>
+</ul>
+<p>স্টেটাস সবসময় সহজ শব্দে দেখানো হয়: <strong>Pending, Confirmed, Shipped, Cancelled</strong>।</p>
+
+<div class="page-break"></div>
+
+<h1>তৃতীয় অংশ — ভালো অভ্যাস</h1>
+
+<h2>৩১. দৈনিক ও সাপ্তাহিক রুটিন</h2>
+<p><strong>প্রতিদিন</strong></p>
+<ol>
+  <li><strong>Dashboard</strong> খুলুন — নতুন অর্ডার ও অপেক্ষমাণ প্রি-অর্ডার দেখুন।</li>
+  <li><strong>Orders → Order List</strong> খুলুন — নতুন অর্ডার নিশ্চিত করুন ও স্টেটাস আপডেট করুন।</li>
+  <li>পাঠানোর পর অর্ডার <strong>Shipped</strong> করুন।</li>
+  <li>টাকা পেলে অর্ডার <strong>Paid</strong> চিহ্নিত করুন।</li>
+</ol>
+<p><strong>প্রতি সপ্তাহে</strong></p>
+<ol>
+  <li><strong>Reports → Inventory Report</strong> দেখে কম বা শেষ হওয়া স্টক জানুন।</li>
+  <li>যে মাল পেয়েছেন তা <strong>Purchase</strong> দিয়ে রেকর্ড করুন।</li>
+  <li><strong>Reports → Profit &amp; Loss</strong> ও <strong>Sales Report</strong> দেখুন।</li>
+  <li>চলতি অফারের জন্য <strong>Banners</strong> ও <strong>Advertisement</strong> আপডেট করুন।</li>
+</ol>
+<p><strong>প্রতি মাসে</strong></p>
+<ol>
+  <li>হাতে স্টক গুনে পার্থক্য থাকলে <strong>Stock Adjustment → Stock Correction</strong> করুন।</li>
+  <li><strong>Customer Report</strong> ও <strong>Coupon Report</strong> দেখুন।</li>
+  <li>আপনার কাজের ব্যাকআপ নিন (নিশ্চিত না হলে টেকনিক্যাল সহায়তা নিন)।</li>
+</ol>
+
+<h2>৩২. মনে রাখার মতো গুরুত্বপূর্ণ নিয়ম</h2>
+<ol>
+  <li><strong>অর্ডার পড়লে স্টক কমে না</strong> — Confirmed বা Shipped করলে কমে।</li>
+  <li><strong>অর্ডার Cancelled করলে স্টক নিজে থেকে ফিরে আসে।</strong></li>
+  <li><strong>Confirmed বা Shipped অর্ডার ডিলিট করা যায় না</strong> — বরং Cancelled করুন।</li>
+  <li><strong>দাম ও স্টক প্রোডাক্ট ফর্মে দেওয়া হয় না</strong> — <strong>Pricing</strong>, <strong>Stock Adjustment</strong> বা <strong>Purchase</strong> ব্যবহার করুন।</li>
+  <li><strong>Stock Correction:</strong> আপনি শুধু গুনে পাওয়া আসল সংখ্যা লিখবেন; পরিবর্তন সিস্টেম হিসাব করবে।</li>
+  <li><strong>প্রি-অর্ডারের স্টক একবারই কমে</strong> যখন আপনি <strong>Process Pre Order</strong> ক্লিক করেন।</li>
+  <li><strong>কুরিয়ার Live মোডে Steadfast এর কোড লাগে।</strong> Test মোডে কিছুই লাগে না।</li>
+  <li><strong>একটি অর্ডার দুইবার কুরিয়ারে পাঠানো যায় না</strong> — প্রতি অর্ডারে একটি সক্রিয় বুকিং।</li>
+  <li><strong>সংশোধন ও অর্ডার স্থায়ী রেকর্ড</strong> — এগুলো সঠিক রাখুন।</li>
+  <li><strong>আপনার অ্যাডমিন পাসওয়ার্ড কারও সাথে শেয়ার করবেন না।</strong></li>
+</ol>
+
+<h2>৩৩. সাধারণ সমস্যা ও সমাধান</h2>
+<table>
+  <thead>
+    <tr><th>সমস্যা</th><th>করণীয়</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>প্রোডাক্ট স্টোরে দেখা যাচ্ছে না</td><td>প্রোডাক্ট <strong>Active</strong> কিনা, এবং দাম ও স্টক আছে কিনা দেখুন।</td></tr>
+    <tr><td>কাস্টমার কার্টে যোগ করতে পারছে না</td><td>অপশনটি স্টকে নেই। স্টক যোগ করুন বা <strong>Allow Pre Order</strong> চালু করুন।</td></tr>
+    <tr><td>ক্রয়ের পর বিক্রয় দাম বদলে গেছে</td><td><strong>Pricing</strong> খুলে দাম আবার ঠিক করুন; অথবা শুধু দাম বদলাতে চাইলে <strong>update price</strong> টিক দিন।</td></tr>
+    <tr><td>প্রোডাক্ট অপশন ডিলিট হচ্ছে না</td><td>এর স্টক আছে বা অর্ডার/ক্রয়ে ব্যবহৃত হয়েছে। স্টক শূন্য করুন বা রেখে দিন।</td></tr>
+    <tr><td>অর্ডার ডিলিট হচ্ছে না</td><td>অর্ডারটি Confirmed বা Shipped। আগে <strong>Cancelled</strong> করুন।</td></tr>
+    <tr><td>কুরিয়ার বলছে “already submitted”</td><td>এই অর্ডারের বুকিং আগেই হয়েছে। অর্ডার খুলে <strong>Refresh Status</strong> ক্লিক করুন।</td></tr>
+    <tr><td>Live কুরিয়ার সেভ হচ্ছে না</td><td><strong>API Key</strong> ও <strong>Secret Key</strong> — দুটোই দিতে হবে।</td></tr>
+    <tr><td>অ্যাডমিন পাসওয়ার্ড ভুলে গেছেন</td><td>রিসেটের জন্য টেকনিক্যাল সহায়তায় যোগাযোগ করুন।</td></tr>
+    <tr><td>স্টক মাইনাস দেখাচ্ছে</td><td><strong>Stock Adjustment → Stock Correction</strong> দিয়ে আসল গুননার সংখ্যা লিখুন।</td></tr>
+  </tbody>
+</table>
+
+<p style="margin-top:30px;text-align:center;color:#777;">— ম্যানুয়াল সমাপ্ত —</p>
+
+</body>
+</html>

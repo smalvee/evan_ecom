@@ -43,6 +43,21 @@ class CourierShipmentController extends Controller
     }
 
     /**
+     * Release the shipment locally (no provider call) so the order can be
+     * re-sent after the consignment was removed at the courier.
+     */
+    public function release(Order $order)
+    {
+        $shipment = $this->latestShipment($order);
+
+        if (!$shipment) {
+            return $this->json(['success' => false, 'message' => 'This order has no courier shipment yet.']);
+        }
+
+        return $this->json(CourierManager::make()->releaseShipment($shipment)->toArray());
+    }
+
+    /**
      * Test-mode only: simulate a courier status change.
      */
     public function simulate(Request $request, Order $order)

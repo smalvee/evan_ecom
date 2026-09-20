@@ -155,15 +155,10 @@ class PurchaseController extends Controller
                         // Stock + weighted-average inventory cost.
                         $this->costing->recordPurchase($variant, $qty, $unitCost);
 
-                        // Purchase cost + initial/current pricing. A manually managed
-                        // price is preserved (only cost and stock are updated).
-                        $this->pricing->applyPurchasePricing(
-                            $variant,
-                            $unitCost,
-                            $profitAmount,
-                            $discount,
-                            'Purchase #' . $purchase->id
-                        );
+                        // Cost only. Creating a purchase must NEVER change the
+                        // customer's selling price / MRP (or the manual-price flag).
+                        // Customer pricing is managed explicitly in Catalog -> Pricing.
+                        $this->pricing->applyPurchaseCost($variant, $unitCost);
                     }
                 }
 

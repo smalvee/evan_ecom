@@ -192,6 +192,7 @@ Route::group(['prefix' => 'admin'], function () {
         Route::post('/orders/{order}/courier/create', [CourierShipmentController::class, 'create'])->name('admin.orders.courier.create');
         Route::post('/orders/{order}/courier/status', [CourierShipmentController::class, 'refresh'])->name('admin.orders.courier.status');
         Route::post('/orders/{order}/courier/cancel', [CourierShipmentController::class, 'cancel'])->name('admin.orders.courier.cancel');
+        Route::post('/orders/{order}/courier/release', [CourierShipmentController::class, 'release'])->name('admin.orders.courier.release');
         Route::post('/orders/{order}/courier/simulate', [CourierShipmentController::class, 'simulate'])->name('admin.orders.courier.simulate');
 
         // pre-orders
