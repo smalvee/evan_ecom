@@ -139,6 +139,9 @@ class CartController extends Controller
         return response()->json([
             'status' => $status,
             'message' => $message,
+            'available' => $decision['available'] ?? null,
+            'allowPreOrder' => (bool) $product->allow_pre_order,
+            'isPreOrder' => (bool) $decision['is_pre_order'],
         ]);
     }
 

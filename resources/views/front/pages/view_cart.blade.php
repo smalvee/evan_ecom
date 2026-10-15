@@ -89,6 +89,8 @@
                                                                      @endif
 
                                                                  </li>
+                                                                 <li class="cart-stock-alert text-danger fw-bold"
+                                                                     style="display:none;"></li>
 
                                                                 {{-- <ul>
                                                                     @foreach ($get_product_id->variation_values as $items)
@@ -457,12 +459,8 @@
             let qty = parseInt(input.val());
 
             if (qty < 10) {
-                qty++;
-                input.val(qty);
-
                 let rowId = $(this).data('rowid');
-                updateSubtotal($(this), qty);
-                updateCart(rowId, qty);
+                updateCart(rowId, qty + 1, $(this));
             }
         });
 
@@ -471,24 +469,26 @@
             let qty = parseInt(input.val());
 
             if (qty > 1) {
-                qty--;
-                input.val(qty);
-
                 let rowId = $(this).data('rowid');
-                updateSubtotal($(this), qty);
-                updateCart(rowId, qty);
+                updateCart(rowId, qty - 1, $(this));
             }
         });
 
-        function updateSubtotal(button, qty) {
-            let row = button.closest('tr');
-            let price = parseFloat(row.find('.item-subtotal').data('price'));
-            let total = (price * qty).toFixed(2);
-
-            row.find('.item-subtotal').text(total + ' Tk');
+        function notifyStock(type, title, text) {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: type,
+                    title: title,
+                    text: text || '',
+                    showConfirmButton: false,
+                    timer: 2500
+                });
+            } else {
+                alert(title + (text ? '\n' + text : ''));
+            }
         }
 
-        function updateCart(rowId, qty) {
+        function updateCart(rowId, qty, btn) {
             $.ajax({
                 url: '{{ route('front.updateCart') }}',
                 type: 'POST',
@@ -499,11 +499,21 @@
                 },
                 dataType: 'json',
                 success: function(response) {
+                    if (response.status === true) {
+                        window.location.href = '{{ route('front.cart') }}';
+                    } else {
+                        let displayMessage = response.message;
+                        if (response.allowPreOrder === false && Number(response.available) === 0) {
+                            displayMessage = 'Stock Out';
+                        }
 
-                    window.location.href = '{{ route('front.cart') }}'
-
+                        btn.closest('tr').find('.cart-stock-alert').text(displayMessage).show();
+                        notifyStock('warning', displayMessage);
+                    }
+                },
+                error: function(xhr) {
+                    notifyStock('error', 'Something went wrong!', xhr.responseJSON?.message || 'Error updating cart');
                 }
-
             });
         }
 
