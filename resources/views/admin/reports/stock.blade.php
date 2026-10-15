@@ -15,10 +15,10 @@
         }
 
         /* Section colors */
-        .sec-opening { background: #eef2ff; color: #4338ca; }
-        .sec-purchase { background: #ecfdf5; color: #047857; }
-        .sec-sales { background: #fff7ed; color: #c2410c; }
-        .sec-closing { background: #faf5ff; color: #7e22ce; }
+        .stock-report-table .sec-opening { background: #eef2ff !important; color: #4338ca; }
+        .stock-report-table .sec-purchase { background: #ecfdf5 !important; color: #047857; }
+        .stock-report-table .sec-sales { background: #fff7ed !important; color: #c2410c; }
+        .stock-report-table .sec-closing { background: #faf5ff !important; color: #7e22ce; }
 
         /* Vertical divider between the four stock sections */
         .stock-report-table .sec-start {
@@ -26,6 +26,12 @@
         }
         .stock-report-table .sec-end {
             border-right: 2px solid var(--a-border-strong);
+        }
+
+        /* Money / numeric columns right-aligned */
+        .stock-report-table th.a-table-num,
+        .stock-report-table td.a-table-num {
+            text-align: right !important;
         }
     </style>
     <div class="container-fluid">
