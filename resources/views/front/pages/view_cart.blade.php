@@ -52,20 +52,25 @@
                                         @foreach ($cartContent as $item)
                                             @php
                                                 $product_image = ProductImage::where('product_id', $item->id)
-                                                    ->where('is_thumb', 0)
+                                                    ->orderByDesc('is_thumb')
+                                                    ->orderBy('sort_order')
                                                     ->first();
                                                 $get_product_id = ProductVariant::where('id', $item->id)->first();
                                                 $get_product_info = NewProduct::where(
                                                     'id',
                                                     $get_product_id->product_id,
                                                 )->first();
+
+                                                $imageSrc = $product_image
+                                                    ? asset('uploads/products/' . ($product_image->is_thumb ? 'thumb' : 'small') . '/' . $product_image->image)
+                                                    : asset('admin-assets/img/default-150x150.png');
                                             @endphp
 
                                             <tr class="product-box-contain">
                                                 <td class="product-detail">
                                                     <div class="product border-0">
                                                         <a href="product-left-thumbnail.html" class="product-image">
-                                                            <img src="{{ asset('uploads/products/small/' . $product_image->image) }}"
+                                                            <img src="{{ $imageSrc }}"
                                                                 class="img-fluid blur-up lazyload" alt="">
                                                         </a>
                                                         <div class="product-detail">
