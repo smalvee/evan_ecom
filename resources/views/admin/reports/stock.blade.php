@@ -12,13 +12,22 @@
         .stock-report-table .a-group-head {
             text-align: center;
             font-weight: 700;
+            font-size: 11px;
+            letter-spacing: .01em;
+            padding: 6px 6px !important;
         }
 
-        /* Section colors (application design tokens) */
-        .stock-report-table .sec-opening { background: var(--a-secondary-soft) !important; color: var(--a-secondary); }
-        .stock-report-table .sec-purchase { background: var(--a-success-soft) !important; color: var(--a-success); }
-        .stock-report-table .sec-sales { background: var(--a-danger-soft) !important; color: var(--a-danger); }
-        .stock-report-table .sec-closing { background: var(--a-info-soft) !important; color: var(--a-info); }
+        /* Eye-catching group headers (solid + white text) */
+        .stock-report-table .a-group-head.sec-opening { background: #6366f1 !important; color: #ffffff !important; }
+        .stock-report-table .a-group-head.sec-purchase { background: #10b981 !important; color: #ffffff !important; }
+        .stock-report-table .a-group-head.sec-sales { background: #f43f5e !important; color: #ffffff !important; }
+        .stock-report-table .a-group-head.sec-closing { background: #8b5cf6 !important; color: #ffffff !important; }
+
+        /* Section body tints (light background + colored text) */
+        .stock-report-table .sec-opening { background: #eef2ff !important; color: #4338ca; }
+        .stock-report-table .sec-purchase { background: #ecfdf5 !important; color: #047857; }
+        .stock-report-table .sec-sales { background: #fff1f2 !important; color: #be123c; }
+        .stock-report-table .sec-closing { background: #f5f3ff !important; color: #6d28d9; }
 
         /* Vertical divider between the four stock sections */
         .stock-report-table .sec-start {
@@ -32,8 +41,8 @@
         .stock-report-table th.a-table-num,
         .stock-report-table td.a-table-num {
             text-align: right !important;
-            padding: 6px 10px !important;
-            font-size: 12.5px;
+            padding: 2px 5px !important;
+            font-size: 11px;
             white-space: nowrap;
         }
 
@@ -45,15 +54,15 @@
         }
         .stock-report-table .col-sku {
             left: 0;
-            width: 150px;
-            min-width: 150px;
-            max-width: 150px;
+            width: 130px;
+            min-width: 130px;
+            max-width: 130px;
         }
         .stock-report-table .col-name {
-            left: 150px;
-            width: 200px;
-            min-width: 200px;
-            max-width: 200px;
+            left: 130px;
+            width: 170px;
+            min-width: 170px;
+            max-width: 170px;
             box-shadow: 4px 0 6px -4px rgba(16, 24, 40, 0.12);
         }
         .stock-report-table td.col-sku,
@@ -64,11 +73,7 @@
         .stock-report-table thead th.col-name {
             background-color: #f3f3f3 !important;
         }
-        .stock-report-table td.col-sku {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+        .stock-report-table td.col-sku,
         .stock-report-table td.col-name {
             white-space: nowrap;
             overflow: hidden;
@@ -106,7 +111,8 @@
                 return $q == (int) $q ? number_format($q, 0) : number_format($q, 2);
             };
             $fmtMoney = function ($v) {
-                return '৳ ' . number_format((float) $v, 2);
+                $v = round((float) $v, 2);
+                return '৳' . ($v == (int) $v ? number_format($v, 0) : number_format($v, 2));
             };
         @endphp
 
