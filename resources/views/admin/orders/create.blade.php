@@ -125,6 +125,31 @@
         .pos-sum-total span:last-child {
             color: var(--a-primary);
         }
+
+        /* ---------- Eye-catching delivery charge search ---------- */
+        .delivery-search .pos-search-field .form-control {
+            height: 46px;
+            border: 2px solid var(--a-primary);
+            border-radius: var(--a-radius-sm);
+            background: var(--a-primary-soft);
+            color: var(--a-primary-700);
+            font-weight: 600;
+            transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+        }
+
+        .delivery-search .pos-search-field .form-control::placeholder {
+            color: var(--a-primary-700);
+        }
+
+        .delivery-search .pos-search-field .form-control:focus {
+            border-color: var(--a-primary-700);
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(13, 164, 135, 0.18);
+        }
+
+        .delivery-search .pos-search-field > i {
+            color: var(--a-primary);
+        }
     </style>
 
     @php
@@ -139,6 +164,17 @@
                     'stock' => $v->stock(),
                     'allow_pre_order' => (bool) $v->allow_pre_order,
                     'active' => (bool) ($v->product?->status ?? 1),
+                ];
+            })
+            ->values()
+            ->all();
+
+        $deliveryOptions = $shippingCharge
+            ->map(function ($s) {
+                return [
+                    'id' => $s->id,
+                    'location' => $s->location ?: ($s->district ?: ''),
+                    'amount' => (float) $s->amount,
                 ];
             })
             ->values()
@@ -185,15 +221,19 @@
                         </div>
 
                         <div class="col-12 col-md-6 col-xl-3">
-                            <label class="form-label a-required mb-1" for="shipping_method">Delivery Charge</label>
-                            <select class="form-select js-select2" id="shipping_method" name="shipping_method">
-                                <option value="">-- Select Shipping --</option>
-                                @foreach ($shippingCharge as $shipping)
-                                    <option value="{{ $shipping->amount }}">
-                                        {{ $shipping->location }} - ৳{{ $shipping->amount }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            <label class="form-label a-required mb-1" for="deliverySearch">
+                                <i class="ri-truck-line"></i> Delivery Charge
+                            </label>
+                            <div class="delivery-search pos-search">
+                                <div class="pos-search-field">
+                                    <i class="ri-search-line"></i>
+                                    <input type="text" id="deliverySearch" class="form-control"
+                                        placeholder="Search district…" autocomplete="off"
+                                        aria-autocomplete="list" aria-controls="deliverySearchResults">
+                                </div>
+                                <div id="deliverySearchResults" class="pos-search-results" hidden></div>
+                            </div>
+                            <input type="hidden" id="shipping_method" name="shipping_method" value="">
                             <p class="invalid-feedback"></p>
                         </div>
                     </div>
@@ -307,6 +347,7 @@
 @section('customJs')
     <script>
         const PRODUCTS = @json($productOptions);
+        const DELIVERY_CHARGES = @json($deliveryOptions);
     </script>
 
     <script>
@@ -510,8 +551,119 @@
                 }
             });
 
-            $('#shipping_method').on('change', function() {
+            /* ---------- Delivery charge search (same UX as the SKU search) ---------- */
+            const deliveryInput = document.getElementById('deliverySearch');
+            const deliveryResults = document.getElementById('deliverySearchResults');
+            const deliveryHidden = document.getElementById('shipping_method');
+            let deliveryCurrent = [];
+            let deliveryActiveIndex = -1;
+
+            function deliveryPosition() {
+                const rect = deliveryInput.getBoundingClientRect();
+                const width = Math.max(rect.width, 280);
+                deliveryResults.style.top = (rect.bottom + 6) + 'px';
+                deliveryResults.style.left = rect.left + 'px';
+                deliveryResults.style.width = width + 'px';
+            }
+
+            function deliverySearch(query) {
+                const q = (query || '').trim().toLowerCase();
+                if (!q) return DELIVERY_CHARGES.slice(0, 20);
+                return DELIVERY_CHARGES.filter(function(c) {
+                    return String(c.location).toLowerCase().includes(q) ||
+                        String(c.amount).includes(q);
+                }).slice(0, 20);
+            }
+
+            function deliveryRender(list) {
+                deliveryCurrent = list;
+                deliveryActiveIndex = list.length ? 0 : -1;
+
+                if (!list.length) {
+                    deliveryResults.innerHTML = '<div class="pos-no-result">No delivery charge found</div>';
+                } else {
+                    deliveryResults.innerHTML = list.map(function(c, index) {
+                        return '<button type="button" class="pos-result ' + (index === deliveryActiveIndex ?
+                                'is-active' : '') + '" data-index="' + index + '">' +
+                            '<span class="pos-result-main">' +
+                            '<span class="pos-result-name">' + escapeHtml(c.location) + '</span>' +
+                            '</span>' +
+                            '<span class="pos-result-side"><span class="pos-result-price">৳ ' + money(c.amount) +
+                            '</span></span>' +
+                            '</button>';
+                    }).join('');
+                }
+
+                deliveryPosition();
+                deliveryResults.hidden = false;
+            }
+
+            function deliveryClose() {
+                deliveryResults.hidden = true;
+                deliveryResults.innerHTML = '';
+                deliveryCurrent = [];
+                deliveryActiveIndex = -1;
+            }
+
+            function deliveryHighlight() {
+                deliveryResults.querySelectorAll('.pos-result').forEach(function(el, index) {
+                    el.classList.toggle('is-active', index === deliveryActiveIndex);
+                });
+            }
+
+            function deliveryChoose(index) {
+                const charge = deliveryCurrent[index];
+                if (!charge) return;
+                deliveryHidden.value = charge.amount;
+                deliveryInput.value = charge.location + ' - ৳' + money(charge.amount);
+                deliveryClose();
                 calculateTotal();
+            }
+
+            deliveryInput.addEventListener('input', function() {
+                deliveryHidden.value = '';
+                deliveryRender(deliverySearch(this.value));
+                calculateTotal();
+            });
+
+            deliveryInput.addEventListener('focus', function() {
+                deliveryRender(deliverySearch(this.value));
+            });
+
+            deliveryInput.addEventListener('keydown', function(e) {
+                if (deliveryResults.hidden) {
+                    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                        deliveryRender(deliverySearch(this.value));
+                        e.preventDefault();
+                    }
+                    return;
+                }
+
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    deliveryActiveIndex = Math.min(deliveryActiveIndex + 1, deliveryCurrent.length - 1);
+                    deliveryHighlight();
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    deliveryActiveIndex = Math.max(deliveryActiveIndex - 1, 0);
+                    deliveryHighlight();
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    deliveryChoose(deliveryActiveIndex);
+                } else if (e.key === 'Escape') {
+                    deliveryClose();
+                }
+            });
+
+            deliveryResults.addEventListener('mousedown', function(e) {
+                const btn = e.target.closest('.pos-result');
+                if (!btn) return;
+                e.preventDefault();
+                deliveryChoose(parseInt(btn.dataset.index, 10));
+            });
+
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.delivery-search')) deliveryClose();
             });
 
             // Pressing Enter in a quantity field jumps back to product search.
