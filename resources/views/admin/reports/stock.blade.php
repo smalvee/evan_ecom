@@ -14,11 +14,11 @@
             font-weight: 700;
         }
 
-        /* Section colors */
-        .stock-report-table .sec-opening { background: #eef2ff !important; color: #4338ca; }
-        .stock-report-table .sec-purchase { background: #ecfdf5 !important; color: #047857; }
-        .stock-report-table .sec-sales { background: #fff7ed !important; color: #c2410c; }
-        .stock-report-table .sec-closing { background: #faf5ff !important; color: #7e22ce; }
+        /* Section colors (application design tokens) */
+        .stock-report-table .sec-opening { background: var(--a-secondary-soft) !important; color: var(--a-secondary); }
+        .stock-report-table .sec-purchase { background: var(--a-success-soft) !important; color: var(--a-success); }
+        .stock-report-table .sec-sales { background: var(--a-danger-soft) !important; color: var(--a-danger); }
+        .stock-report-table .sec-closing { background: var(--a-info-soft) !important; color: var(--a-info); }
 
         /* Vertical divider between the four stock sections */
         .stock-report-table .sec-start {
@@ -28,10 +28,51 @@
             border-right: 2px solid var(--a-border-strong);
         }
 
-        /* Money / numeric columns right-aligned */
+        /* Money / numeric columns right-aligned + compact */
         .stock-report-table th.a-table-num,
         .stock-report-table td.a-table-num {
             text-align: right !important;
+            padding: 6px 10px !important;
+            font-size: 12.5px;
+            white-space: nowrap;
+        }
+
+        /* Frozen first two columns */
+        .stock-report-table .col-sku,
+        .stock-report-table .col-name {
+            position: sticky;
+            z-index: 3;
+        }
+        .stock-report-table .col-sku {
+            left: 0;
+            width: 150px;
+            min-width: 150px;
+            max-width: 150px;
+        }
+        .stock-report-table .col-name {
+            left: 150px;
+            width: 200px;
+            min-width: 200px;
+            max-width: 200px;
+            box-shadow: 4px 0 6px -4px rgba(16, 24, 40, 0.12);
+        }
+        .stock-report-table td.col-sku,
+        .stock-report-table td.col-name {
+            background-color: #ffffff;
+        }
+        .stock-report-table thead th.col-sku,
+        .stock-report-table thead th.col-name {
+            background-color: #f3f3f3 !important;
+        }
+        .stock-report-table td.col-sku {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .stock-report-table td.col-name {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
     </style>
     <div class="container-fluid">
@@ -78,8 +119,8 @@
                 <table class="table all-package theme-table stock-report-table">
                     <thead>
                         <tr>
-                            <th rowspan="2" class="align-middle">SKU No</th>
-                            <th rowspan="2" class="align-middle">SKU Name</th>
+                            <th rowspan="2" class="align-middle col-sku">SKU No</th>
+                            <th rowspan="2" class="align-middle col-name">SKU Name</th>
                             <th colspan="3" class="text-center a-group-head sec-opening sec-start">Opening Stock</th>
                             <th colspan="3" class="text-center a-group-head sec-purchase sec-start">Purchase</th>
                             <th colspan="3" class="text-center a-group-head sec-sales sec-start">Sales</th>
@@ -104,8 +145,8 @@
                         @forelse ($rows as $v)
                             @php $s = $v->stock; @endphp
                             <tr>
-                                <td class="text-nowrap">{{ $v->sku }}</td>
-                                <td class="a-cell-main">{{ $v->product }}</td>
+                                <td class="text-nowrap col-sku" title="{{ $v->sku }}">{{ $v->sku }}</td>
+                                <td class="a-cell-main col-name" title="{{ $v->product }}">{{ $v->product }}</td>
 
                                 <td class="a-table-num sec-opening sec-start">{{ $fmtQty($s['opening_qty']) }}</td>
                                 <td class="a-table-num sec-opening">{{ $fmtMoney($s['opening_rate']) }}</td>
