@@ -19,7 +19,7 @@
             'reportTitle' => 'Purchase Report',
             'exportReport' => 'purchases',
             'showSearch' => true,
-            'searchPlaceholder' => 'Supplier or purchase ID',
+            'searchPlaceholder' => 'Supplier, SKU or item name',
             'selects' => [
                 ['name' => 'supplier', 'label' => 'Supplier', 'options' => ['' => 'All'] + $suppliers->pluck('name', 'id')->toArray()],
             ],
@@ -36,33 +36,39 @@
 
         <div class="a-card mb-3">
             <div class="a-card-head">
-                <h5>Purchase Orders</h5>
+                <h5>Purchase Items</h5>
             </div>
             <div class="table-responsive">
                 <table class="table all-package theme-table">
                     <thead>
                         <tr>
                             <th>Date</th>
-                            <th>Purchase ID</th>
-                            <th>Supplier</th>
-                            <th class="a-table-num">Items</th>
+                            <th>SKU</th>
+                            <th>Item Name</th>
                             <th class="a-table-num">Qty</th>
-                            <th class="a-table-num">Amount</th>
+                            <th class="a-table-num">Rate</th>
+                            <th class="a-table-num">Value</th>
+                            <th>Supplier Name</th>
+                            <th>Number</th>
+                            <th>Address</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse ($purchases as $p)
+                        @forelse ($purchaseItems as $p)
                             <tr>
                                 <td>{{ \Carbon\Carbon::parse($p->date)->format('d M Y') }}</td>
-                                <td class="a-cell-main">#{{ $p->id }}</td>
-                                <td>{{ $p->supplier }}</td>
-                                <td class="a-table-num">{{ $p->items_count }}</td>
+                                <td>{{ $p->sku ?? '—' }}</td>
+                                <td class="a-cell-main">{{ $p->product ?? '—' }}</td>
                                 <td class="a-table-num">{{ number_format($p->qty) }}</td>
-                                <td class="a-table-num">৳ {{ number_format($p->total, 2) }}</td>
+                                <td class="a-table-num">৳ {{ number_format($p->unit_cost, 2) }}</td>
+                                <td class="a-table-num">৳ {{ number_format($p->value, 2) }}</td>
+                                <td>{{ $p->supplier }}</td>
+                                <td>{{ $p->supplier_phone }}</td>
+                                <td>{{ $p->supplier_address }}</td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6">
+                                <td colspan="9">
                                     <div class="a-empty">
                                         <div class="a-empty-icon"><i class="ri-inbox-line"></i></div>
                                         <h5>No data found</h5>
@@ -73,8 +79,8 @@
                     </tbody>
                 </table>
             </div>
-            @if ($purchases->hasPages())
-                <div class="a-card-footer">{{ $purchases->links() }}</div>
+            @if ($purchaseItems->hasPages())
+                <div class="a-card-footer">{{ $purchaseItems->links() }}</div>
             @endif
         </div>
 

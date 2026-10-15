@@ -9,16 +9,19 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Supplier;
 use App\Services\ReportService;
+use App\Services\StockReportService;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ReportController extends Controller
 {
     protected ReportService $reports;
+    protected StockReportService $stockReport;
 
-    public function __construct(ReportService $reports)
+    public function __construct(ReportService $reports, StockReportService $stockReport)
     {
         $this->reports = $reports;
+        $this->stockReport = $stockReport;
     }
 
     /* =====================================================================
@@ -80,6 +83,7 @@ class ReportController extends Controller
         $summary = $this->reports->salesSummary($from, $to, $status, $payment);
         $trend = $this->reports->salesTrend($from, $to, $status, $group);
         $rows = $this->reports->salesRows($from, $to, $status, 'day');
+        $items = $this->reports->salesItemsList($from, $to, $status, $payment, 20);
 
         $prev = $this->reports->previousPeriod($from, $to);
         $prevSummary = ($prev[0] && $prev[1]) ? $this->reports->salesSummary($prev[0], $prev[1], $status, $payment) : null;
@@ -99,6 +103,7 @@ class ReportController extends Controller
             'summary' => $summary,
             'trend' => $trend,
             'rows' => $rows,
+            'items' => $items,
             'prevSummary' => $prevSummary,
             'growth' => $growth,
         ]));
@@ -298,7 +303,7 @@ class ReportController extends Controller
         ];
 
         $summary = $this->reports->purchaseSummary($from, $to);
-        $purchases = $this->reports->purchasesList($from, $to, $filters, 20);
+        $purchaseItems = $this->reports->purchaseItemsList($from, $to, $filters, 20);
         $supplierWise = $this->reports->supplierWisePurchases($from, $to);
         $productWise = $this->reports->productWisePurchases($from, $to);
 
@@ -309,7 +314,7 @@ class ReportController extends Controller
             'rangeLabel' => $this->reports->rangeLabel($from, $to, $range),
             'filters' => $filters,
             'summary' => $summary,
-            'purchases' => $purchases,
+            'purchaseItems' => $purchaseItems,
             'supplierWise' => $supplierWise,
             'productWise' => $productWise,
         ]));
@@ -377,6 +382,31 @@ class ReportController extends Controller
     }
 
     /* =====================================================================
+       STOCK REPORT
+       ===================================================================== */
+
+    public function stock(Request $request)
+    {
+        [$from, $to, $range] = $this->reports->resolveRange($request);
+        $filters = [
+            'search' => $request->filled('search') ? $request->search : null,
+            'category' => $request->filled('category') ? $request->category : null,
+            'brand' => $request->filled('brand') ? $request->brand : null,
+        ];
+
+        $rows = $this->stockReport->rows($from, $to, $filters, 20);
+
+        return view('admin.reports.stock', array_merge($this->filterOptions(), [
+            'from' => $from,
+            'to' => $to,
+            'range' => $range,
+            'rangeLabel' => $this->reports->rangeLabel($from, $to, $range),
+            'filters' => $filters,
+            'rows' => $rows,
+        ]));
+    }
+
+    /* =====================================================================
        EXPORTS
        ===================================================================== */
 
@@ -416,16 +446,13 @@ class ReportController extends Controller
 
         switch ($report) {
             case 'sales':
-                $rows = $this->reports->salesRows($from, $to, $status, 'day');
-                $data = $rows->map(fn ($r) => [
-                    $r->period,
-                    $r->orders,
-                    (float) $r->gross,
-                    (float) $r->discount,
-                    (float) $r->shipping,
-                    (float) $r->gross - (float) $r->discount,
+                $payment = $request->filled('payment') ? $request->payment : null;
+                $items = $this->reports->salesItemsList($from, $to, $status, $payment, 100000);
+                $data = collect($items->items())->map(fn ($i) => [
+                    $i->date, $i->sku, $i->product, (int) $i->qty, (float) $i->price,
+                    (float) $i->value, $i->customer_name, $i->phone, $i->address,
                 ])->all();
-                return [['Date', 'Orders', 'Gross Sales', 'Discount', 'Shipping', 'Net Sales'], $data];
+                return [['Date', 'SKU No', 'Item Name', 'Qty', 'Rate', 'Value', 'Customer Name', 'Number', 'Address'], $data];
 
             case 'product_sales':
                 $filters = [
@@ -501,11 +528,12 @@ class ReportController extends Controller
 
             case 'purchases':
                 $filters = ['supplier' => $request->supplier, 'search' => $request->search];
-                $rows = $this->reports->purchasesList($from, $to, $filters, 100000);
+                $rows = $this->reports->purchaseItemsList($from, $to, $filters, 100000);
                 $data = collect($rows->items())->map(fn ($p) => [
-                    $p->date, $p->id, $p->supplier, (int) $p->items_count, (float) $p->total,
+                    $p->date, $p->sku, $p->product, (int) $p->qty, (float) $p->unit_cost,
+                    (float) $p->value, $p->supplier, $p->supplier_phone, $p->supplier_address,
                 ])->all();
-                return [['Date', 'Purchase ID', 'Supplier', 'Items', 'Amount'], $data];
+                return [['Date', 'SKU', 'Item Name', 'Qty', 'Rate', 'Value', 'Supplier Name', 'Number', 'Address'], $data];
 
             case 'purchase_returns':
                 $rows = $this->reports->purchaseReturnsList($from, $to, ['search' => $request->search], 100000);
@@ -530,6 +558,25 @@ class ReportController extends Controller
                     $data[] = [ucfirst($status), $s['count'], $s['charge'], $s['amount']];
                 }
                 return [['Status', 'Shipments', 'Shipping Charge', 'Order Value'], $data];
+
+            case 'stock':
+                $filters = [
+                    'search' => $request->filled('search') ? $request->search : null,
+                    'category' => $request->filled('category') ? $request->category : null,
+                    'brand' => $request->filled('brand') ? $request->brand : null,
+                ];
+                $rows = $this->stockReport->rows($from, $to, $filters, 100000);
+                $data = collect($rows->items())->map(function ($v) {
+                    $s = $v->stock;
+                    return [
+                        $v->sku, $v->product,
+                        (float) $s['opening_qty'], (float) $s['opening_rate'], (float) $s['opening_value'],
+                        (float) $s['purchase_qty'], (float) $s['purchase_rate'], (float) $s['purchase_value'],
+                        (float) $s['sales_qty'], (float) $s['sales_rate'], (float) $s['sales_value'],
+                        (float) $s['closing_qty'], (float) $s['closing_rate'], (float) $s['closing_value'],
+                    ];
+                })->all();
+                return [['SKU No', 'SKU Name', 'Opening Qty', 'Opening Rate', 'Opening Value', 'Purchase Qty', 'Purchase Rate', 'Purchase Value', 'Sales Qty', 'Sales Rate', 'Sales Value', 'Closing Qty', 'Closing Rate', 'Closing Value'], $data];
 
             default:
                 return [['Message'], [['Unknown report']]];

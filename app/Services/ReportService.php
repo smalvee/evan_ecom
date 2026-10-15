@@ -251,6 +251,43 @@ class ReportService
         return $this->salesTrend($from, $to, $status, $groupBy);
     }
 
+    public function salesItemsList(?Carbon $from, ?Carbon $to, ?string $status = null, $payment = null, int $perPage = 20)
+    {
+        $q = DB::table('order_items as oi')
+            ->join('orders as o', 'o.id', '=', 'oi.order_id')
+            ->leftJoin('users as u', 'u.id', '=', 'o.user_id')
+            ->leftJoin('product_variants as pv', 'pv.id', '=', 'oi.product_id')
+            ->leftJoin('new_products as np', 'np.id', '=', 'pv.product_id');
+
+        if ($from) {
+            $q->where('o.created_at', '>=', $from);
+        }
+        if ($to) {
+            $q->where('o.created_at', '<=', $to);
+        }
+        if ($status !== null && $status !== '') {
+            $q->where('o.status', $status);
+        } else {
+            $q->where('o.status', '!=', self::EXCLUDED_STATUS);
+        }
+        if ($payment !== null && $payment !== '') {
+            $q->where('o.payment_status', (int) $payment);
+        }
+
+        return $q->selectRaw('
+                oi.id, oi.order_id, oi.qty, oi.price, oi.name as item_name,
+                (oi.qty * oi.price) as value,
+                o.created_at as date,
+                o.name as customer_name, o.phone, o.address,
+                COALESCE(pv.sku, oi.name) as sku,
+                COALESCE(np.name, oi.name) as product
+            ')
+            ->orderByDesc('o.created_at')
+            ->orderByDesc('oi.id')
+            ->paginate($perPage)
+            ->appends(request()->query());
+    }
+
     /* =====================================================================
        PRODUCT SALES / PERFORMANCE
        ===================================================================== */
@@ -714,6 +751,47 @@ class ReportService
             ->groupBy('pi.variant_id', 'np.name', 'pi.p_name', 'pv.sku')
             ->orderByDesc('cost')
             ->get();
+    }
+
+    public function purchaseItemsList(?Carbon $from, ?Carbon $to, array $f = [], int $perPage = 20)
+    {
+        $q = DB::table('purchase_items as pi')
+            ->join('purchases as p', 'p.id', '=', 'pi.purchase_id')
+            ->leftJoin('suppliers as s', 's.id', '=', 'p.supplier_id')
+            ->leftJoin('product_variants as pv', 'pv.id', '=', 'pi.variant_id')
+            ->leftJoin('new_products as np', 'np.id', '=', 'pv.product_id');
+
+        if ($from) {
+            $q->where('p.date', '>=', $from->toDateString());
+        }
+        if ($to) {
+            $q->where('p.date', '<=', $to->toDateString());
+        }
+        if (!empty($f['supplier'])) {
+            $q->where('p.supplier_id', $f['supplier']);
+        }
+        if (!empty($f['search'])) {
+            $q->where(function ($x) use ($f) {
+                $x->where('np.name', 'like', '%' . $f['search'] . '%')
+                    ->orWhere('pv.sku', 'like', '%' . $f['search'] . '%')
+                    ->orWhere('pi.p_name', 'like', '%' . $f['search'] . '%')
+                    ->orWhere('s.name', 'like', '%' . $f['search'] . '%');
+            });
+        }
+
+        return $q->selectRaw('
+                pi.id, pi.purchase_id, p.date, pi.qty, pi.unit_cost, pi.p_name,
+                (pi.qty * pi.unit_cost) as value,
+                pv.sku as sku,
+                COALESCE(np.name, pi.p_name) as product,
+                COALESCE(s.name, "-") as supplier,
+                COALESCE(s.phone, "-") as supplier_phone,
+                COALESCE(s.address, "-") as supplier_address
+            ')
+            ->orderByDesc('p.date')
+            ->orderByDesc('pi.id')
+            ->paginate($perPage)
+            ->appends(request()->query());
     }
 
     /* =====================================================================

@@ -51,7 +51,7 @@
         'pages_refund' => $routeIs('admin.display.refund', 'admin.store_refund'),
 
         'reports_dashboard' => $routeIs('admin.reports.index'),
-        'reports_parent' => $routeIs('sales.*', 'item_sales.*', 'admin.reports.product_performance', 'admin.reports.profit_loss', 'admin.reports.orders', 'admin.reports.customers', 'admin.reports.payments', 'admin.reports.inventory', 'admin.reports.purchases', 'admin.reports.purchase_returns', 'admin.reports.coupons', 'admin.reports.shipping'),
+        'reports_parent' => $routeIs('sales.*', 'item_sales.*', 'admin.reports.product_performance', 'admin.reports.profit_loss', 'admin.reports.orders', 'admin.reports.customers', 'admin.reports.payments', 'admin.reports.inventory', 'admin.reports.purchases', 'admin.reports.purchase_returns', 'admin.reports.coupons', 'admin.reports.shipping', 'admin.reports.stock'),
         'reports_sales' => $routeIs('sales.*'),
         'reports_item_sales' => $routeIs('item_sales.*'),
         'reports_product_performance' => $routeIs('admin.reports.product_performance'),
@@ -64,6 +64,7 @@
         'reports_purchase_returns' => $routeIs('admin.reports.purchase_returns'),
         'reports_coupons' => $routeIs('admin.reports.coupons'),
         'reports_shipping' => $routeIs('admin.reports.shipping'),
+        'reports_stock' => $routeIs('admin.reports.stock'),
 
         'settings' => $routeIs('admin.settings*'),
         'courier' => $routeIs('admin.courier.*'),
@@ -407,6 +408,10 @@
                             <li>
                                 <a class="{{ $active['reports_shipping'] ? 'active' : '' }}"
                                     href="{{ route('admin.reports.shipping') }}">Shipping Report</a>
+                            </li>
+                            <li>
+                                <a class="{{ $active['reports_stock'] ? 'active' : '' }}"
+                                    href="{{ route('admin.reports.stock') }}">Stock Report</a>
                             </li>
                         </ul>
                     </li>

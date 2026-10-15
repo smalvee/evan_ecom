@@ -291,6 +291,7 @@ Route::group(['prefix' => 'admin'], function () {
         Route::get('/reports/purchase-returns', [ReportController::class, 'purchase_returns'])->name('admin.reports.purchase_returns');
         Route::get('/reports/coupons', [ReportController::class, 'coupons'])->name('admin.reports.coupons');
         Route::get('/reports/shipping', [ReportController::class, 'shipping'])->name('admin.reports.shipping');
+        Route::get('/reports/stock', [ReportController::class, 'stock'])->name('admin.reports.stock');
         Route::get('/reports/export/{report}', [ReportController::class, 'export'])->name('admin.reports.export');
 
         // website settings

@@ -109,36 +109,39 @@
 
         <div class="a-card">
             <div class="a-card-head">
-                <h5>Daily Breakdown</h5>
+                <h5>Sales Items</h5>
             </div>
             <div class="table-responsive">
                 <table class="table all-package theme-table">
                     <thead>
                         <tr>
                             <th>Date</th>
-                            <th class="a-table-num">Orders</th>
-                            <th class="a-table-num">Gross Sales</th>
-                            <th class="a-table-num">Discount</th>
-                            <th class="a-table-num">Shipping</th>
-                            <th class="a-table-num">Net Sales</th>
+                            <th>SKU No</th>
+                            <th>Item Name</th>
+                            <th class="a-table-num">Qty</th>
+                            <th class="a-table-num">Rate</th>
+                            <th class="a-table-num">Value</th>
+                            <th>Customer Name</th>
+                            <th>Number</th>
+                            <th>Address</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse ($rows as $row)
-                            @php
-                                $rowNet = (float) $row->gross - (float) $row->discount;
-                            @endphp
+                        @forelse ($items as $item)
                             <tr>
-                                <td class="a-cell-main">{{ $row->period }}</td>
-                                <td class="a-table-num">{{ $row->orders }}</td>
-                                <td class="a-table-num">৳ {{ number_format($row->gross, 2) }}</td>
-                                <td class="a-table-num">৳ {{ number_format($row->discount, 2) }}</td>
-                                <td class="a-table-num">৳ {{ number_format($row->shipping, 2) }}</td>
-                                <td class="a-table-num a-cell-main">৳ {{ number_format($rowNet, 2) }}</td>
+                                <td>{{ \Carbon\Carbon::parse($item->date)->format('d M Y') }}</td>
+                                <td>{{ $item->sku ?? '—' }}</td>
+                                <td class="a-cell-main">{{ $item->product ?? '—' }}</td>
+                                <td class="a-table-num">{{ number_format($item->qty) }}</td>
+                                <td class="a-table-num">৳ {{ number_format($item->price, 2) }}</td>
+                                <td class="a-table-num">৳ {{ number_format($item->value, 2) }}</td>
+                                <td>{{ $item->customer_name ?? '—' }}</td>
+                                <td>{{ $item->phone ?? '—' }}</td>
+                                <td>{{ $item->address ?? '—' }}</td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6">
+                                <td colspan="9">
                                     <div class="a-empty">
                                         <div class="a-empty-icon"><i class="ri-inbox-line"></i></div>
                                         <h5>No data found</h5>
@@ -148,20 +151,11 @@
                             </tr>
                         @endforelse
                     </tbody>
-                    @if ($rows->count())
-                        <tfoot>
-                            <tr>
-                                <th>Total</th>
-                                <th class="a-table-num">{{ number_format($summary['orders']) }}</th>
-                                <th class="a-table-num">৳ {{ number_format($summary['gross'], 2) }}</th>
-                                <th class="a-table-num">৳ {{ number_format($summary['discount'], 2) }}</th>
-                                <th class="a-table-num">৳ {{ number_format($summary['shipping'], 2) }}</th>
-                                <th class="a-table-num">৳ {{ number_format($summary['net'], 2) }}</th>
-                            </tr>
-                        </tfoot>
-                    @endif
                 </table>
             </div>
+            @if ($items->hasPages())
+                <div class="a-card-footer">{{ $items->links() }}</div>
+            @endif
         </div>
     </div>
 @endsection
