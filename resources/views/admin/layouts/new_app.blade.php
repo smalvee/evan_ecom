@@ -122,7 +122,7 @@
 
 
     <!-- Searchable selects (Select2) -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
+    <link rel="stylesheet" href="{{ asset('new-admin-assets/css/select2.min.css') }}">
 
 
 
@@ -270,7 +270,7 @@
     <script src="{{ asset('admin-assets/plugins/dropzone/min/dropzone.min.js') }}"></script>
     <script src="{{ asset('admin-assets/plugins/dropzone/dropzone.js') }}"></script>
     <script src="{{ asset('admin-assets/plugins/summernote/summernote-lite.min.js') }}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="{{ asset('new-admin-assets/js/select2.min.js') }}"></script>
     <script src="{{ asset('admin-assets/js/datetimepicker.js') }}"></script>
 
 
@@ -296,7 +296,8 @@
 
                 el.select2({
                     width: '100%',
-                    placeholder: placeholder || undefined
+                    placeholder: placeholder || undefined,
+                    minimumResultsForSearch: 0
                 });
             });
         };
