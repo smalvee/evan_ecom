@@ -5,10 +5,11 @@ namespace App\Exports;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithStrictNullComparison;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class ReportExport implements FromArray, WithHeadings, ShouldAutoSize, WithStyles
+class ReportExport implements FromArray, WithHeadings, ShouldAutoSize, WithStyles, WithStrictNullComparison
 {
     protected array $headings;
     protected array $rows;

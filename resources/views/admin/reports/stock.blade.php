@@ -17,17 +17,17 @@
             padding: 6px 6px !important;
         }
 
-        /* Eye-catching group headers (solid + white text) */
-        .stock-report-table .a-group-head.sec-opening { background: #6366f1 !important; color: #ffffff !important; }
-        .stock-report-table .a-group-head.sec-purchase { background: #10b981 !important; color: #ffffff !important; }
-        .stock-report-table .a-group-head.sec-sales { background: #f43f5e !important; color: #ffffff !important; }
-        .stock-report-table .a-group-head.sec-closing { background: #8b5cf6 !important; color: #ffffff !important; }
+        /* Group headers (dark, accessible) + light body tint */
+        .stock-report-table .a-group-head.sec-opening { background: #475569 !important; color: #ffffff !important; }
+        .stock-report-table .a-group-head.sec-purchase { background: #047857 !important; color: #ffffff !important; }
+        .stock-report-table .a-group-head.sec-sales { background: #B45309 !important; color: #ffffff !important; }
+        .stock-report-table .a-group-head.sec-closing { background: #4338CA !important; color: #ffffff !important; }
 
-        /* Section body tints (light background + colored text) */
-        .stock-report-table .sec-opening { background: #eef2ff !important; color: #4338ca; }
-        .stock-report-table .sec-purchase { background: #ecfdf5 !important; color: #047857; }
-        .stock-report-table .sec-sales { background: #fff1f2 !important; color: #be123c; }
-        .stock-report-table .sec-closing { background: #f5f3ff !important; color: #6d28d9; }
+        /* Section body tints (light background + readable dark text) */
+        .stock-report-table .sec-opening { background: #F1F5F9 !important; color: #334155; }
+        .stock-report-table .sec-purchase { background: #ECFDF5 !important; color: #065F46; }
+        .stock-report-table .sec-sales { background: #FFFBEB !important; color: #92400E; }
+        .stock-report-table .sec-closing { background: #EEF2FF !important; color: #3730A3; }
 
         /* Vertical divider between the four stock sections */
         .stock-report-table .sec-start {
@@ -41,9 +41,14 @@
         .stock-report-table th.a-table-num,
         .stock-report-table td.a-table-num {
             text-align: right !important;
-            padding: 2px 5px !important;
+            padding: 0 5px !important;
             font-size: 11px;
             white-space: nowrap;
+            line-height: 1.2;
+            width: 80px;
+            min-width: 80px;
+            max-width: 80px;
+            height: 40px;
         }
 
         /* Frozen first two columns */
@@ -78,6 +83,8 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            padding: 0 8px;
+            height: 40px;
         }
     </style>
     <div class="container-fluid">
@@ -112,7 +119,7 @@
             };
             $fmtMoney = function ($v) {
                 $v = round((float) $v, 2);
-                return '৳' . ($v == (int) $v ? number_format($v, 0) : number_format($v, 2));
+                return $v == (int) $v ? number_format($v, 0) : number_format($v, 2);
             };
         @endphp
 
@@ -187,6 +194,11 @@
             @if ($rows->hasPages())
                 <div class="a-card-footer">{{ $rows->links() }}</div>
             @endif
+            <div class="a-card-footer" style="font-size:12.5px; color: var(--a-muted);">
+                <i class="ri-information-line"></i>
+                Sales Rate/Value represent inventory cost (COGS), not selling price. Rates and values follow the
+                weighted-average-cost method, and closing quantity reconciles to current on-hand stock.
+            </div>
         </div>
     </div>
 @endsection

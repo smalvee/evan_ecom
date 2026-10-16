@@ -83,9 +83,9 @@
                 <a href="{{ $route }}" class="btn btn-outline-secondary"><i class="ri-refresh-line"></i> Reset</a>
 
                 @if ($exportReport)
-                    <div class="dropdown">
+                    <div class="dropdown" id="reportExportDropdown">
                         <button class="btn btn-outline-primary dropdown-toggle" type="button"
-                            data-bs-toggle="dropdown" aria-expanded="false">
+                            id="reportExportToggle" aria-expanded="false">
                             <i class="ri-download-2-line"></i> Export
                         </button>
                         <ul class="dropdown-menu">
@@ -112,3 +112,52 @@
         </form>
     </div>
 </div>
+
+<script>
+    (function () {
+        'use strict';
+
+        var wrap = document.getElementById('reportExportDropdown');
+        var toggle = document.getElementById('reportExportToggle');
+        if (!wrap || !toggle) return;
+
+        var menu = wrap.querySelector('.dropdown-menu');
+
+        function open() {
+            menu.classList.add('show');
+            wrap.classList.add('show');
+            toggle.classList.add('show');
+            toggle.setAttribute('aria-expanded', 'true');
+        }
+
+        function close() {
+            menu.classList.remove('show');
+            wrap.classList.remove('show');
+            toggle.classList.remove('show');
+            toggle.setAttribute('aria-expanded', 'false');
+        }
+
+        // Clicking the Export button toggles the dropdown open/closed.
+        toggle.addEventListener('click', function () {
+            if (menu.classList.contains('show')) {
+                close();
+            } else {
+                open();
+            }
+        });
+
+        // Clicking anywhere outside closes it.
+        document.addEventListener('click', function (e) {
+            if (!wrap.contains(e.target)) {
+                close();
+            }
+        });
+
+        // Selecting an option also closes it.
+        menu.addEventListener('click', function (e) {
+            if (e.target.closest('.dropdown-item')) {
+                close();
+            }
+        });
+    })();
+</script>

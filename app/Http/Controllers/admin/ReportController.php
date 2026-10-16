@@ -4,6 +4,7 @@ namespace App\Http\Controllers\admin;
 
 use App\Exports\ReportExport;
 use App\Exports\SalesReportExport;
+use App\Exports\StockReportExport;
 use App\Http\Controllers\Controller;
 use App\Models\Brand;
 use App\Models\Category;
@@ -429,6 +430,12 @@ class ReportController extends Controller
     public function export(Request $request, $report)
     {
         [$from, $to, $range] = $this->reports->resolveRange($request);
+
+        // The stock report has a dedicated, professionally formatted Excel export.
+        if ($report === 'stock' && $request->get('format') !== 'csv') {
+            return $this->exportStockXlsx($request, $from, $to);
+        }
+
         [$headings, $rows] = $this->buildExport($report, $request, $from, $to);
 
         $fileName = $report . '_report_' . now()->format('Y_m_d_His');
@@ -438,6 +445,33 @@ class ReportController extends Controller
         }
 
         return Excel::download(new ReportExport($headings, $rows), $fileName . '.xlsx');
+    }
+
+    /**
+     * Formatted Excel export for the Stock Report (two-level grouped header,
+     * section colours, number formats, frozen panes and autofilter).
+     */
+    protected function exportStockXlsx(Request $request, $from, $to)
+    {
+        $filters = [
+            'search' => $request->filled('search') ? $request->search : null,
+            'category' => $request->filled('category') ? $request->category : null,
+            'brand' => $request->filled('brand') ? $request->brand : null,
+        ];
+
+        $rows = $this->stockReport->rows($from, $to, $filters, 100000);
+
+        $meta = [
+            'range_label' => $this->reports->rangeLabel($from, $to, $request->get('range', 'all')),
+            'category' => $filters['category'] ? (Category::find($filters['category'])?->name ?? null) : null,
+            'brand' => $filters['brand'] ? (Brand::find($filters['brand'])?->name ?? null) : null,
+            'search' => $filters['search'],
+            'generated_at' => now()->format('d M Y, h:i A'),
+        ];
+
+        $fileName = 'stock_report_' . now()->format('Y_m_d_His') . '.xlsx';
+
+        return Excel::download(new StockReportExport($rows->items(), $meta), $fileName);
     }
 
     protected function buildExport($report, Request $request, $from, $to): array
@@ -569,14 +603,14 @@ class ReportController extends Controller
                 $data = collect($rows->items())->map(function ($v) {
                     $s = $v->stock;
                     return [
-                        $v->sku, $v->product,
+                        $this->csvSafe($v->sku), $this->csvSafe($v->product),
                         (float) $s['opening_qty'], (float) $s['opening_rate'], (float) $s['opening_value'],
                         (float) $s['purchase_qty'], (float) $s['purchase_rate'], (float) $s['purchase_value'],
                         (float) $s['sales_qty'], (float) $s['sales_rate'], (float) $s['sales_value'],
                         (float) $s['closing_qty'], (float) $s['closing_rate'], (float) $s['closing_value'],
                     ];
                 })->all();
-                return [['SKU No', 'SKU Name', 'Opening Qty', 'Opening Rate', 'Opening Value', 'Purchase Qty', 'Purchase Rate', 'Purchase Value', 'Sales Qty', 'Sales Rate', 'Sales Value', 'Closing Qty', 'Closing Rate', 'Closing Value'], $data];
+                return [['SKU No', 'SKU Name', 'Opening Qty', 'Opening Rate', 'Opening Value', 'Purchase Qty', 'Purchase Rate', 'Purchase Value', 'Sales Qty', 'Sales Rate', 'Sales Value (COGS)', 'Closing Qty', 'Closing Rate', 'Closing Value'], $data];
 
             default:
                 return [['Message'], [['Unknown report']]];
@@ -587,5 +621,19 @@ class ReportController extends Controller
     {
         // PDF export placeholder (no PDF dependency is installed in this project).
         return back();
+    }
+
+    /**
+     * Neutralise spreadsheet formula injection in user-controlled text.
+     */
+    protected function csvSafe($value): string
+    {
+        $value = (string) $value;
+
+        if ($value !== '' && in_array($value[0], ['=', '+', '-', '@', "\t", "\r"], true)) {
+            return "'" . $value;
+        }
+
+        return $value;
     }
 }
