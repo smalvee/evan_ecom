@@ -268,7 +268,6 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script src="{{ asset('admin-assets/plugins/dropzone/min/dropzone.min.js') }}"></script>
-    <script src="{{ asset('admin-assets/plugins/dropzone/dropzone.js') }}"></script>
     <script src="{{ asset('admin-assets/plugins/summernote/summernote-lite.min.js') }}"></script>
     <script src="{{ asset('new-admin-assets/js/select2.min.js') }}"></script>
     <script src="{{ asset('admin-assets/js/datetimepicker.js') }}"></script>

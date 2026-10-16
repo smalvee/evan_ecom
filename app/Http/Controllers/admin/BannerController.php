@@ -5,6 +5,7 @@ namespace App\Http\Controllers\admin;
 use App\Http\Controllers\Controller;
 use App\Models\BannerPhoto;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use App\Models\TempImage;
 
@@ -12,7 +13,7 @@ class BannerController extends Controller
 {
     public function index()
     {
-        $banners = BannerPhoto::get();
+        $banners = BannerPhoto::orderByDesc('id')->get();
 
         // dd($banner);
 
@@ -40,15 +41,15 @@ class BannerController extends Controller
         $extArray = explode('.', $tempImageInfo->name);
         $ext = last($extArray);
 
-        // create banner record
+        // create banner record (inactive by default — admin activates explicitly)
         $banner = new BannerPhoto();
         $banner->image = 'NULL';
+        $banner->status = 0;
         $banner->save();
 
         // generate final name
         $imageName = 'banner-' . $banner->id . '-' . time() . '.' . $ext;
         $banner->image = $imageName;
-        $banner->status = 1;
         $banner->save();
 
         // define paths
@@ -84,17 +85,31 @@ class BannerController extends Controller
     {
         $id = $request->input('id');
 
-        // Deactivate all banners first
-        BannerPhoto::query()->update(['status' => 0]);
+        return DB::transaction(function () use ($id) {
+            $banner = BannerPhoto::lockForUpdate()->find($id);
 
-        // Activate the selected banner if it exists
-        $banner = BannerPhoto::find($id);
-        if ($banner) {
+            if (!$banner) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Banner not found',
+                ], 404);
+            }
+
+            // Toggle off the banner that is currently active.
+            if ((int) $banner->status === 1) {
+                $banner->status = 0;
+                $banner->save();
+
+                return response()->json(['success' => true, 'active' => false]);
+            }
+
+            // Activate this banner — only one banner can be active at a time.
+            BannerPhoto::where('id', '!=', $banner->id)->update(['status' => 0]);
             $banner->status = 1;
             $banner->save();
-        }
 
-        return response()->json(['success' => true]);
+            return response()->json(['success' => true, 'active' => true]);
+        });
     }
 
     // app/Http/Controllers/BannerController.php
