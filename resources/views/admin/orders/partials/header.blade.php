@@ -12,6 +12,12 @@
         <a href="{{ route('orders.index') }}" class="btn btn-outline-secondary">
             <i class="ri-arrow-left-line"></i> Back to Orders
         </a>
+        @if ($courierSetting->is_active && !($courierShipment && $courierShipment->isActive()))
+            <button type="button" class="btn btn-theme js-send-courier"
+                {{ $order->status === 'confirm' ? '' : 'disabled' }}>
+                <i class="ri-send-plane-line"></i> Send to Courier
+            </button>
+        @endif
         <a href="{{ route('front.invoice', $order->order_id) }}" class="btn btn-theme">
             <i class="ri-file-list-3-line"></i> Invoice
         </a>

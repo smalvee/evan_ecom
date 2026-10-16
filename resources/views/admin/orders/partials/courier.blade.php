@@ -54,7 +54,7 @@
                     <div class="courier-meta-row"><span>COD</span><strong>৳
                             {{ number_format(CourierPricing::codAmount($order), 2) }}</strong></div>
                 </div>
-                <button type="button" class="btn btn-theme" id="courierSendBtn"
+                <button type="button" class="btn btn-theme js-send-courier" id="courierSendBtn"
                     {{ $sendDisabled ? 'disabled' : '' }}>
                     <i class="ri-send-plane-line"></i> Send to Courier
                 </button>
@@ -94,7 +94,7 @@
 
             <div class="d-flex flex-wrap gap-2 mt-3">
                 @if ($canSend)
-                    <button type="button" class="btn btn-theme btn-sm" id="courierSendBtn"
+                    <button type="button" class="btn btn-theme btn-sm js-send-courier" id="courierSendBtn"
                         {{ $sendDisabled ? 'disabled' : '' }}>
                         <i class="ri-send-plane-line"></i> Send to Courier
                     </button>

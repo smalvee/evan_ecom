@@ -52,6 +52,21 @@
             }
         }
 
+        /* ---------- Highlighted Order Status card ---------- */
+        .order-status-card {
+            border: 2px solid var(--a-primary);
+            box-shadow: 0 0 0 3px rgba(13, 164, 135, 0.12), 0 8px 24px rgba(13, 164, 135, 0.10);
+        }
+
+        .order-status-card .a-card-head {
+            background: var(--a-primary-soft);
+            border-bottom: 1px solid var(--a-primary-100, #cdeee6);
+        }
+
+        .order-status-card .a-card-head h5 {
+            color: var(--a-primary-700);
+        }
+
         /* ---------- Status timeline ---------- */
         .order-timeline {
             display: flex;

@@ -4,9 +4,9 @@
     $isCancelled = $order->status === 'cancell';
 @endphp
 
-<div class="a-card mb-3">
+<div class="a-card mb-3 order-status-card">
     <div class="a-card-head">
-        <h5>Order Status</h5>
+        <h5><i class="ri-timer-flash-line"></i> Order Status</h5>
         @if ($isCancelled)
             <span class="a-badge a-badge-secondary"><span class="dot"></span>Cancelled</span>
         @elseif ($order->status === 'pending')

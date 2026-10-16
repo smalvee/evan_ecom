@@ -123,8 +123,8 @@
         }
 
         /* ---------- Send to courier ---------- */
-        var sendBtn = document.getElementById('courierSendBtn');
-        if (sendBtn) {
+        var sendBtns = document.querySelectorAll('.js-send-courier');
+        sendBtns.forEach(function(sendBtn) {
             sendBtn.addEventListener('click', function() {
                 Swal.fire({
                     title: 'Send order to courier?',
@@ -147,7 +147,7 @@
                     });
                 });
             });
-        }
+        });
 
         /* ---------- Refresh status ---------- */
         var refreshBtn = document.getElementById('courierRefreshBtn');
