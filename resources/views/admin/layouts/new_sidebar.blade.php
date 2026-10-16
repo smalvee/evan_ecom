@@ -347,13 +347,6 @@
                     <li class="sidebar-list sidebar-group">
                         <span class="sidebar-group-label">Reports</span>
                     </li>
-                    <li class="sidebar-list {{ $active['reports_dashboard'] ? 'active' : '' }}">
-                        <a class="sidebar-link sidebar-title link-nav {{ $active['reports_dashboard'] ? 'active' : '' }}"
-                            href="{{ route('admin.reports.index') }}">
-                            <i class="ri-dashboard-3-line"></i>
-                            <span>Reports Dashboard</span>
-                        </a>
-                    </li>
                     <li class="sidebar-list {{ $active['reports_parent'] ? 'open active' : '' }}">
                         <a class="sidebar-link sidebar-title has-submenu {{ $active['reports_parent'] ? 'active' : '' }}"
                             href="javascript:void(0)">
@@ -366,48 +359,8 @@
                                     href="{{ route('sales.index') }}">Sales Report</a>
                             </li>
                             <li>
-                                <a class="{{ $active['reports_item_sales'] ? 'active' : '' }}"
-                                    href="{{ route('item_sales.index') }}">Product Sales</a>
-                            </li>
-                            <li>
-                                <a class="{{ $active['reports_product_performance'] ? 'active' : '' }}"
-                                    href="{{ route('admin.reports.product_performance') }}">Product Performance</a>
-                            </li>
-                            <li>
-                                <a class="{{ $active['reports_profit_loss'] ? 'active' : '' }}"
-                                    href="{{ route('admin.reports.profit_loss') }}">Profit &amp; Loss</a>
-                            </li>
-                            <li>
-                                <a class="{{ $active['reports_orders'] ? 'active' : '' }}"
-                                    href="{{ route('admin.reports.orders') }}">Order Report</a>
-                            </li>
-                            <li>
-                                <a class="{{ $active['reports_customers'] ? 'active' : '' }}"
-                                    href="{{ route('admin.reports.customers') }}">Customer Report</a>
-                            </li>
-                            <li>
-                                <a class="{{ $active['reports_payments'] ? 'active' : '' }}"
-                                    href="{{ route('admin.reports.payments') }}">Payment Report</a>
-                            </li>
-                            <li>
-                                <a class="{{ $active['reports_inventory'] ? 'active' : '' }}"
-                                    href="{{ route('admin.reports.inventory') }}">Inventory Report</a>
-                            </li>
-                            <li>
                                 <a class="{{ $active['reports_purchases'] ? 'active' : '' }}"
                                     href="{{ route('admin.reports.purchases') }}">Purchase Report</a>
-                            </li>
-                            <li>
-                                <a class="{{ $active['reports_purchase_returns'] ? 'active' : '' }}"
-                                    href="{{ route('admin.reports.purchase_returns') }}">Purchase Return</a>
-                            </li>
-                            <li>
-                                <a class="{{ $active['reports_coupons'] ? 'active' : '' }}"
-                                    href="{{ route('admin.reports.coupons') }}">Coupon Report</a>
-                            </li>
-                            <li>
-                                <a class="{{ $active['reports_shipping'] ? 'active' : '' }}"
-                                    href="{{ route('admin.reports.shipping') }}">Shipping Report</a>
                             </li>
                             <li>
                                 <a class="{{ $active['reports_stock'] ? 'active' : '' }}"
